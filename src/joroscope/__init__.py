@@ -15,6 +15,7 @@ from .core.engine import (
     AYAN
 )
 from .core.predictions import generate_comprehensive_predictions
+from .core.timeline import calculate_timeline_predictions
 
 __all__ = [
     '__version__',
@@ -25,5 +26,6 @@ __all__ = [
     'placement',
     'swe',
     'AYAN',
-    'generate_comprehensive_predictions'
+    'generate_comprehensive_predictions',
+    'calculate_timeline_predictions'
 ]

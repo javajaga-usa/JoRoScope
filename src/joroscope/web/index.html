@@ -523,29 +523,175 @@
         </div>
       </section>
 
-      <!-- VIEW 5: VIMSHOTTARI DASA -->
+      <!-- VIEW 5: VIMSHOTTARI DASA & TIMELINE PREDICTIONS -->
       <section id="page-dasha" class="app-page" hidden>
         <div class="page-intro">
           <div>
-            <span class="eyebrow" data-i18n="planetary_cycles">120-YEAR VIMSHOTTARI CYCLE</span>
-            <h1 data-i18n="vimshottari_dasa">Vimshottari Dasa Periods</h1>
-            <p class="muted" data-i18n="dasa_sub">Explore 3 levels: Maha Dasa, Antardasa (Bhukti), and Pratyantardasa. Highlighting currently running periods.</p>
+            <span class="eyebrow" data-i18n="planetary_cycles">120-YEAR VIMSHOTTARI CYCLE & LIFE TIMELINE</span>
+            <h1 data-i18n="vimshottari_dasa">Dasa-Bhukti Life Timeline & Forecasting</h1>
+            <p class="muted" data-i18n="dasa_sub">Chronological life forecasting across all 9 Maha Dasas & 81 Bhukti periods, mutual planetary alignments, and 10-year annual projections.</p>
           </div>
         </div>
 
-        <!-- Active Dasa Banner -->
-        <div class="cosmic-card active-dasa-hero" id="active-dasa-hero">
-          <div class="dasa-hero-content">
-            <small data-i18n="current_running_period">CURRENT ACTIVE PERIOD TODAY</small>
-            <h2 id="hero-dasa-names">—</h2>
-            <p id="hero-dasa-dates" class="muted">—</p>
-          </div>
-          <button class="action-btn" id="jump-active-dasa"><span>⚡</span> Jump to Active Dasa</button>
+        <!-- View Mode Switcher: Timeline Predictions vs Tabular Date Cycles -->
+        <div class="timeline-view-modes">
+          <button type="button" class="view-mode-btn active" id="btn-mode-timeline" data-mode="timeline">
+            <span>📅</span> <strong data-i18n="timeline_predictions_mode">Timeline Predictions</strong>
+          </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-cycles" data-mode="cycles">
+            <span>📑</span> <span data-i18n="tabular_cycles_mode">Tabular Date Cycles (3 Tiers)</span>
+          </button>
         </div>
 
-        <!-- 3-Tier Dasa Accordion -->
-        <div class="cosmic-card lower-space">
-          <div id="dasa-accordion" class="dasa-accordion"></div>
+        <!-- TIMELINE PREDICTIONS VIEW (Default) -->
+        <div id="dasa-timeline-view">
+          <!-- Active Period Spotlight Hero Card -->
+          <div class="cosmic-card timeline-spotlight-card" id="timeline-spotlight-card">
+            <div class="spotlight-top-row">
+              <div class="spotlight-badge-group">
+                <span class="pulse-dot"></span>
+                <span class="spotlight-live-pill" data-i18n="live_active_period">ACTIVE LIFE PERIOD TODAY</span>
+              </div>
+              <div class="spotlight-potency-badge" id="spotlight-potency-badge">★★★★☆ High Potency</div>
+            </div>
+
+            <div class="spotlight-headline-group">
+              <h2 id="spotlight-lords-title">—</h2>
+              <div class="spotlight-subtitle" id="spotlight-period-theme">—</div>
+            </div>
+
+            <div class="spotlight-meta-grid">
+              <div class="spotlight-meta-item">
+                <span class="meta-label" data-i18n="running_dates">DATES & SPAN</span>
+                <strong id="spotlight-dates">—</strong>
+              </div>
+              <div class="spotlight-meta-item">
+                <span class="meta-label" data-i18n="current_age">CURRENT AGE</span>
+                <strong id="spotlight-age">—</strong>
+              </div>
+              <div class="spotlight-meta-item">
+                <span class="meta-label" data-i18n="elapsed_time">DAYS ELAPSED</span>
+                <strong id="spotlight-elapsed">—</strong>
+              </div>
+              <div class="spotlight-meta-item">
+                <span class="meta-label" data-i18n="remaining_time">DAYS REMAINING</span>
+                <strong id="spotlight-remaining">—</strong>
+              </div>
+            </div>
+
+            <!-- Progress Track -->
+            <div class="spotlight-progress-wrap">
+              <div class="progress-bar-track">
+                <div class="progress-bar-fill" id="spotlight-progress-bar" style="width: 0%"></div>
+              </div>
+              <div class="progress-labels">
+                <span id="spotlight-progress-text">0% Complete</span>
+                <span id="spotlight-progress-sub">Calculated via Swiss Ephemeris Vimshottari Balance</span>
+              </div>
+            </div>
+
+            <!-- Strategic Advice & Primary Remedy Columns -->
+            <div class="spotlight-guidance-grid">
+              <div class="guidance-box advice">
+                <div class="guidance-box-header">
+                  <span>🧭</span> <strong data-i18n="strategic_focus">Period Focus & Strategy</strong>
+                </div>
+                <p id="spotlight-advice-text" class="guidance-text">—</p>
+              </div>
+              <div class="guidance-box remedy">
+                <div class="guidance-box-header">
+                  <span>🕉️</span> <strong data-i18n="primary_remedy">Prescribed Vedic Remedy & Mantra</strong>
+                </div>
+                <p id="spotlight-remedy-text" class="guidance-text">—</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Timeline Filters & Navigation Toolbar -->
+          <div class="timeline-toolbar cosmic-card">
+            <div class="timeline-filters-strip">
+              <button type="button" class="timeline-filter-btn active" data-tfilter="active">
+                <span>📍</span> <span data-i18n="filter_active">Active Today</span>
+              </button>
+              <button type="button" class="timeline-filter-btn" data-tfilter="next5">
+                <span>⏳</span> <span data-i18n="filter_next5">Next 5 Years</span>
+              </button>
+              <button type="button" class="timeline-filter-btn" data-tfilter="annual">
+                <span>⭐</span> <span data-i18n="filter_annual">Annual Milestones</span>
+              </button>
+              <button type="button" class="timeline-filter-btn" data-tfilter="all">
+                <span>📜</span> <span data-i18n="filter_all">Full Life (81 Periods)</span>
+              </button>
+              <button type="button" class="timeline-filter-btn" data-tfilter="auspicious">
+                <span>🌟</span> <span data-i18n="filter_auspicious">Auspicious (3+ ★)</span>
+              </button>
+              <button type="button" class="timeline-filter-btn" data-tfilter="caution">
+                <span>⚠️</span> <span data-i18n="filter_caution">Caution Periods</span>
+              </button>
+            </div>
+
+            <div class="timeline-secondary-controls">
+              <div class="timeline-select-group">
+                <label for="timeline-planet-select" data-i18n="filter_by_lord">Maha Dasa Lord:</label>
+                <select id="timeline-planet-select" aria-label="Filter by Maha Dasa Lord">
+                  <option value="all">🪐 All 9 Maha Dasas</option>
+                  <option value="Sun">☀️ Sun (சூரியன்)</option>
+                  <option value="Moon">🌙 Moon (சந்திரன்)</option>
+                  <option value="Mars">♂️ Mars (செவ்வாய்)</option>
+                  <option value="Rahu">☊ Rahu (ராகு)</option>
+                  <option value="Jupiter">♃ Jupiter (குரு)</option>
+                  <option value="Saturn">♄ Saturn (சனி)</option>
+                  <option value="Mercury">☿ Mercury (புதன்)</option>
+                  <option value="Ketu">☋ Ketu (கேது)</option>
+                  <option value="Venus">♀️ Venus (சுக்கிரன்)</option>
+                </select>
+              </div>
+
+              <div class="timeline-jump-group">
+                <input type="number" id="timeline-jump-year" placeholder="Jump Year (e.g. 2026)" min="1900" max="2120" aria-label="Jump to specific calendar year">
+                <button type="button" class="action-btn small-btn" id="timeline-jump-btn" title="Jump to year">
+                  <span>🔍</span> <span data-i18n="jump">Go</span>
+                </button>
+              </div>
+
+              <span class="pill-badge" id="timeline-count-badge">Showing 1 Period</span>
+            </div>
+          </div>
+
+          <!-- Section: 10-Year Annual Milestones Projections -->
+          <div class="cosmic-card lower-space" id="annual-milestones-section">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="annual_projections_title">10-Year Rolling Annual Projections</h2>
+                <p class="card-subtitle" data-i18n="annual_projections_sub">Milestones and astrological favorability score for current era</p>
+              </div>
+              <span class="pill-badge">Year-by-Year Forecast</span>
+            </div>
+            <div class="annual-grid" id="annual-projections-grid"></div>
+          </div>
+
+          <!-- Section: Chronological Dasa-Bhukti Cards Stream -->
+          <div class="timeline-stream-wrapper lower-space">
+            <div class="timeline-stream" id="timeline-periods-stream"></div>
+          </div>
+        </div>
+
+        <!-- TABULAR CYCLES VIEW (Classical 3-Tier View) -->
+        <div id="dasa-tabular-view" hidden>
+          <!-- Active Dasa Banner -->
+          <div class="cosmic-card active-dasa-hero" id="active-dasa-hero">
+            <div class="dasa-hero-content">
+              <small data-i18n="current_running_period">CURRENT ACTIVE PERIOD TODAY</small>
+              <h2 id="hero-dasa-names">—</h2>
+              <p id="hero-dasa-dates" class="muted">—</p>
+            </div>
+            <button type="button" class="action-btn" id="jump-active-dasa"><span>⚡</span> Jump to Active Dasa</button>
+          </div>
+
+          <!-- 3-Tier Dasa Accordion -->
+          <div class="cosmic-card lower-space">
+            <div id="dasa-accordion" class="dasa-accordion"></div>
+          </div>
         </div>
       </section>
 
@@ -661,6 +807,9 @@
               <h2 id="pred-dasa-active-title">—</h2>
               <p id="pred-dasa-active-desc" class="reading-body" style="margin-top:10px"></p>
             </div>
+            <button type="button" class="action-btn" id="btn-jump-to-timeline" style="margin-top:14px">
+              <span>📅</span> <span data-i18n="open_timeline_studio">Open Interactive 81-Period Timeline Studio →</span>
+            </button>
           </div>
           <div class="cosmic-card">
             <div class="card-header">

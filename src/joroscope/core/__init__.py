@@ -24,6 +24,7 @@ from .predictions import (
     calculate_nakshatra_pada_reading,
     calculate_sahams
 )
+from .timeline import calculate_timeline_predictions
 
 __all__ = [
     'calculate',
@@ -45,5 +46,6 @@ __all__ = [
     'calculate_bhrigu_nandi_nadi',
     'calculate_planetary_avasthas',
     'calculate_nakshatra_pada_reading',
-    'calculate_sahams'
+    'calculate_sahams',
+    'calculate_timeline_predictions'
 ]

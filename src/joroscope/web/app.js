@@ -64,6 +64,10 @@ let currentStyle = 'south';
 let currentLang = 'en';
 let currentTheme = 'dark';
 let citiesList = [];
+let currentDasaMode = 'timeline';
+let currentTimelineFilter = 'active';
+let currentTimelinePlanet = 'all';
+let timelineSearchYear = null;
 const STORAGE_KEY = 'joroscope_profiles_v2';
 const LEGACY_STORAGE_KEY = 'astrology-reborn-profiles-v1';
 
@@ -214,7 +218,27 @@ const I18N = {
     new_person: 'New Person',
     clear_all: 'Clear All',
     load_saved_profile: 'Select Saved Person',
-    quick_load_person: '👤 -- Quick Load Person --'
+    quick_load_person: '👤 -- Quick Load Person --',
+    timeline_predictions_mode: 'Timeline Predictions',
+    tabular_cycles_mode: 'Tabular Date Cycles (3 Tiers)',
+    live_active_period: 'ACTIVE LIFE PERIOD TODAY',
+    running_dates: 'DATES & SPAN',
+    current_age: 'CURRENT AGE',
+    elapsed_time: 'DAYS ELAPSED',
+    remaining_time: 'DAYS REMAINING',
+    strategic_focus: 'Period Focus & Strategy',
+    primary_remedy: 'Prescribed Vedic Remedy & Mantra',
+    filter_active: 'Active Today',
+    filter_next5: 'Next 5 Years',
+    filter_annual: 'Annual Milestones',
+    filter_all: 'Full Life (81 Periods)',
+    filter_auspicious: 'Auspicious (3+ ★)',
+    filter_caution: 'Caution Periods',
+    filter_by_lord: 'Maha Dasa Lord:',
+    jump: 'Go',
+    annual_projections_title: '10-Year Rolling Annual Projections',
+    annual_projections_sub: 'Milestones and astrological favorability score for current era',
+    open_timeline_studio: 'Open Interactive 81-Period Timeline Studio →'
   },
   ta: {
     workspace: 'பணிப் பகுதி',
@@ -222,7 +246,7 @@ const I18N = {
     planets_strengths: 'கிரக பலம் & ஆதிபத்தியம்',
     ashtakavarga: 'அஷ்டகவர்க்கம்',
     yogas_doshas: 'யோகங்கள் & தோஷங்கள்',
-    vimshottari_dasa: 'விம்சோத்தரி தசை',
+    vimshottari_dasa: 'விம்சோத்தரி தசை & காலவரிசை பலன்கள்',
     life_readings: 'வாழ்க்கைப் பலன்கள்',
     matching: 'திருமணப் பொருத்தம்',
     daily_panchangam: 'தினசரி பஞ்சாங்கம்',
@@ -291,7 +315,27 @@ const I18N = {
     new_person: 'புதிய நபர்',
     clear_all: 'அனைத்தும் நீக்கு',
     load_saved_profile: 'சேமிக்கப்பட்ட நபர்',
-    quick_load_person: '👤 -- நபரைத் தேர்வு செய்க --'
+    quick_load_person: '👤 -- நபரைத் தேர்வு செய்க --',
+    timeline_predictions_mode: 'காலவரிசை பலன்கள் (Timeline)',
+    tabular_cycles_mode: 'அட்டவணை சுழற்சிகள் (3 அடுக்குகள்)',
+    live_active_period: 'இன்று இயங்கும் தசா-புக்தி பலன்',
+    running_dates: 'காலம் & தேதிகள்',
+    current_age: 'தற்போதைய வயது',
+    elapsed_time: 'கடந்த நாட்கள்',
+    remaining_time: 'மீதமுள்ள நாட்கள்',
+    strategic_focus: 'இக்காலத்திற்கான முக்கிய வழிகாட்டல்',
+    primary_remedy: 'பரிகாரம் & வழிபட வேண்டிய தெய்வம்',
+    filter_active: 'இன்றைய புக்தி',
+    filter_next5: 'அடுத்த 5 ஆண்டுகள்',
+    filter_annual: 'வருடாந்திர மைல்கற்கள்',
+    filter_all: 'முழு வாழ்க்கை (81 காலங்கள்)',
+    filter_auspicious: 'சுப காலங்கள் (3+ ★)',
+    filter_caution: 'கவனக் காலங்கள்',
+    filter_by_lord: 'மகா தசா நாதன்:',
+    jump: 'செல்க',
+    annual_projections_title: '10 ஆண்டுக்கான வருடாந்திர மைல்கல் பலன்கள்',
+    annual_projections_sub: 'ஒவ்வொரு ஆண்டின் வயது, இயங்கும் தசை மற்றும் சாதக சுட்டெண்',
+    open_timeline_studio: '81 தசா-புக்தி காலவரிசை ஸ்டுடியோவைக் காண்க →'
   }
 };
 
@@ -385,6 +429,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Timeline View Mode Switcher (Timeline Predictions vs Tabular Date Cycles)
+  $('#btn-mode-timeline')?.addEventListener('click', () => setDasaViewMode('timeline'));
+  $('#btn-mode-cycles')?.addEventListener('click', () => setDasaViewMode('cycles'));
+
+  // Timeline Filter Buttons
+  $$('.timeline-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('.timeline-filter-btn').forEach(b => b.classList.toggle('active', b === btn));
+      currentTimelineFilter = btn.dataset.tfilter;
+      renderDasaTimelineView();
+    });
+  });
+
+  // Timeline Planet Selector
+  $('#timeline-planet-select')?.addEventListener('change', e => {
+    currentTimelinePlanet = e.target.value;
+    renderDasaTimelineView();
+  });
+
+  // Timeline Year Jump
+  $('#timeline-jump-btn')?.addEventListener('click', handleTimelineYearJump);
+  $('#timeline-jump-year')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') handleTimelineYearJump();
+  });
+
+  // Jump to Timeline Studio from Predictions tab
+  $('#btn-jump-to-timeline')?.addEventListener('click', () => {
+    navigatePage('dasha');
+    setDasaViewMode('timeline');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
   // Prediction Chapters Tab Switcher
   $$('.pred-tab').forEach(btn => {
     btn.addEventListener('click', () => switchPredictionTab(btn.dataset.ptab));
@@ -438,6 +514,7 @@ function toggleLanguage() {
     renderQuickStats();
     renderAshtakavarga();
     renderLifeReadings();
+    renderDasaTimelineView();
   }
   populateQuickProfileDropdown();
   renderProfilesList();
@@ -584,6 +661,7 @@ async function handleFormSubmit(e) {
     renderAshtakavarga();
     renderYogasAndDoshas();
     renderDashaAccordion();
+    renderDasaTimelineView();
     renderLifeReadings();
     populatePanchangamView(result.panchanga);
 
@@ -1074,6 +1152,269 @@ function renderDashaAccordion() {
     `;
     details.append(table);
     container.append(details);
+  });
+}
+
+// Dasa View Switcher & Timeline Predictions Engine
+function setDasaViewMode(mode) {
+  currentDasaMode = mode;
+  $('#btn-mode-timeline')?.classList.toggle('active', mode === 'timeline');
+  $('#btn-mode-cycles')?.classList.toggle('active', mode === 'cycles');
+  const tView = $('#dasa-timeline-view');
+  const cView = $('#dasa-tabular-view');
+  if (tView) tView.hidden = (mode !== 'timeline');
+  if (cView) cView.hidden = (mode !== 'cycles');
+}
+
+function handleTimelineYearJump() {
+  const yrVal = parseInt($('#timeline-jump-year')?.value, 10);
+  if (!yrVal || isNaN(yrVal)) {
+    timelineSearchYear = null;
+  } else {
+    timelineSearchYear = yrVal;
+    currentTimelineFilter = 'all';
+    $$('.timeline-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.tfilter === 'all'));
+  }
+  renderDasaTimelineView();
+}
+
+function renderDasaTimelineView() {
+  if (!currentChart || !currentChart.predictions) return;
+  const tp = currentChart.predictions.timeline_predictions;
+  if (!tp) return;
+  const isTa = currentLang === 'ta';
+
+  // 1. Active Period Spotlight Card
+  const sp = tp.active_spotlight;
+  const spotCard = $('#timeline-spotlight-card');
+  if (sp && spotCard) {
+    const dLordName = isTa ? (sp.dasa_lord_ta || sp.dasa_lord) : sp.dasa_lord;
+    const bLordName = isTa ? (sp.bhukti_lord_ta || sp.bhukti_lord) : sp.bhukti_lord;
+
+    $('#spotlight-lords-title').textContent = isTa
+      ? `${dLordName} மகா தசை — ${bLordName} புக்தி`
+      : `${dLordName} Maha Dasa — ${bLordName} Bhukti`;
+
+    $('#spotlight-period-theme').textContent = isTa ? (sp.title_ta || sp.strategic_advice_ta) : (sp.title_en || sp.strategic_advice_en);
+    $('#spotlight-dates').textContent = `${sp.start_date} → ${sp.end_date}`;
+    $('#spotlight-age').textContent = `${sp.age} ${isTa ? 'வயது' : 'Years'}`;
+    $('#spotlight-elapsed').textContent = `${sp.elapsed_days} ${isTa ? 'நாட்கள்' : 'Days'}`;
+    $('#spotlight-remaining').textContent = `${sp.remaining_days} ${isTa ? 'நாட்கள்' : 'Days'}`;
+
+    const starIcons = '★'.repeat(sp.potency) + '☆'.repeat(Math.max(0, 5 - sp.potency));
+    const potencyBadge = $('#spotlight-potency-badge');
+    if (potencyBadge) {
+      potencyBadge.textContent = `${starIcons} ${sp.potency >= 4 ? (isTa ? 'அதி உத்தமம்' : 'High Potency') : (sp.potency >= 3 ? (isTa ? 'மத்திமம்' : 'Moderate') : (isTa ? 'கவனம் தேவை' : 'Caution Required'))}`;
+    }
+
+    const progBar = $('#spotlight-progress-bar');
+    if (progBar) progBar.style.width = `${sp.percent}%`;
+    const progText = $('#spotlight-progress-text');
+    if (progText) {
+      progText.textContent = isTa
+        ? `${sp.percent}% காலம் முடிவடைந்தது (${sp.elapsed_days} நாட்கள் நிறைவு · ${sp.remaining_days} நாட்கள் மீதம்)`
+        : `${sp.percent}% Elapsed (${sp.elapsed_days} days passed · ${sp.remaining_days} days remaining)`;
+    }
+
+    $('#spotlight-advice-text').textContent = isTa ? sp.strategic_advice_ta : sp.strategic_advice_en;
+    $('#spotlight-remedy-text').textContent = isTa ? sp.primary_remedy_ta : sp.primary_remedy_en;
+  }
+
+  // 2. 10-Year Annual Projections Grid
+  const annualGrid = $('#annual-projections-grid');
+  const annualSec = $('#annual-milestones-section');
+  if (annualGrid && tp.annual_projections) {
+    annualGrid.replaceChildren();
+    tp.annual_projections.forEach(ap => {
+      const aCard = document.createElement('div');
+      aCard.className = `annual-card ${ap.is_current_year ? 'current-year' : ''}`;
+
+      const dStr = isTa ? (ap.dasa_lord_ta || ap.dasa_lord) : ap.dasa_lord;
+      const bStr = isTa ? (ap.bhukti_lord_ta || ap.bhukti_lord) : ap.bhukti_lord;
+      const theme = isTa ? ap.theme_ta : ap.theme_en;
+
+      aCard.innerHTML = `
+        <div class="annual-card-top">
+          <span class="annual-year-badge">${ap.icon} ${ap.year}</span>
+          <span class="annual-age-pill">${isTa ? 'வயது' : 'Age'} ${ap.age}</span>
+        </div>
+        <div class="annual-lords">${esc(dStr)} / ${esc(bStr)}</div>
+        <p class="annual-theme-text">${esc(theme)}</p>
+        <div class="annual-score-wrap">
+          <span>${isTa ? 'சுப பலம்' : 'Astro Score'}: ${ap.score}/100</span>
+          <div class="annual-score-bar-track">
+            <div class="annual-score-bar-fill" style="width: ${ap.score}%"></div>
+          </div>
+        </div>
+      `;
+      annualGrid.append(aCard);
+    });
+  }
+
+  if (annualSec) {
+    annualSec.hidden = (currentTimelineFilter !== 'annual' && currentTimelineFilter !== 'all');
+  }
+
+  // 3. Chronological Periods Stream Filtered
+  renderTimelineStream(tp.periods, isTa);
+}
+
+function renderTimelineStream(periods, isTa) {
+  const container = $('#timeline-periods-stream');
+  if (!container) return;
+  container.replaceChildren();
+
+  if (!periods || !periods.length) {
+    container.innerHTML = `<p class="muted">${isTa ? 'காலவரிசை விவரங்கள் கிடைக்கவில்லை.' : 'No timeline periods available.'}</p>`;
+    return;
+  }
+
+  const nowYear = new Date().getFullYear();
+
+  const filtered = periods.filter(p => {
+    // Planet filter
+    if (currentTimelinePlanet !== 'all') {
+      if (p.dasa_lord.toLowerCase() !== currentTimelinePlanet.toLowerCase()) {
+        return false;
+      }
+    }
+
+    // Specific Year Search filter
+    if (timelineSearchYear !== null) {
+      try {
+        const sYr = parseInt(p.start_date.slice(0, 4), 10);
+        const eYr = parseInt(p.end_date.slice(0, 4), 10);
+        if (timelineSearchYear < sYr || timelineSearchYear > eYr) {
+          return false;
+        }
+      } catch (e) {
+        return false;
+      }
+    }
+
+    // Category button filter
+    if (currentTimelineFilter === 'active') {
+      return p.is_active;
+    } else if (currentTimelineFilter === 'next5') {
+      try {
+        const sYr = parseInt(p.start_date.slice(0, 4), 10);
+        const eYr = parseInt(p.end_date.slice(0, 4), 10);
+        return p.is_active || (p.is_future && sYr <= nowYear + 5);
+      } catch (e) {
+        return p.is_active;
+      }
+    } else if (currentTimelineFilter === 'annual') {
+      return false; // Annual view displays the annual grid prominently
+    } else if (currentTimelineFilter === 'auspicious') {
+      return p.potency >= 3;
+    } else if (currentTimelineFilter === 'caution') {
+      return p.potency <= 2;
+    }
+
+    return true; // 'all'
+  });
+
+  const countBadge = $('#timeline-count-badge');
+  if (countBadge) {
+    countBadge.textContent = isTa
+      ? `${filtered.length} / ${periods.length} காலங்கள்`
+      : `Showing ${filtered.length} of ${periods.length} Periods`;
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div class="cosmic-card" style="text-align:center;padding:30px;"><p class="muted">${isTa ? 'தேர்ந்தெடுக்கப்பட்ட வடிகட்டியில் காலங்கள் எதுவும் அமையவில்லை.' : 'No periods matched the selected filter criteria.'}</p></div>`;
+    return;
+  }
+
+  filtered.forEach(p => {
+    const card = document.createElement('div');
+    card.className = `timeline-card ${p.is_active ? 'active-period' : (p.is_past ? 'past-period' : '')}`;
+
+    const dLordStr = isTa ? (p.dasa_lord_ta || p.dasa_lord) : p.dasa_lord;
+    const bLordStr = isTa ? (p.bhukti_lord_ta || p.bhukti_lord) : p.bhukti_lord;
+    const titleStr = isTa ? (p.title_ta || p.theme_ta) : (p.title_en || p.theme_en);
+    const themeStr = isTa ? p.theme_ta : p.theme_en;
+
+    let statusLabel = '';
+    if (p.is_active) {
+      statusLabel = `<span class="status-pill success">${isTa ? '🔴 நடைமுறையில் உள்ள காலம்' : '🔴 LIVE ACTIVE'}</span>`;
+    } else if (p.is_future) {
+      statusLabel = `<span class="status-pill info">${isTa ? 'எதிர்காலம்' : 'UPCOMING'}</span>`;
+    } else {
+      statusLabel = `<span class="status-pill neutral">${isTa ? 'முடிந்த காலம்' : 'PAST'}</span>`;
+    }
+
+    const starIcons = '★'.repeat(p.potency) + '☆'.repeat(Math.max(0, 5 - p.potency));
+
+    card.innerHTML = `
+      <div class="timeline-card-header">
+        <div class="timeline-title-wrap">
+          <h3>
+            <span>${esc(dLordStr)} — ${esc(bLordStr)}</span>
+            ${statusLabel}
+          </h3>
+          <div class="timeline-timing-pill">
+            📅 ${p.start_date} → ${p.end_date} · <strong>${isTa ? 'வயது' : 'Age'} ${p.age_start} – ${p.age_end}</strong> (${p.duration_months} ${isTa ? 'மாதங்கள்' : 'months'})
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline-badges-row">
+        <span class="mutual-badge ${p.mutual_class}">${esc(isTa ? (p.mutual_rel_ta || p.mutual_rel) : p.mutual_rel)}</span>
+        <span class="potency-pill">${starIcons} (${isTa ? (p.potency >= 4 ? 'உத்தமம்' : (p.potency >= 3 ? 'மத்திமம்' : 'எச்சரிக்கை')) : (p.potency >= 4 ? 'Favorable' : (p.potency >= 3 ? 'Moderate' : 'Caution'))})</span>
+      </div>
+
+      <div class="timeline-theme-narrative">
+        <strong>${esc(titleStr)}:</strong> ${esc(themeStr)}
+      </div>
+
+      <button type="button" class="timeline-details-toggle">
+        <span>▶</span> <span>${isTa ? 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)' : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)'}</span>
+      </button>
+
+      <div class="timeline-details-panel" hidden>
+        <div class="timeline-dim-card">
+          <h4>💼 ${isTa ? 'தொழில் & உத்தியோகம்' : 'Career & Profession'}</h4>
+          <p>${esc(isTa ? p.career_ta : p.career_en)}</p>
+        </div>
+        <div class="timeline-dim-card">
+          <h4>💰 ${isTa ? 'தனம் & முதலீடு' : 'Wealth & Assets'}</h4>
+          <p>${esc(isTa ? p.wealth_ta : p.wealth_en)}</p>
+        </div>
+        <div class="timeline-dim-card">
+          <h4>🌿 ${isTa ? 'உடல்நலம் & உணவு' : 'Health & Vitality'}</h4>
+          <p>${esc(isTa ? p.health_ta : p.health_en)}</p>
+        </div>
+        <div class="timeline-dim-card">
+          <h4>🏡 ${isTa ? 'குடும்பம் & இல்லறம்' : 'Family & Relationships'}</h4>
+          <p>${esc(isTa ? p.family_ta : p.family_en)}</p>
+        </div>
+        <div class="timeline-dim-card">
+          <h4>🎯 ${isTa ? 'முக்கிய மைல்கல்' : 'Key Milestones'}</h4>
+          <p>${esc(isTa ? p.milestones_ta : p.milestones_en)}</p>
+        </div>
+        <div class="timeline-dim-card">
+          <h4>🕉️ ${isTa ? 'வேத பரிகாரம் & வழிபாடு' : 'Remedy & Mantra'}</h4>
+          <p>${esc(isTa ? p.remedy_ta : p.remedy_en)}</p>
+        </div>
+      </div>
+    `;
+
+    const toggleBtn = card.querySelector('.timeline-details-toggle');
+    const panel = card.querySelector('.timeline-details-panel');
+    if (toggleBtn && panel) {
+      toggleBtn.addEventListener('click', () => {
+        const isClosed = panel.hidden;
+        panel.hidden = !isClosed;
+        toggleBtn.querySelector('span:first-child').textContent = isClosed ? '▼' : '▶';
+      });
+      if (p.is_active) {
+        panel.hidden = false;
+        toggleBtn.querySelector('span:first-child').textContent = '▼';
+      }
+    }
+
+    container.append(card);
   });
 }
 

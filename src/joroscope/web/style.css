@@ -2038,7 +2038,602 @@ input:focus, select:focus {
   .sav-signs-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
 
+/* ==========================================================================
+   TIMELINE PREDICTIONS & ANNUAL PROJECTIONS STYLES
+   ========================================================================== */
+
+.timeline-view-modes {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  background: rgba(18, 22, 34, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  padding: 6px;
+  width: fit-content;
+}
+
+.view-mode-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.view-mode-btn:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.view-mode-btn.active {
+  background: linear-gradient(135deg, rgba(229, 195, 120, 0.22), rgba(212, 168, 83, 0.08));
+  border-color: var(--gold);
+  color: var(--gold);
+  box-shadow: 0 2px 14px rgba(229, 195, 120, 0.2);
+}
+
+/* Active Timeline Spotlight Card */
+.timeline-spotlight-card {
+  background: linear-gradient(145deg, rgba(26, 31, 48, 0.85), rgba(15, 18, 28, 0.95));
+  border: 1px solid rgba(229, 195, 120, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 26px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.45), 0 0 30px rgba(229, 195, 120, 0.08);
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.timeline-spotlight-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2ecc71, #f39c12, #e5c378, #3498db);
+}
+
+.spotlight-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.spotlight-badge-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2ecc71;
+  box-shadow: 0 0 10px #2ecc71;
+  animation: pulse-dot-anim 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-dot-anim {
+  0% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #2ecc71; }
+  50% { transform: scale(1.25); opacity: 1; box-shadow: 0 0 14px #2ecc71; }
+  100% { transform: scale(0.9); opacity: 0.7; box-shadow: 0 0 4px #2ecc71; }
+}
+
+.spotlight-live-pill {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #2ecc71;
+  text-transform: uppercase;
+}
+
+.spotlight-potency-badge {
+  background: rgba(229, 195, 120, 0.15);
+  border: 1px solid rgba(229, 195, 120, 0.35);
+  color: var(--gold);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+
+.spotlight-headline-group h2 {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--gold);
+  margin: 0 0 6px 0;
+  line-height: 1.25;
+}
+
+.spotlight-subtitle {
+  font-size: 15px;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.spotlight-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.spotlight-meta-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.spotlight-meta-item .meta-label {
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.spotlight-meta-item strong {
+  font-size: 14.5px;
+  color: var(--text-main);
+}
+
+.spotlight-progress-wrap {
+  margin-bottom: 22px;
+}
+
+.progress-bar-track {
+  height: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2ecc71, #f1c40f, #e5c378);
+  border-radius: 6px;
+  transition: width 0.8s ease;
+  box-shadow: 0 0 12px rgba(46, 204, 113, 0.6);
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.spotlight-guidance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.guidance-box {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guidance-box.advice {
+  border-left: 3px solid #3498db;
+}
+
+.guidance-box.remedy {
+  border-left: 3px solid var(--gold);
+}
+
+.guidance-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--gold);
+}
+
+.guidance-text {
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-main);
+  margin: 0;
+}
+
+/* Timeline Filter & Controls Toolbar */
+.timeline-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 22px;
+  margin-bottom: 24px;
+}
+
+.timeline-filters-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.timeline-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.timeline-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.timeline-filter-btn.active {
+  background: rgba(229, 195, 120, 0.18);
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 600;
+  box-shadow: 0 2px 10px rgba(229, 195, 120, 0.15);
+}
+
+.timeline-secondary-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 14px;
+}
+
+.timeline-select-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.timeline-select-group select {
+  padding: 6px 12px;
+  background: rgba(18, 22, 34, 0.8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.timeline-jump-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-jump-group input {
+  width: 130px;
+  padding: 6px 10px;
+  background: rgba(18, 22, 34, 0.8);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  color: var(--text-main);
+  font-size: 13px;
+}
+
+/* Annual Projections Grid */
+.annual-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.annual-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: var(--transition-smooth);
+}
+
+.annual-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(229, 195, 120, 0.3);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.3);
+}
+
+.annual-card.current-year {
+  background: linear-gradient(135deg, rgba(229, 195, 120, 0.12), rgba(26, 31, 48, 0.9));
+  border: 1.5px solid var(--gold);
+  box-shadow: 0 0 20px rgba(229, 195, 120, 0.18);
+}
+
+.annual-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.annual-year-badge {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gold);
+}
+
+.annual-age-pill {
+  font-size: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 8px;
+  border-radius: 12px;
+  color: var(--text-muted);
+}
+
+.annual-lords {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.annual-theme-text {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-muted);
+  min-height: 48px;
+}
+
+.annual-score-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.annual-score-bar-track {
+  flex: 1;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.annual-score-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2ecc71);
+  border-radius: 3px;
+}
+
+/* Chronological Timeline Stream & Period Cards */
+.timeline-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.timeline-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 22px;
+  transition: var(--transition-smooth);
+  position: relative;
+}
+
+.timeline-card:hover {
+  border-color: rgba(229, 195, 120, 0.35);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-card.active-period {
+  border: 1.5px solid #2ecc71;
+  background: linear-gradient(145deg, rgba(46, 204, 113, 0.05), var(--bg-card));
+  box-shadow: 0 0 25px rgba(46, 204, 113, 0.12);
+}
+
+.timeline-card.past-period {
+  opacity: 0.82;
+}
+
+.timeline-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.timeline-title-wrap h3 {
+  font-family: var(--font-serif);
+  font-size: 18px;
+  color: var(--gold);
+  margin: 0 0 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.timeline-timing-pill {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.timeline-badges-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mutual-badge {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.mutual-badge.trine {
+  background: rgba(46, 204, 113, 0.12);
+  border-color: rgba(46, 204, 113, 0.35);
+  color: #2ecc71;
+}
+
+.mutual-badge.kendra {
+  background: rgba(52, 152, 219, 0.12);
+  border-color: rgba(52, 152, 219, 0.35);
+  color: #3498db;
+}
+
+.mutual-badge.growth {
+  background: rgba(155, 89, 182, 0.12);
+  border-color: rgba(155, 89, 182, 0.35);
+  color: #9b59b6;
+}
+
+.mutual-badge.friction {
+  background: rgba(231, 76, 60, 0.12);
+  border-color: rgba(231, 76, 60, 0.35);
+  color: #e74c3c;
+}
+
+.mutual-badge.transition {
+  background: rgba(243, 156, 18, 0.12);
+  border-color: rgba(243, 156, 18, 0.35);
+  color: #f39c12;
+}
+
+.potency-pill {
+  font-size: 12px;
+  color: var(--gold);
+  background: rgba(229, 195, 120, 0.1);
+  border: 1px solid rgba(229, 195, 120, 0.25);
+  padding: 3px 8px;
+  border-radius: 12px;
+}
+
+.timeline-theme-narrative {
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin-bottom: 16px;
+}
+
+.timeline-details-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: var(--radius-sm);
+  color: var(--gold);
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.timeline-details-toggle:hover {
+  background: rgba(229, 195, 120, 0.12);
+  border-color: var(--gold);
+}
+
+.timeline-details-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.timeline-dim-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.timeline-dim-card h4 {
+  font-size: 12.5px;
+  color: var(--gold);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-dim-card p {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .timeline-view-modes {
+    width: 100%;
+    justify-content: center;
+  }
+  .view-mode-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+  .spotlight-headline-group h2 {
+    font-size: 20px;
+  }
+  .spotlight-meta-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .timeline-toolbar {
+    padding: 14px;
+  }
 }
 
 /* Print Stylesheet for High-Quality PDF Reports */

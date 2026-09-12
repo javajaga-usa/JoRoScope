@@ -19,6 +19,11 @@ try:
 except ImportError:
     swe = None
 
+try:
+    from .timeline import calculate_timeline_predictions
+except ImportError:
+    from timeline import calculate_timeline_predictions
+
 SIGNS = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces']
 TAMIL_SIGNS = ['மேஷம்', 'ரிஷபம்', 'மிதுனம்', 'கடகம்', 'சிம்மம்', 'கன்னி', 'துலாம்', 'விருச்சிகம்', 'தனுசு', 'மகரம்', 'கும்பம்', 'மீனம்']
 SIGN_LORDS = ['Mars', 'Venus', 'Mercury', 'Moon', 'Sun', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Saturn', 'Jupiter']
@@ -1885,6 +1890,9 @@ def generate_comprehensive_predictions(chart):
     pada_reading = calculate_nakshatra_pada_reading(chart)
     sahams = calculate_sahams(chart)
 
+    # 7 Chronological Life Timeline & 10-Year Projections (81 Dasa-Bhukti periods)
+    timeline_predictions = calculate_timeline_predictions(chart)
+
     return {
         'overview': {
             'nakshatra': moon['nakshatra'],
@@ -1915,5 +1923,6 @@ def generate_comprehensive_predictions(chart):
         'bhrigu_nandi_nadi': bnn,
         'avasthas': avasthas,
         'pada_reading': pada_reading,
-        'sahams': sahams
+        'sahams': sahams,
+        'timeline_predictions': timeline_predictions
     }

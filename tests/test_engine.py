@@ -270,5 +270,74 @@ class ChartTests(unittest.TestCase):
             self.assertIn('reading_ta', s)
             self.assertTrue(1 <= s['house'] <= 12)
 
+    def test_dasa_bhukti_timeline_predictions(self):
+        """Test chronological 81 Dasa-Bhukti timeline predictions and annual projections."""
+        chart = calculate({
+            'name': 'Sri Raman', 'date': '1990-01-01', 'time': '12:00:00',
+            'timezone': 'Asia/Kolkata', 'city': 'Chennai',
+            'latitude': 13.0827, 'longitude': 80.2707, 'ayanamsa': 'Lahiri'
+        })
+        preds = chart['predictions']
+        self.assertIn('timeline_predictions', preds)
+        tp = preds['timeline_predictions']
+
+        # 1. Full 81 Dasa-Bhukti periods verification
+        self.assertEqual(tp['total_periods'], 81)
+        self.assertEqual(len(tp['periods']), 81)
+
+        active_count = 0
+        for p in tp['periods']:
+            self.assertIn('dasa_lord', p)
+            self.assertIn('bhukti_lord', p)
+            self.assertIn('start_date', p)
+            self.assertIn('end_date', p)
+            self.assertTrue(p['age_start'] <= p['age_end'])
+            self.assertTrue(1 <= p['potency'] <= 5)
+            self.assertIn(p['mutual_class'], ['trine', 'kendra', 'growth', 'friction', 'transition'])
+            self.assertIn('title_en', p)
+            self.assertIn('title_ta', p)
+            self.assertIn('career_en', p)
+            self.assertIn('career_ta', p)
+            self.assertIn('wealth_en', p)
+            self.assertIn('wealth_ta', p)
+            self.assertIn('health_en', p)
+            self.assertIn('health_ta', p)
+            self.assertIn('family_en', p)
+            self.assertIn('family_ta', p)
+            self.assertIn('remedy_en', p)
+            self.assertIn('remedy_ta', p)
+            if p['is_active']:
+                active_count += 1
+
+        self.assertEqual(active_count, 1, "Exactly one Dasa-Bhukti should be currently active")
+
+        # 2. Active Spotlight Card verification
+        sp = tp['active_spotlight']
+        self.assertIsNotNone(sp)
+        self.assertTrue(sp['elapsed_days'] >= 0)
+        self.assertTrue(sp['remaining_days'] >= 0)
+        self.assertTrue(0 <= sp['percent'] <= 100)
+        self.assertTrue(sp['age'] > 0)
+        self.assertTrue(1 <= sp['potency'] <= 5)
+        self.assertIn('strategic_advice_en', sp)
+        self.assertIn('strategic_advice_ta', sp)
+        self.assertIn('primary_remedy_en', sp)
+        self.assertIn('primary_remedy_ta', sp)
+
+        # 3. 10-Year Annual Milestones Projections
+        ann = tp['annual_projections']
+        self.assertEqual(len(ann), 11)
+        current_year_count = 0
+        for a in ann:
+            self.assertTrue(0 <= a['score'] <= 100)
+            self.assertIn('year', a)
+            self.assertIn('age', a)
+            self.assertIn('theme_en', a)
+            self.assertIn('theme_ta', a)
+            self.assertIn('icon', a)
+            if a['is_current_year']:
+                current_year_count += 1
+        self.assertEqual(current_year_count, 1, "Exactly one annual projection should be marked current year")
+
 if __name__ == '__main__':
     unittest.main(verbosity=2)
