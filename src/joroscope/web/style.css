@@ -6,6 +6,8 @@
   --bg-card: rgba(16, 21, 42, 0.75);
   --bg-card-hover: rgba(24, 31, 60, 0.85);
   --bg-input: rgba(11, 15, 32, 0.85);
+  --bg-subtle: rgba(255, 255, 255, 0.04);
+  --bg-subtle-hover: rgba(255, 255, 255, 0.08);
   
   --gold: #e5c378;
   --gold-glow: rgba(229, 195, 120, 0.35);
@@ -22,8 +24,10 @@
   --border-subtle: rgba(229, 195, 120, 0.15);
   --border-active: rgba(229, 195, 120, 0.5);
   --border-card: rgba(255, 255, 255, 0.08);
+  --border-divider: rgba(255, 255, 255, 0.06);
   
   --text-primary: #f8fafc;
+  --text-main: #f8fafc;
   --text-secondary: #cbd5e1;
   --text-muted: #8090a8;
   --text-dim: #54647c;
@@ -32,6 +36,15 @@
   --chart-house-bg: rgba(13, 17, 36, 0.65);
   --chart-house-hover: rgba(30, 39, 78, 0.75);
   --chart-center-bg: radial-gradient(circle at center, rgba(24, 32, 64, 0.95), rgba(12, 16, 32, 0.98));
+
+  --track-bg: rgba(255, 255, 255, 0.08);
+  --table-header-bg: rgba(0, 0, 0, 0.2);
+  --hero-card-bg: linear-gradient(145deg, rgba(26, 31, 48, 0.85), rgba(15, 18, 28, 0.95));
+  --gold-stat-bg: linear-gradient(135deg, rgba(229, 195, 120, 0.14), rgba(16, 21, 42, 0.75));
+  --active-card-bg: linear-gradient(145deg, rgba(46, 204, 113, 0.06), var(--bg-card));
+  --annual-card-current-bg: linear-gradient(135deg, rgba(229, 195, 120, 0.12), rgba(26, 31, 48, 0.9));
+  --time-badge-bg: rgba(0, 0, 0, 0.25);
+  --time-badge-color: var(--gold);
   
   --font-serif: 'Cinzel', Georgia, serif;
   --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -50,20 +63,31 @@
 [data-theme="light"] {
   --bg-space: #f4f6f0;
   --bg-deep: #e8ece2;
-  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-card: rgba(255, 255, 255, 0.92);
   --bg-card-hover: rgba(255, 255, 255, 0.98);
   --bg-input: #ffffff;
+  --bg-subtle: rgba(0, 0, 0, 0.04);
+  --bg-subtle-hover: rgba(0, 0, 0, 0.07);
   
   --gold: #b38628;
   --gold-glow: rgba(179, 134, 40, 0.2);
   --gold-dim: #7d5e1c;
   --gold-light: #523e13;
   
+  --cyan: #0984e3;
+  --cyan-glow: rgba(9, 132, 227, 0.2);
+  --purple: #6c5ce7;
+  --purple-glow: rgba(108, 92, 231, 0.2);
+  --ruby: #d63031;
+  --emerald: #00b894;
+  
   --border-subtle: rgba(179, 134, 40, 0.25);
   --border-active: rgba(179, 134, 40, 0.6);
   --border-card: rgba(0, 0, 0, 0.08);
+  --border-divider: rgba(0, 0, 0, 0.07);
   
   --text-primary: #15221b;
+  --text-main: #15221b;
   --text-secondary: #2d3e34;
   --text-muted: #576b60;
   --text-dim: #7f9488;
@@ -72,6 +96,15 @@
   --chart-house-bg: #fafbf7;
   --chart-house-hover: #edf2e8;
   --chart-center-bg: radial-gradient(circle at center, #f5f8f0, #e9eee4);
+  
+  --track-bg: rgba(0, 0, 0, 0.08);
+  --table-header-bg: rgba(179, 134, 40, 0.08);
+  --hero-card-bg: linear-gradient(145deg, #ffffff, #fdfbf7);
+  --gold-stat-bg: linear-gradient(135deg, rgba(179, 134, 40, 0.12), #ffffff);
+  --active-card-bg: linear-gradient(145deg, rgba(0, 184, 148, 0.08), #ffffff);
+  --annual-card-current-bg: linear-gradient(135deg, rgba(179, 134, 40, 0.14), #ffffff);
+  --time-badge-bg: rgba(179, 134, 40, 0.12);
+  --time-badge-color: var(--gold);
   
   --shadow-card: 0 10px 25px -3px rgba(0, 0, 0, 0.07), 0 0 0 1px var(--border-card);
 }
@@ -135,6 +168,25 @@ html, body {
     radial-gradient(1.2px 1.2px at 340px 310px, rgba(78,205,196,0.6), transparent);
   background-size: 400px 400px;
   opacity: 0.45;
+}
+
+[data-theme="light"] .nebula {
+  opacity: 0.08;
+  filter: blur(120px);
+}
+[data-theme="light"] .nebula-1 {
+  background: radial-gradient(circle, #f6d365, #fda08500);
+}
+[data-theme="light"] .nebula-2 {
+  background: radial-gradient(circle, #e0c3fc, #8ec5fc00);
+}
+[data-theme="light"] .stars-overlay {
+  opacity: 0.18;
+  background-image: 
+    radial-gradient(1.2px 1.2px at 25px 35px, rgba(179,134,40,0.45), transparent),
+    radial-gradient(1px 1px at 85px 120px, rgba(108,92,231,0.25), transparent),
+    radial-gradient(1.5px 1.5px at 170px 220px, rgba(179,134,40,0.5), transparent),
+    radial-gradient(1px 1px at 280px 90px, rgba(9,132,227,0.35), transparent);
 }
 
 @keyframes pulseNebula {
@@ -244,7 +296,7 @@ html, body {
   transition: var(--transition-smooth);
 }
 .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle-hover);
   color: var(--gold);
   border-color: var(--border-subtle);
 }
@@ -564,7 +616,7 @@ input:focus, select:focus {
   padding: 10px 14px;
   background: transparent;
   border: 0;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  border-bottom: 1px solid var(--border-divider);
   color: var(--text-secondary);
   font-size: 12px;
   cursor: pointer;
@@ -681,7 +733,7 @@ input:focus, select:focus {
   justify-content: center;
 }
 .feature-pills span {
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   padding: 6px 12px;
   border-radius: var(--radius-full);
@@ -774,7 +826,7 @@ input:focus, select:focus {
 }
 .gold-stat {
   border-color: var(--border-active);
-  background: linear-gradient(135deg, rgba(229,195,120,0.12), rgba(16, 21, 42, 0.75));
+  background: var(--gold-stat-bg);
 }
 
 /* Chart Controls Bar */
@@ -893,7 +945,7 @@ input:focus, select:focus {
 }
 .house-num-badge {
   font-size: 9px;
-  background: rgba(255,255,255,0.06);
+  background: var(--bg-subtle-hover);
   border: 1px solid var(--border-subtle);
   color: var(--gold);
   padding: 1px 5px;
@@ -947,7 +999,7 @@ input:focus, select:focus {
   font-size: 11px;
   font-weight: 700;
   border: 1px solid var(--border-subtle);
-  background: rgba(255,255,255,0.05);
+  background: var(--bg-subtle);
   color: var(--text-primary);
 }
 .planet-badge.asc {
@@ -962,7 +1014,7 @@ input:focus, select:focus {
 }
 .planet-badge.malefic {
   border-color: rgba(230, 57, 70, 0.4);
-  color: #ff7582;
+  color: var(--ruby);
 }
 .planet-badge.retro::after {
   content: 'ᴿ';
@@ -1083,10 +1135,10 @@ input:focus, select:focus {
 .luxury-table th, .luxury-table td {
   padding: 12px 14px;
   text-align: left;
-  border-bottom: 1px solid rgba(255,255,255,0.05);
+  border-bottom: 1px solid var(--border-divider);
 }
 [data-theme="light"] .luxury-table th, [data-theme="light"] .luxury-table td {
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid var(--border-divider);
 }
 .luxury-table th {
   font-size: 10px;
@@ -1094,7 +1146,7 @@ input:focus, select:focus {
   letter-spacing: 1px;
   color: var(--gold);
   font-weight: 700;
-  background: rgba(0,0,0,0.15);
+  background: var(--table-header-bg);
 }
 .luxury-table tr:hover td {
   background: rgba(229,195,120,0.04);
@@ -1109,7 +1161,7 @@ input:focus, select:focus {
 .dignity-badge.exalted { background: rgba(46,196,182,0.2); color: var(--emerald); border: 1px solid var(--emerald); }
 .dignity-badge.own { background: rgba(229,195,120,0.2); color: var(--gold); border: 1px solid var(--gold); }
 .dignity-badge.friend { background: rgba(78,205,196,0.15); color: var(--cyan); }
-.dignity-badge.neutral { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+.dignity-badge.neutral { background: var(--bg-subtle-hover); color: var(--text-secondary); }
 .dignity-badge.enemy { background: rgba(230,57,70,0.15); color: #ff8a93; }
 .dignity-badge.debilitated { background: rgba(230,57,70,0.25); color: #ff4d5a; border: 1px solid var(--ruby); }
 
@@ -1174,9 +1226,9 @@ input:focus, select:focus {
   border-radius: var(--radius-full);
   font-weight: 700;
 }
-.status-pill.danger { background: rgba(230,57,70,0.2); color: #ff7582; }
+.status-pill.danger { background: rgba(230,57,70,0.18); color: var(--ruby); }
 .status-pill.success { background: rgba(46,196,182,0.2); color: var(--emerald); }
-.status-pill.neutral { background: rgba(255,255,255,0.08); color: var(--text-secondary); }
+.status-pill.neutral { background: var(--bg-subtle-hover); color: var(--text-secondary); }
 
 .yogas-grid {
   display: grid;
@@ -1247,7 +1299,7 @@ input:focus, select:focus {
   transition: var(--transition-smooth);
 }
 .dasa-summary:hover {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-subtle-hover);
 }
 .dasa-summary.active-period {
   background: rgba(229,195,120,0.1);
@@ -1376,7 +1428,7 @@ input:focus, select:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-divider);
   padding-bottom: 12px;
 }
 .bhava-title-group,
@@ -1415,8 +1467,8 @@ input:focus, select:focus {
   font-size: 11.5px;
 }
 .bhava-meta-pill {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   padding: 4px 10px;
   border-radius: 12px;
   color: var(--text-secondary);
@@ -1527,7 +1579,7 @@ input:focus, select:focus {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-divider);
   padding-bottom: 10px;
 }
 .karaka-code-badge {
@@ -1580,7 +1632,7 @@ input:focus, select:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid var(--border-divider);
   padding-bottom: 10px;
 }
 .timing-score-bar {
@@ -1591,7 +1643,7 @@ input:focus, select:focus {
 .timing-track {
   flex: 1;
   height: 6px;
-  background: rgba(255,255,255,0.08);
+  background: var(--track-bg);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -1633,7 +1685,7 @@ input:focus, select:focus {
 }
 .career-progress-track {
   height: 8px;
-  background: rgba(255,255,255,0.06);
+  background: var(--track-bg);
   border-radius: 4px;
   overflow: hidden;
   margin: 4px 0;
@@ -1667,7 +1719,7 @@ input:focus, select:focus {
 }
 .dosha-track {
   height: 10px;
-  background: rgba(255,255,255,0.08);
+  background: var(--track-bg);
   border-radius: 5px;
   overflow: hidden;
 }
@@ -1909,7 +1961,7 @@ input:focus, select:focus {
   border-radius: 4px;
   font-size: 10.5px;
   font-weight: 600;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
 }
@@ -1934,7 +1986,7 @@ input:focus, select:focus {
   gap: 6px;
   margin-top: auto;
   padding-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-divider);
 }
 .profile-card-actions .action-btn {
   justify-content: center;
@@ -1958,12 +2010,12 @@ input:focus, select:focus {
   position: fixed;
   bottom: 28px;
   right: 28px;
-  background: linear-gradient(135deg, #18233c, #101428);
+  background: var(--hero-card-bg);
   border: 1px solid var(--gold);
-  color: #fff;
+  color: var(--text-primary);
   padding: 14px 22px;
   border-radius: var(--radius-sm);
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px var(--gold-glow);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4), 0 0 15px var(--gold-glow);
   font-size: 13px;
   z-index: 9999;
   animation: slideInToast 0.3s ease;
@@ -2072,7 +2124,7 @@ input:focus, select:focus {
 
 .view-mode-btn:hover {
   color: var(--text-main);
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-subtle-hover);
 }
 
 .view-mode-btn.active {
@@ -2084,7 +2136,7 @@ input:focus, select:focus {
 
 /* Active Timeline Spotlight Card */
 .timeline-spotlight-card {
-  background: linear-gradient(145deg, rgba(26, 31, 48, 0.85), rgba(15, 18, 28, 0.95));
+  background: var(--hero-card-bg);
   border: 1px solid rgba(229, 195, 120, 0.35);
   border-radius: var(--radius-lg);
   padding: 26px;
@@ -2175,8 +2227,8 @@ input:focus, select:focus {
 }
 
 .spotlight-meta-item {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   display: flex;
@@ -2202,7 +2254,7 @@ input:focus, select:focus {
 
 .progress-bar-track {
   height: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track-bg);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 6px;
@@ -2232,8 +2284,8 @@ input:focus, select:focus {
 }
 
 .guidance-box {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -2288,16 +2340,16 @@ input:focus, select:focus {
   border-radius: 20px;
   font-size: 13px;
   font-weight: 500;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   color: var(--text-main);
   cursor: pointer;
   transition: var(--transition-smooth);
 }
 
 .timeline-filter-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.18);
+  background: var(--bg-subtle-hover);
+  border-color: var(--border-subtle);
 }
 
 .timeline-filter-btn.active {
@@ -2314,7 +2366,7 @@ input:focus, select:focus {
   gap: 14px;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-divider);
   padding-top: 14px;
 }
 
@@ -2328,7 +2380,7 @@ input:focus, select:focus {
 
 .timeline-select-group select {
   padding: 6px 12px;
-  background: rgba(18, 22, 34, 0.8);
+  background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-main);
@@ -2345,7 +2397,7 @@ input:focus, select:focus {
 .timeline-jump-group input {
   width: 130px;
   padding: 6px 10px;
-  background: rgba(18, 22, 34, 0.8);
+  background: var(--bg-input);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   color: var(--text-main);
@@ -2361,8 +2413,8 @@ input:focus, select:focus {
 }
 
 .annual-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-md);
   padding: 16px;
   display: flex;
@@ -2378,7 +2430,7 @@ input:focus, select:focus {
 }
 
 .annual-card.current-year {
-  background: linear-gradient(135deg, rgba(229, 195, 120, 0.12), rgba(26, 31, 48, 0.9));
+  background: var(--annual-card-current-bg);
   border: 1.5px solid var(--gold);
   box-shadow: 0 0 20px rgba(229, 195, 120, 0.18);
 }
@@ -2398,7 +2450,7 @@ input:focus, select:focus {
 
 .annual-age-pill {
   font-size: 11px;
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--bg-subtle-hover);
   padding: 2px 8px;
   border-radius: 12px;
   color: var(--text-muted);
@@ -2429,7 +2481,7 @@ input:focus, select:focus {
 .annual-score-bar-track {
   flex: 1;
   height: 5px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--track-bg);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -2463,7 +2515,7 @@ input:focus, select:focus {
 
 .timeline-card.active-period {
   border: 1.5px solid #2ecc71;
-  background: linear-gradient(145deg, rgba(46, 204, 113, 0.05), var(--bg-card));
+  background: var(--active-card-bg);
   box-shadow: 0 0 25px rgba(46, 204, 113, 0.12);
 }
 
@@ -2564,8 +2616,8 @@ input:focus, select:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
   color: var(--gold);
   font-size: 12.5px;
@@ -2582,15 +2634,15 @@ input:focus, select:focus {
 .timeline-details-panel {
   margin-top: 18px;
   padding-top: 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid var(--border-divider);
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
 }
 
 .timeline-dim-card {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
   padding: 12px 14px;
   display: flex;

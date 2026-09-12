@@ -485,16 +485,49 @@ document.addEventListener('DOMContentLoaded', () => {
   // Match Button
   $('#run-match-btn').addEventListener('click', runHoroscopeMatch);
 
+  // Initialize theme from persistence or system preference
+  let initialTheme = 'dark';
+  try {
+    const saved = localStorage.getItem('joroscope_theme');
+    if (saved === 'light' || saved === 'dark') {
+      initialTheme = saved;
+    } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+      initialTheme = 'light';
+    }
+  } catch (e) {}
+  applyTheme(initialTheme);
+
   // Load cities
   loadInitialData();
 });
 
 // Theme Management
 function toggleTheme() {
-  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', currentTheme);
-  $('#theme-icon').textContent = currentTheme === 'dark' ? '🌙' : '☀️';
-  $('#theme-text').textContent = currentTheme === 'dark' ? 'Theme' : 'Light';
+  const nextTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  applyTheme(nextTheme);
+}
+
+function applyTheme(theme) {
+  currentTheme = theme;
+  document.documentElement.setAttribute('data-theme', theme);
+  try {
+    localStorage.setItem('joroscope_theme', theme);
+  } catch (e) {}
+
+  const themeIcon = $('#theme-icon');
+  const themeText = $('#theme-text');
+  if (themeIcon) themeIcon.textContent = theme === 'dark' ? '🌙' : '☀️';
+  if (themeText) {
+    themeText.textContent = currentLang === 'ta'
+      ? (theme === 'dark' ? 'இருள்' : 'ஒளி')
+      : (theme === 'dark' ? 'Dark' : 'Light');
+  }
+
+  // Reactive re-render of SVG chart & timeline
+  if (currentChart) {
+    renderCurrentChart();
+    renderDasaTimelineView();
+  }
 }
 
 // Prediction Chapter Switcher
@@ -527,6 +560,12 @@ function applyLanguage() {
     const key = el.dataset.i18n;
     if (dict[key]) el.textContent = dict[key];
   });
+  const themeText = $('#theme-text');
+  if (themeText) {
+    themeText.textContent = currentLang === 'ta'
+      ? (currentTheme === 'dark' ? 'இருள்' : 'ஒளி')
+      : (currentTheme === 'dark' ? 'Dark' : 'Light');
+  }
 }
 
 // Geolocation
@@ -827,19 +866,11 @@ function renderNorthChart() {
   const ascSign = currentChart.planets.Ascendant.sign_index;
   const w = 600, h = 600;
 
-  // Diamond paths and segments
-  // House 1: Center top diamond (300,0) -> (450,150) -> (300,300) -> (150,150)
-  // House 2: (150,150) -> (300,0) -> (0,0)
-  // House 3: (0,0) -> (150,150) -> (0,300)
-  // House 4: (0,300) -> (150,150) -> (300,300) -> (150,450)
-  // House 5: (0,300) -> (150,450) -> (0,600)
-  // House 6: (0,600) -> (150,450) -> (300,600)
-  // House 7: (300,600) -> (150,450) -> (300,300) -> (450,450)
-  // House 8: (300,600) -> (450,450) -> (600,600)
-  // House 9: (600,600) -> (450,450) -> (600,300)
-  // House 10: (600,300) -> (450,450) -> (300,300) -> (450,150)
-  // House 11: (600,300) -> (450,150) -> (600,0)
-  // House 12: (600,0) -> (450,150) -> (300,0)
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const houseFill = isLight ? '#fafbf7' : 'rgba(15, 20, 42, 0.6)';
+  const houseStroke = isLight ? '#b38628' : '#e5c378';
+  const signColor = isLight ? '#b38628' : '#e5c378';
+  const planetColor = isLight ? '#15221b' : '#ffffff';
 
   const houses = [
     { num: 1, path: 'M 300,0 L 450,150 L 300,300 L 150,150 Z', textPos: [300, 160], numPos: [300, 50] },
@@ -867,8 +898,8 @@ function renderNorthChart() {
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', hItem.path);
-    path.setAttribute('fill', 'rgba(15, 20, 42, 0.6)');
-    path.setAttribute('stroke', '#e5c378');
+    path.setAttribute('fill', houseFill);
+    path.setAttribute('stroke', houseStroke);
     path.setAttribute('stroke-width', '1.2');
     g.append(path);
 
@@ -876,7 +907,7 @@ function renderNorthChart() {
     const signText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
     signText.setAttribute('x', hItem.numPos[0]);
     signText.setAttribute('y', hItem.numPos[1]);
-    signText.setAttribute('fill', '#e5c378');
+    signText.setAttribute('fill', signColor);
     signText.setAttribute('font-size', '13');
     signText.setAttribute('font-weight', '700');
     signText.setAttribute('text-anchor', 'middle');
@@ -892,7 +923,7 @@ function renderNorthChart() {
       const planText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       planText.setAttribute('x', hItem.textPos[0]);
       planText.setAttribute('y', hItem.textPos[1]);
-      planText.setAttribute('fill', '#ffffff');
+      planText.setAttribute('fill', planetColor);
       planText.setAttribute('font-size', '12');
       planText.setAttribute('font-weight', '700');
       planText.setAttribute('text-anchor', 'middle');
