@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "joroscope"
+version = "2.0.0"
+description = "Modern Precision Vedic Astrology Application & Calculation Engine"
+readme = "README.md"
+authors = [
+    { name = "JoRoScope Team" }
+]
+license = { text = "AGPL-3.0-only" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Operating System :: OS Independent"
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pyswisseph>=2.10.3.2",
+    "tzdata>=2024.1"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pyinstaller>=6.0"
+]
+
+[project.scripts]
+joroscope = "joroscope.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"joroscope.web" = ["*"]

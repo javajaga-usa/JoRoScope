@@ -1,0 +1,43 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Environments
+.venv/
+env/
+venv/
+ENV/
+
+# Logs and error outputs
+*.log
+packaged-*.log
+server*.log
+build.log
+
+# IDE & Editor artifacts
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+.gemini/
+
+# Temporary, scratch, and inspection archives
+scratch/
+legacy-inspection/
+*.zip
+*.bak
+*.tmp
+city-import-report.json
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store

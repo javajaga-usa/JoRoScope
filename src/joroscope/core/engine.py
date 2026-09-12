@@ -1,0 +1,1192 @@
+"""JoRoScope Calculation Engine
+High-precision Vedic & modern astrological calculation engine using Swiss Ephemeris.
+Supports 14 Divisional Vargas (D1-D60), Ashtakavarga, Dignities, Aspects,
+Yogas, Doshas, 3-Tier Vimshottari Dasa, Matchmaking, and Daily Panchangam.
+"""
+import sys, math
+from pathlib import Path
+
+# Vendor path lookup (local or project root)
+_root = Path(__file__).resolve().parent
+for _candidate in (_root / 'vendor', _root.parent / 'vendor', _root.parent.parent.parent / 'vendor'):
+    if _candidate.is_dir():
+        sys.path.insert(0, str(_candidate))
+        break
+
+import swisseph as swe
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+try:
+    from .predictions import generate_comprehensive_predictions
+except (ImportError, ValueError):
+    from predictions import generate_comprehensive_predictions
+
+SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
+TAMIL = ['மேஷம்','ரிஷபம்','மிதுனம்','கடகம்','சிம்மம்','கன்னி','துலாம்','விருச்சிகம்','தனுசு','மகரம்','கும்பம்','மீனம்']
+SIGN_LORDS = ['Mars','Venus','Mercury','Moon','Sun','Mercury','Venus','Mars','Jupiter','Saturn','Saturn','Jupiter']
+
+STARS = [
+    'Ashwini','Bharani','Krittika','Rohini','Mrigashira','Ardra',
+    'Punarvasu','Pushya','Ashlesha','Magha','Purva Phalguni','Uttara Phalguni',
+    'Hasta','Chitra','Swati','Vishakha','Anuradha','Jyeshtha',
+    'Mula','Purva Ashadha','Uttara Ashadha','Shravana','Dhanishtha','Shatabhisha',
+    'Purva Bhadrapada','Uttara Bhadrapada','Revati'
+]
+TAMIL_STARS = [
+    'அசுவினி','பரணி','கிருத்திகை','ரோகிணி','மிருகசீரிஷம்','திருவாதிரை',
+    'புனர்பூசம்','பூசம்','ஆயில்யம்','மகம்','பூரம்','உத்திரம்',
+    'அஸ்தம்','சித்திரை','சுவாதி','விசாகம்','அனுஷம்','கேட்டை',
+    'மூலம்','பூராடம்','உத்திராடம்','திருவோணம்','அவிட்டம்','சதயம்',
+    'பூரட்டாதி','உத்திரட்டாதி','ரேவதி'
+]
+STAR_LORDS = [
+    'Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury',
+    'Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury',
+    'Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury'
+]
+STAR_GANAS = [
+    'Deva','Manushya','Rakshasa','Manushya','Deva','Manushya',
+    'Deva','Deva','Rakshasa','Rakshasa','Manushya','Manushya',
+    'Deva','Rakshasa','Deva','Rakshasa','Deva','Rakshasa',
+    'Rakshasa','Manushya','Manushya','Deva','Rakshasa','Rakshasa',
+    'Manushya','Manushya','Deva'
+]
+STAR_YONIS = [
+    ('Horse','M'),('Elephant','F'),('Sheep','F'),('Serpent','M'),('Serpent','F'),('Dog','F'),
+    ('Cat','F'),('Sheep','M'),('Cat','M'),('Rat','M'),('Rat','F'),('Cow','M'),
+    ('Buffalo','F'),('Tiger','F'),('Buffalo','M'),('Tiger','M'),('Deer','F'),('Deer','M'),
+    ('Dog','M'),('Monkey','M'),('Mongoose','M'),('Monkey','F'),('Lion','F'),('Horse','F'),
+    ('Lion','M'),('Cow','F'),('Elephant','M')
+]
+STAR_RAJJUS = [
+    'Pada','Ooru','Udara','Kantha','Siro','Kantha',
+    'Udara','Ooru','Pada','Pada','Ooru','Udara',
+    'Kantha','Siro','Kantha','Udara','Ooru','Pada',
+    'Pada','Ooru','Udara','Kantha','Siro','Kantha',
+    'Udara','Ooru','Pada'
+]
+
+NITYA_YOGAS = [
+    ('Vishkambha','Auspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
+    ('Shobhana','Auspicious'),('Atiganda','Inauspicious'),('Sukarma','Auspicious'),('Dhriti','Auspicious'),
+    ('Shula','Inauspicious'),('Ganda','Inauspicious'),('Vriddhi','Auspicious'),('Dhruva','Auspicious'),
+    ('Vyaghata','Inauspicious'),('Harshana','Auspicious'),('Vajra','Inauspicious'),('Siddhi','Auspicious'),
+    ('Vyatipata','Inauspicious'),('Variyan','Auspicious'),('Parigha','Inauspicious'),('Shiva','Auspicious'),
+    ('Siddha','Auspicious'),('Sadhya','Auspicious'),('Shubha','Auspicious'),('Shukla','Auspicious'),
+    ('Brahma','Auspicious'),('Indra','Auspicious'),('Vaidhriti','Inauspicious')
+]
+
+TITHIS = [
+    'Prathama','Dwitiya','Tritiya','Chaturthi','Panchami',
+    'Shashthi','Saptami','Ashtami','Navami','Dashami',
+    'Ekadashi','Dwadashi','Trayodashi','Chaturdashi','Purnima',
+    'Prathama','Dwitiya','Tritiya','Chaturthi','Panchami',
+    'Shashthi','Saptami','Ashtami','Navami','Dashami',
+    'Ekadashi','Dwadashi','Trayodashi','Chaturdashi','Amavasya'
+]
+
+KARANAS = ['Bava','Balava','Kaulava','Taitila','Gara','Vanija','Vishti','Shakuni','Chatushpada','Naga','Kimstughna']
+
+DASHA_NAMES = ['Ketu','Venus','Sun','Moon','Mars','Rahu','Jupiter','Saturn','Mercury']
+DASHA_YEARS = [7, 20, 6, 10, 7, 18, 16, 19, 17]
+AYAN = {
+    'Lahiri': swe.SIDM_LAHIRI,
+    'Raman': swe.SIDM_RAMAN,
+    'Krishnamurti': swe.SIDM_KRISHNAMURTI,
+    'Fagan-Bradley': swe.SIDM_FAGAN_BRADLEY
+}
+YEAR = 365.25
+
+# Natural Relationships (Naisargika Maitri)
+# 1 = Friend, 0 = Neutral, -1 = Enemy
+NATURAL_FRIENDS = {
+    'Sun': {'Moon': 1, 'Mars': 1, 'Jupiter': 1, 'Mercury': 0, 'Venus': -1, 'Saturn': -1},
+    'Moon': {'Sun': 1, 'Mercury': 1, 'Mars': 0, 'Jupiter': 0, 'Venus': 0, 'Saturn': 0},
+    'Mars': {'Sun': 1, 'Moon': 1, 'Jupiter': 1, 'Venus': 0, 'Saturn': 0, 'Mercury': -1},
+    'Mercury': {'Sun': 1, 'Venus': 1, 'Mars': 0, 'Jupiter': 0, 'Saturn': 0, 'Moon': -1},
+    'Jupiter': {'Sun': 1, 'Moon': 1, 'Mars': 1, 'Saturn': 0, 'Mercury': -1, 'Venus': -1},
+    'Venus': {'Mercury': 1, 'Saturn': 1, 'Mars': 0, 'Jupiter': 0, 'Sun': -1, 'Moon': -1},
+    'Saturn': {'Mercury': 1, 'Venus': 1, 'Jupiter': 0, 'Sun': -1, 'Moon': -1, 'Mars': -1},
+    'Rahu': {'Mercury': 1, 'Venus': 1, 'Saturn': 1, 'Jupiter': 0, 'Sun': -1, 'Moon': -1, 'Mars': -1},
+    'Ketu': {'Mars': 1, 'Venus': 1, 'Jupiter': 1, 'Mercury': 0, 'Sun': -1, 'Moon': -1, 'Saturn': -1}
+}
+
+# Parashara Ashtakavarga Bindu Points
+ASHTAKAVARGA_RULES = {
+    'Sun': {
+        'Sun': [1, 2, 4, 7, 8, 9, 10, 11],
+        'Moon': [3, 6, 10, 11],
+        'Mars': [1, 2, 4, 7, 8, 9, 10, 11],
+        'Mercury': [3, 5, 6, 9, 10, 11, 12],
+        'Jupiter': [5, 6, 9, 11],
+        'Venus': [6, 7, 12],
+        'Saturn': [1, 2, 4, 7, 8, 9, 10, 11],
+        'Ascendant': [3, 4, 6, 10, 11, 12]
+    },
+    'Moon': {
+        'Sun': [3, 6, 7, 8, 10, 11],
+        'Moon': [1, 3, 6, 7, 10, 11],
+        'Mars': [2, 3, 5, 6, 9, 10, 11],
+        'Mercury': [1, 3, 4, 5, 7, 8, 10, 11],
+        'Jupiter': [1, 4, 7, 8, 10, 11, 12],
+        'Venus': [3, 4, 5, 7, 9, 10, 11],
+        'Saturn': [3, 5, 6, 11],
+        'Ascendant': [3, 6, 10, 11]
+    },
+    'Mars': {
+        'Sun': [3, 5, 6, 10, 11],
+        'Moon': [3, 6, 11],
+        'Mars': [1, 2, 4, 7, 8, 10, 11],
+        'Mercury': [3, 5, 6, 11],
+        'Jupiter': [6, 10, 11, 12],
+        'Venus': [6, 8, 11, 12],
+        'Saturn': [1, 4, 7, 8, 9, 10, 11],
+        'Ascendant': [1, 3, 6, 10, 11]
+    },
+    'Mercury': {
+        'Sun': [5, 6, 9, 11, 12],
+        'Moon': [2, 4, 6, 8, 10, 11],
+        'Mars': [1, 2, 4, 7, 8, 9, 10, 11],
+        'Mercury': [1, 3, 5, 6, 9, 10, 11, 12],
+        'Jupiter': [6, 8, 11, 12],
+        'Venus': [1, 2, 3, 4, 5, 8, 9, 11],
+        'Saturn': [1, 2, 4, 7, 8, 9, 10, 11],
+        'Ascendant': [1, 2, 4, 6, 8, 10, 11]
+    },
+    'Jupiter': {
+        'Sun': [1, 2, 3, 4, 7, 8, 9, 10, 11],
+        'Moon': [2, 5, 7, 9, 11],
+        'Mars': [1, 2, 4, 7, 8, 10, 11],
+        'Mercury': [1, 2, 4, 5, 6, 9, 10, 11],
+        'Jupiter': [1, 2, 3, 4, 7, 8, 10, 11],
+        'Venus': [2, 5, 6, 9, 10, 11],
+        'Saturn': [3, 5, 6, 12],
+        'Ascendant': [1, 2, 4, 5, 6, 7, 9, 10, 11]
+    },
+    'Venus': {
+        'Sun': [8, 11, 12],
+        'Moon': [1, 2, 3, 4, 5, 8, 9, 11, 12],
+        'Mars': [3, 5, 6, 9, 11, 12],
+        'Mercury': [3, 5, 6, 9, 11],
+        'Jupiter': [5, 8, 9, 10, 11],
+        'Venus': [1, 2, 3, 4, 5, 8, 9, 10, 11],
+        'Saturn': [3, 4, 5, 8, 9, 10, 11],
+        'Ascendant': [1, 2, 3, 4, 5, 8, 9, 11]
+    },
+    'Saturn': {
+        'Sun': [1, 2, 4, 7, 8, 10, 11],
+        'Moon': [3, 6, 11],
+        'Mars': [3, 5, 6, 10, 11, 12],
+        'Mercury': [6, 8, 9, 10, 11, 12],
+        'Jupiter': [5, 6, 11, 12],
+        'Venus': [6, 11, 12],
+        'Saturn': [3, 5, 6, 11],
+        'Ascendant': [1, 3, 4, 6, 10, 11]
+    }
+}
+
+def local_to_utc(date, time, zone, fold=None):
+    naive = datetime.fromisoformat(date + 'T' + time)
+    if not 1800 <= naive.year <= 2200:
+        raise ValueError('Choose a date between 1800 and 2200.')
+    try:
+        tz = ZoneInfo(zone)
+    except ZoneInfoNotFoundError:
+        raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+    candidates = []
+    for f in (0, 1):
+        dt = naive.replace(tzinfo=tz, fold=f)
+        utc = dt.astimezone(timezone.utc)
+        if utc.astimezone(tz).replace(tzinfo=None) == naive and utc not in [x[1] for x in candidates]:
+            candidates.append((f, utc))
+    if not candidates:
+        raise ValueError('This local time did not exist because of a clock change. Correct the birth time.')
+    if len(candidates) > 1 and fold not in (0, 1):
+        raise ValueError('This time occurred twice during a clock change. Select the first or second occurrence.')
+    return next((u for f, u in candidates if f == fold), candidates[0][1])
+
+def calculate_vargas(lon):
+    """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
+    lon = lon % 360
+    sign = int(lon // 30)
+    deg = lon % 30
+    is_odd = (sign % 2 == 0)  # 0=Aries (odd), 1=Taurus (even)
+    movable = (sign in (0, 3, 6, 9))
+    fixed = (sign in (1, 4, 7, 10))
+    dual = (sign in (2, 5, 8, 11))
+
+    vargas = {}
+    # D1 - Rasi
+    vargas['D1'] = sign
+
+    # D2 - Hora (Parashara)
+    if is_odd:
+        vargas['D2'] = 4 if deg < 15 else 3  # Leo then Cancer
+    else:
+        vargas['D2'] = 3 if deg < 15 else 4  # Cancer then Leo
+
+    # D3 - Drekkana
+    k3 = int(deg // 10)
+    vargas['D3'] = (sign + k3 * 4) % 12
+
+    # D4 - Chaturthamsa
+    k4 = int(deg / 7.5)
+    vargas['D4'] = (sign + k4 * 3) % 12
+
+    # D7 - Saptamsa
+    k7 = min(int(deg / (30 / 7)), 6)
+    vargas['D7'] = (sign + k7) % 12 if is_odd else (sign + 6 + k7) % 12
+
+    # D9 - Navamsa
+    vargas['D9'] = int(lon * 9 // 30) % 12
+
+    # D10 - Dasamsa
+    k10 = min(int(deg // 3), 9)
+    vargas['D10'] = (sign + k10) % 12 if is_odd else (sign + 8 + k10) % 12
+
+    # D12 - Dwadasamsa
+    k12 = min(int(deg / 2.5), 11)
+    vargas['D12'] = (sign + k12) % 12
+
+    # D16 - Shodasamsa
+    k16 = min(int(deg / 1.875), 15)
+    start16 = 0 if movable else (4 if fixed else 8)
+    vargas['D16'] = (start16 + k16) % 12
+
+    # D20 - Vimsamsa
+    k20 = min(int(deg / 1.5), 19)
+    start20 = 0 if movable else (8 if fixed else 4)
+    vargas['D20'] = (start20 + k20) % 12
+
+    # D24 - Chaturvimsamsa
+    k24 = min(int(deg / 1.25), 23)
+    start24 = 4 if is_odd else 3
+    vargas['D24'] = (start24 + k24) % 12
+
+    # D27 - Saptavimsamsa
+    k27 = min(int(deg / (10 / 9)), 26)
+    element = sign % 4  # 0=Fire, 1=Earth, 2=Air, 3=Water
+    start27 = element * 3
+    vargas['D27'] = (start27 + k27) % 12
+
+    # D30 - Trimsamsa
+    if is_odd:
+        if deg < 5: vargas['D30'] = 0      # Aries (Mars)
+        elif deg < 10: vargas['D30'] = 10  # Aquarius (Saturn)
+        elif deg < 18: vargas['D30'] = 8   # Sagittarius (Jupiter)
+        elif deg < 25: vargas['D30'] = 2   # Gemini (Mercury)
+        else: vargas['D30'] = 1            # Taurus (Venus)
+    else:
+        if deg < 5: vargas['D30'] = 1      # Taurus (Venus)
+        elif deg < 12: vargas['D30'] = 5   # Virgo (Mercury)
+        elif deg < 20: vargas['D30'] = 11  # Pisces (Jupiter)
+        elif deg < 25: vargas['D30'] = 9   # Capricorn (Saturn)
+        else: vargas['D30'] = 7            # Scorpio (Mars)
+
+    # D60 - Shashtiamsa
+    k60 = min(int(deg * 2), 59)
+    vargas['D60'] = (sign + k60) % 12
+
+    return vargas
+
+def placement(lon, speed=0):
+    lon %= 360
+    sign = int(lon // 30)
+    star = int(lon / (40 / 3))
+    pada = int((lon % (40 / 3)) / (10 / 3)) + 1
+    vargas = calculate_vargas(lon)
+    return dict(
+        longitude=lon,
+        sign=SIGNS[sign],
+        tamil=TAMIL[sign],
+        sign_index=sign,
+        degree=lon % 30,
+        nakshatra=STARS[star],
+        tamil_nakshatra=TAMIL_STARS[star],
+        nakshatra_lord=STAR_LORDS[star],
+        pada=pada,
+        navamsa=vargas['D9'],
+        vargas=vargas,
+        retrograde=speed < 0,
+        speed=speed
+    )
+
+def calculate_dignity(planet_name, sign_idx, deg, planet_positions):
+    """Determine planetary dignity and Panchadha Maitri friendship."""
+    if planet_name in ('Ascendant', 'Rahu', 'Ketu'):
+        if planet_name == 'Rahu':
+            if sign_idx in (1, 2): return 'Exalted'
+            if sign_idx in (7, 8): return 'Debilitated'
+            if sign_idx == 10: return 'Own Sign'
+            return 'Neutral'
+        if planet_name == 'Ketu':
+            if sign_idx in (7, 8): return 'Exalted'
+            if sign_idx in (1, 2): return 'Debilitated'
+            if sign_idx == 7: return 'Own Sign'
+            return 'Neutral'
+        return 'Ascendant'
+
+    # Exaltation & Debilitation points
+    exalt_info = {
+        'Sun': (0, 10), 'Moon': (1, 3), 'Mars': (9, 28),
+        'Mercury': (5, 15), 'Jupiter': (3, 5), 'Venus': (11, 27),
+        'Saturn': (6, 20)
+    }
+    ex_sign, _ = exalt_info[planet_name]
+    deb_sign = (ex_sign + 6) % 12
+
+    if sign_idx == ex_sign:
+        return 'Exalted'
+    if sign_idx == deb_sign:
+        return 'Debilitated'
+
+    # Moolatrikona zones
+    moolatrikona = {
+        'Sun': (4, 0, 20), 'Moon': (1, 3, 30), 'Mars': (0, 0, 12),
+        'Mercury': (5, 15, 20), 'Jupiter': (8, 0, 10), 'Venus': (6, 0, 15),
+        'Saturn': (10, 0, 20)
+    }
+    m_sign, m_start, m_end = moolatrikona[planet_name]
+    if sign_idx == m_sign and m_start <= deg <= m_end:
+        return 'Moolatrikona'
+
+    # Own Sign
+    lord = SIGN_LORDS[sign_idx]
+    if lord == planet_name:
+        return 'Own Sign'
+
+    # Compound Friendship (Panchadha Maitri) with sign lord
+    natural = NATURAL_FRIENDS.get(planet_name, {}).get(lord, 0)
+    # Temporal relationship (Tatkalika):
+    lord_sign = None
+    for p_name, p_data in planet_positions.items():
+        if p_name == lord:
+            lord_sign = p_data['sign_index']
+            break
+    if lord_sign is not None:
+        diff = (lord_sign - sign_idx) % 12
+        temporal = 1 if diff in (1, 2, 3, 9, 10, 11) else -1
+    else:
+        temporal = 0
+
+    combined = natural + temporal
+    if combined >= 2: return 'Great Friend'
+    if combined == 1: return 'Friend'
+    if combined == 0: return 'Neutral'
+    if combined == -1: return 'Enemy'
+    return 'Great Enemy'
+
+def calculate_aspects(planets):
+    """Calculate Vedic Drishti (aspects) for all planets."""
+    aspects = {name: {'casts_to_houses': [], 'aspects_received_from': []} for name in planets}
+    for name, p in planets.items():
+        if name == 'Ascendant': continue
+        h = p['house']
+        cast_houses = [(h + 6) % 12 or 12]  # 7th aspect for all
+        if name == 'Mars':
+            cast_houses.extend([(h + 3) % 12 or 12, (h + 7) % 12 or 12])  # 4th and 8th
+        elif name == 'Jupiter':
+            cast_houses.extend([(h + 4) % 12 or 12, (h + 8) % 12 or 12])  # 5th and 9th
+        elif name == 'Saturn':
+            cast_houses.extend([(h + 2) % 12 or 12, (h + 9) % 12 or 12])  # 3rd and 10th
+        elif name in ('Rahu', 'Ketu'):
+            cast_houses.extend([(h + 4) % 12 or 12, (h + 8) % 12 or 12])  # 5th and 9th
+        aspects[name]['casts_to_houses'] = sorted(list(set(cast_houses)))
+
+    for name, data in aspects.items():
+        if name == 'Ascendant': continue
+        for target_name, target_p in planets.items():
+            if name != target_name and target_p['house'] in data['casts_to_houses']:
+                aspects[target_name]['aspects_received_from'].append(name)
+    return aspects
+
+def calculate_ashtakavarga(planets):
+    """Calculate Parashara Ashtakavarga for all 7 planets and Sarvashtakavarga."""
+    bav = {}
+    sav = [0] * 12
+    classical = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
+
+    for p_name in classical:
+        bav[p_name] = [0] * 12
+        rules = ASHTAKAVARGA_RULES.get(p_name, {})
+        for ref_name, houses in rules.items():
+            ref_sign = planets[ref_name]['sign_index']
+            for h in houses:
+                target_sign = (ref_sign + h - 1) % 12
+                bav[p_name][target_sign] += 1
+
+        for s in range(12):
+            sav[s] += bav[p_name][s]
+
+    return {
+        'BAV': bav,
+        'SAV': sav,
+        'total_points': sum(sav)  # Guaranteed 337
+    }
+
+def detect_yogas(planets):
+    """Detect prominent Vedic Yogas and Doshas."""
+    yogas = []
+    asc_h = 1
+    # Kendra houses: 1, 4, 7, 10
+    kendras = [1, 4, 7, 10]
+    trikonas = [1, 5, 9]
+
+    # 1. Pancha Mahapurusha Yogas
+    pancha = [
+        ('Mars', 'Ruchaka Yoga', 'Courage, leadership, martial victory, and commanding presence.'),
+        ('Mercury', 'Bhadra Yoga', 'Sharp intellect, eloquence, learning, and scholarly prominence.'),
+        ('Jupiter', 'Hamsa Yoga', 'Wisdom, righteousness, spiritual depth, and regal benevolence.'),
+        ('Venus', 'Malavya Yoga', 'Grace, artistic beauty, material luxury, and enduring affection.'),
+        ('Saturn', 'Sasa Yoga', 'Discipline, administrative authority, enduring endurance, and wealth through perseverance.')
+    ]
+    for p_name, y_name, desc in pancha:
+        p = planets.get(p_name)
+        if p and p['house'] in kendras and p.get('dignity') in ('Exalted', 'Own Sign', 'Moolatrikona'):
+            yogas.append({
+                'name': y_name,
+                'category': 'Pancha Mahapurusha',
+                'auspiciousness': 'Highly Auspicious',
+                'description': desc,
+                'planets': [p_name]
+            })
+
+    # 2. Gaja Kesari Yoga (Jupiter in Kendra from Moon)
+    moon = planets.get('Moon')
+    jupiter = planets.get('Jupiter')
+    if moon and jupiter:
+        diff = (jupiter['house'] - moon['house']) % 12 + 1
+        if diff in (1, 4, 7, 10):
+            yogas.append({
+                'name': 'Gaja Kesari Yoga',
+                'category': 'Raja Yoga',
+                'auspiciousness': 'Highly Auspicious',
+                'description': 'Overcoming adversaries, enduring respect, prosperity, sharp intellect, and nobility.',
+                'planets': ['Moon', 'Jupiter']
+            })
+
+    # 3. Budhaditya Yoga (Sun + Mercury conjunction)
+    sun = planets.get('Sun')
+    mercury = planets.get('Mercury')
+    if sun and mercury and sun['sign_index'] == mercury['sign_index']:
+        yogas.append({
+            'name': 'Budhaditya Yoga',
+            'category': 'Dhi / Intellect Yoga',
+            'auspiciousness': 'Auspicious',
+            'description': 'Enhanced intellectual prowess, executive acumen, analytical clarity, and eloquence.',
+            'planets': ['Sun', 'Mercury']
+        })
+
+    # 4. Chandra-Mangala Yoga (Moon + Mars conjunction or mutual 7th aspect)
+    mars = planets.get('Mars')
+    if moon and mars:
+        if moon['sign_index'] == mars['sign_index'] or (mars['sign_index'] - moon['sign_index']) % 12 == 6:
+            yogas.append({
+                'name': 'Chandra-Mangala Yoga',
+                'category': 'Dhana / Wealth Yoga',
+                'auspiciousness': 'Auspicious',
+                'description': 'Enterprise, commercial vitality, financial drive, and high resourcefulness.',
+                'planets': ['Moon', 'Mars']
+            })
+
+    # 5. Amala Yoga (Benefic in 10th from Lagna or Moon)
+    benefics = ['Jupiter', 'Venus', 'Mercury']
+    for b in benefics:
+        bp = planets.get(b)
+        if bp and (bp['house'] == 10 or (bp['house'] - moon['house']) % 12 + 1 == 10):
+            yogas.append({
+                'name': f'Amala Yoga ({b})',
+                'category': 'Virtue & Fame',
+                'auspiciousness': 'Auspicious',
+                'description': 'Flawless reputation, stainless moral standing, professional distinction, and philanthropic influence.',
+                'planets': [b]
+            })
+            break
+
+    # 6. Vipareeta Raja Yogas (Harsha, Sarala, Vimala)
+    asc_sign = planets['Ascendant']['sign_index']
+    lord_6 = SIGN_LORDS[(asc_sign + 5) % 12]
+    lord_8 = SIGN_LORDS[(asc_sign + 7) % 12]
+    lord_12 = SIGN_LORDS[(asc_sign + 11) % 12]
+    trik_houses = [6, 8, 12]
+
+    p_6 = planets.get(lord_6)
+    if p_6 and p_6['house'] in trik_houses:
+        yogas.append({
+            'name': 'Harsha Vipareeta Raja Yoga',
+            'category': 'Vipareeta Yoga',
+            'auspiciousness': 'Fortunate in Adversity',
+            'description': 'Immunity from secret enemies, resilience in crises, sound constitution, and triumph over hardship.',
+            'planets': [lord_6]
+        })
+    p_8 = planets.get(lord_8)
+    if p_8 and p_8['house'] in trik_houses:
+        yogas.append({
+            'name': 'Sarala Vipareeta Raja Yoga',
+            'category': 'Vipareeta Yoga',
+            'auspiciousness': 'Fortunate in Adversity',
+            'description': 'Longevity, fearlessness, sudden gains, overcoming disputes, and self-made authority.',
+            'planets': [lord_8]
+        })
+    p_12 = planets.get(lord_12)
+    if p_12 and p_12['house'] in trik_houses:
+        yogas.append({
+            'name': 'Vimala Vipareeta Raja Yoga',
+            'category': 'Vipareeta Yoga',
+            'auspiciousness': 'Fortunate in Adversity',
+            'description': 'Financial autonomy, virtuous expenditures, peace of mind, and inner spiritual security.',
+            'planets': [lord_12]
+        })
+
+    # 7. Neechabhanga Raja Yoga
+    for p_name, p_data in planets.items():
+        if p_data.get('dignity') == 'Debilitated':
+            deb_sign = p_data['sign_index']
+            disp_lord = SIGN_LORDS[deb_sign]
+            disp_p = planets.get(disp_lord)
+            if disp_p and disp_p['house'] in kendras:
+                yogas.append({
+                    'name': f'Neechabhanga Raja Yoga ({p_name})',
+                    'category': 'Elevation Yoga',
+                    'auspiciousness': 'Highly Auspicious',
+                    'description': f'Debilitation of {p_name} is cancelled and elevated to royal stature through dispositor {disp_lord} in Kendra.',
+                    'planets': [p_name, disp_lord]
+                })
+
+    # 8. Kemadruma Yoga (Moon has no planets in 2nd and 12th from it, excluding Sun/Rahu/Ketu)
+    moon_h = moon['house']
+    planets_in_2_12 = [
+        p_name for p_name, p in planets.items()
+        if p_name not in ('Moon', 'Sun', 'Rahu', 'Ketu', 'Ascendant')
+        and p['house'] in [(moon_h) % 12 + 1, (moon_h - 2) % 12 + 1]
+    ]
+    if not planets_in_2_12:
+        # Check cancellation (Kemadruma Bhanga): Kendra has benefics
+        kendra_planets = [
+            p_name for p_name, p in planets.items()
+            if p_name in benefics and p['house'] in kendras
+        ]
+        if kendra_planets:
+            yogas.append({
+                'name': 'Kemadruma Bhanga Yoga',
+                'category': 'Neutralized Challenge',
+                'auspiciousness': 'Neutralized',
+                'description': 'Kemadruma solitude is dissolved by natural benefics residing in Kendra angles.',
+                'planets': ['Moon'] + kendra_planets
+            })
+        else:
+            yogas.append({
+                'name': 'Kemadruma Yoga',
+                'category': 'Mind & Solitude',
+                'auspiciousness': 'Challenging',
+                'description': 'Solitary mindset, fluctuating material fortunes, and yearning for emotional equilibrium.',
+                'planets': ['Moon']
+            })
+
+    # 9. Manglik / Kuja Dosha
+    kuja_houses = [1, 2, 4, 7, 8, 12]
+    mars_h = mars['house'] if mars else 0
+    is_manglik = mars_h in kuja_houses
+    reasons = []
+    if is_manglik:
+        if mars['dignity'] in ('Own Sign', 'Exalted'):
+            reasons.append(f'Mars is strong in {mars["dignity"]}')
+        if (mars['house'] - jupiter['house']) % 12 + 1 in (1, 5, 9, 7):
+            reasons.append('Jupiter casts protective aspect or conjunction onto Mars')
+        if mars['sign_index'] in (0, 7) and mars_h == 1:
+            reasons.append('Mars in 1st house in Aries/Scorpio cancels Kuja Dosha')
+    doshas = {
+        'manglik': {
+            'present': is_manglik,
+            'house': mars_h,
+            'cancelled': len(reasons) > 0,
+            'reasons': reasons
+        }
+    }
+
+    # 10. Kaal Sarp Dosha
+    rahu = planets.get('Rahu')
+    ketu = planets.get('Ketu')
+    if rahu and ketu:
+        r_lon = rahu['longitude']
+        k_lon = ketu['longitude']
+        classical_7 = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
+        diffs = [((planets[p]['longitude'] - r_lon) % 360) for p in classical_7]
+        all_one_side = all(d < 180 for d in diffs) or all(d >= 180 for d in diffs)
+        if all_one_side:
+            ks_types = [
+                'Anant Kaal Sarp', 'Kulik Kaal Sarp', 'Vasuki Kaal Sarp', 'Shankhapal Kaal Sarp',
+                'Padma Kaal Sarp', 'Mahapadma Kaal Sarp', 'Takshak Kaal Sarp', 'Karkotak Kaal Sarp',
+                'Shankhachur Kaal Sarp', 'Ghatak Kaal Sarp', 'Vishdhar Kaal Sarp', 'Sheshnag Kaal Sarp'
+            ]
+            r_house = rahu['house']
+            doshas['kaal_sarp'] = {
+                'present': True,
+                'type': ks_types[(r_house - 1) % 12],
+                'rahu_house': r_house,
+                'description': f'All 7 classical planets are hemmed between Rahu and Ketu ({ks_types[(r_house - 1) % 12]}). Fosters intense ambition and karmic acceleration.'
+            }
+        else:
+            doshas['kaal_sarp'] = {'present': False, 'type': 'None', 'description': 'Planets are freely dispersed around the nodal axis.'}
+
+    return yogas, doshas
+
+def dasha(moon, birth, now=None):
+    """Calculate 3-Tier Vimshottari Dasa (Maha Dasa, Bhukti, Pratyantardasa)."""
+    portion = moon / (40 / 3)
+    index = int(portion) % 9
+    start = birth - timedelta(days=(portion % 1) * DASHA_YEARS[index] * YEAR)
+    rows = []
+    if now is None:
+        now = datetime.now(timezone.utc)
+
+    for k in range(9):
+        i = (index + k) % 9
+        d_years = DASHA_YEARS[i]
+        end = start + timedelta(days=d_years * YEAR)
+        subs = []
+        substart = start
+        for m in range(9):
+            j = (i + m) % 9
+            b_years = DASHA_YEARS[j]
+            subend = substart + timedelta(days=d_years * b_years / 120 * YEAR)
+            # Level 3: Pratyantardasa
+            prats = []
+            pstart = substart
+            for n in range(9):
+                p_idx = (j + n) % 9
+                p_years = DASHA_YEARS[p_idx]
+                pend = pstart + timedelta(days=d_years * b_years * p_years / (120 * 120) * YEAR)
+                is_p_active = (pstart <= now < pend)
+                prats.append(dict(
+                    lord=DASHA_NAMES[p_idx],
+                    start=pstart.isoformat(),
+                    end=pend.isoformat(),
+                    is_active=is_p_active
+                ))
+                pstart = pend
+
+            subs.append(dict(
+                lord=DASHA_NAMES[j],
+                start=substart.isoformat(),
+                end=subend.isoformat(),
+                pratyantars=prats,
+                is_active=(substart <= now < subend)
+            ))
+            substart = subend
+
+        rows.append(dict(
+            lord=DASHA_NAMES[i],
+            start=start.isoformat(),
+            end=end.isoformat(),
+            subperiods=subs,
+            is_active=(start <= now < end)
+        ))
+        start = end
+
+    return rows
+
+def get_active_dasha(dasha_rows):
+    """Extract currently active 3-tier dasa from calculated rows."""
+    for d in dasha_rows:
+        if d.get('is_active'):
+            for b in d.get('subperiods', []):
+                if b.get('is_active'):
+                    for p in b.get('pratyantars', []):
+                        if p.get('is_active'):
+                            return {
+                                'dasa': d['lord'],
+                                'bhukti': b['lord'],
+                                'pratyantar': p['lord'],
+                                'start': p['start'],
+                                'end': p['end'],
+                                'dasa_end': d['end'],
+                                'bhukti_end': b['end']
+                            }
+    return None
+
+
+def calculate_panchangam(utc_dt, lat, lon, sun_lon, moon_lon):
+    """Compute complete Vedic Panchangam and Muhurtha windows."""
+    elong = (moon_lon - sun_lon) % 360
+    tithi_num = int(elong // 12) + 1
+    tithi_rem = 1.0 - ((elong % 12) / 12.0)
+    paksha = 'Shukla (waxing)' if elong < 180 else 'Krishna (waning)'
+
+    star_idx = int(moon_lon / (40 / 3))
+    pada = int((moon_lon % (40 / 3)) / (10 / 3)) + 1
+
+    yoga_num = int(((moon_lon + sun_lon) % 360) / (40 / 3)) + 1
+    yoga_name, yoga_ausp = NITYA_YOGAS[(yoga_num - 1) % 27]
+
+    karana_half = int(elong // 6) + 1
+    if karana_half == 1:
+        karana_name = 'Kimstughna'
+    elif karana_half >= 58:
+        karana_name = ['Shakuni', 'Chatushpada', 'Naga'][karana_half - 58]
+    else:
+        karana_name = KARANAS[(karana_half - 2) % 7]
+
+    # Approximate Sunrise / Sunset for the location date
+    # Equation of time and solar hour angle
+    day_of_year = utc_dt.timetuple().tm_yday
+    # Solar declination approximation (degrees)
+    decl = 23.45 * math.sin(math.radians((360 / 365) * (day_of_year - 81)))
+    # Hour angle calculation
+    phi = math.radians(lat)
+    delta = math.radians(decl)
+    cos_h0 = (math.sin(math.radians(-0.8333)) - math.sin(phi) * math.sin(delta)) / (math.cos(phi) * math.cos(delta))
+    cos_h0 = max(-1.0, min(1.0, cos_h0))
+    h0 = math.degrees(math.acos(cos_h0))
+
+    solar_noon_utc_hours = 12.0 - (lon / 15.0)
+    sunrise_utc_hours = (solar_noon_utc_hours - (h0 / 15.0)) % 24
+    sunset_utc_hours = (solar_noon_utc_hours + (h0 / 15.0)) % 24
+    day_len_hours = (h0 * 2) / 15.0
+
+    def fmt_time(h_float):
+        h = int(h_float)
+        m = int((h_float % 1) * 60)
+        return f"{h:02d}:{m:02d}"
+
+    sunrise_str = fmt_time(sunrise_utc_hours)
+    sunset_str = fmt_time(sunset_utc_hours)
+
+    # Muhurtha 8-segment calculation based on weekday
+    weekday = utc_dt.weekday()  # 0=Monday, ..., 6=Sunday
+    seg_hours = day_len_hours / 8.0
+
+    rahu_segs = [2, 7, 5, 6, 4, 3, 8]       # Mon-Sun (1-based)
+    yama_segs = [4, 3, 2, 1, 7, 6, 5]
+    guli_segs = [6, 5, 4, 3, 2, 1, 7]
+
+    def seg_window(seg_idx):
+        st = (sunrise_utc_hours + (seg_idx - 1) * seg_hours) % 24
+        en = (st + seg_hours) % 24
+        return f"{fmt_time(st)} - {fmt_time(en)}"
+
+    # Abhijit Muhurtham: 8th of 15 daytime muhurthas
+    abhijit_st = (sunrise_utc_hours + 7 * (day_len_hours / 15.0)) % 24
+    abhijit_en = (abhijit_st + (day_len_hours / 15.0)) % 24
+
+    return dict(
+        tithi=tithi_num,
+        tithi_name=TITHIS[tithi_num - 1],
+        paksha=paksha,
+        tithi_percent_remaining=round(tithi_rem * 100, 1),
+        nakshatra=STARS[star_idx],
+        tamil_nakshatra=TAMIL_STARS[star_idx],
+        nakshatra_lord=STAR_LORDS[star_idx],
+        nakshatra_gana=STAR_GANAS[star_idx],
+        nakshatra_yoni=STAR_YONIS[star_idx][0],
+        nakshatra_rajju=STAR_RAJJUS[star_idx],
+        pada=pada,
+        yoga_number=yoga_num,
+        yoga_name=yoga_name,
+        yoga_auspiciousness=yoga_ausp,
+        karana_half_number=karana_half,
+        karana_name=karana_name,
+        sunrise_utc=sunrise_str,
+        sunset_utc=sunset_str,
+        day_length_hours=round(day_len_hours, 2),
+        rahu_kalam_utc=seg_window(rahu_segs[weekday]),
+        yamagandam_utc=seg_window(yama_segs[weekday]),
+        gulika_kalam_utc=seg_window(guli_segs[weekday]),
+        abhijit_muhurtham_utc=f"{fmt_time(abhijit_st)} - {fmt_time(abhijit_en)}"
+    )
+
+def calculate_match(boy, girl):
+    """
+    Compute South Indian 10 Poruthams & North Indian 36 Guna Milan.
+    Parameters boy and girl can be either chart calculation objects or
+    dictionaries with 'nakshatra_index' (0-26) and 'sign_index' (0-11).
+    """
+    def get_indices(p):
+        if 'planets' in p:
+            m = p['planets']['Moon']
+            return STARS.index(m['nakshatra']), m['sign_index']
+        return int(p['nakshatra_index']), int(p['sign_index'])
+
+    b_star, b_sign = get_indices(boy)
+    g_star, g_sign = get_indices(girl)
+
+    poruthams = []
+
+    # 1. Dina Porutham (Health & Prosperity)
+    star_dist = (b_star - g_star) % 27 + 1
+    tara = star_dist % 9
+    dina_ok = (tara in (2, 4, 6, 8, 9, 0) or star_dist in (2, 4, 6, 8, 9, 11, 13, 15, 18, 20, 24, 26))
+    poruthams.append({
+        'name': 'Dina Porutham',
+        'tamil': 'தினப் பொருத்தம்',
+        'passed': dina_ok,
+        'points': 3 if dina_ok else 0,
+        'max_points': 3,
+        'description': 'Harmony in day-to-day vitality, health, and mutual longevity.'
+    })
+
+    # 2. Gana Porutham (Temperament)
+    b_gana = STAR_GANAS[b_star]
+    g_gana = STAR_GANAS[g_star]
+    gana_ok = (b_gana == g_gana) or (b_gana == 'Deva' and g_gana == 'Manushya')
+    poruthams.append({
+        'name': 'Gana Porutham',
+        'tamil': 'கணப் பொருத்தம்',
+        'passed': gana_ok,
+        'points': 6 if gana_ok else (3 if b_gana == 'Manushya' and g_gana == 'Deva' else 0),
+        'max_points': 6,
+        'description': f'Temperament alignment ({g_gana} & {b_gana}).'
+    })
+
+    # 3. Mahendra Porutham (Progeny & Lineage)
+    mahendra_dist = (b_star - g_star) % 27 + 1
+    mahendra_ok = mahendra_dist in (4, 7, 10, 13, 16, 19, 22, 25)
+    poruthams.append({
+        'name': 'Mahendra Porutham',
+        'tamil': 'மகேந்திரப் பொருத்தம்',
+        'passed': mahendra_ok,
+        'points': 2 if mahendra_ok else 0,
+        'max_points': 2,
+        'description': 'Family continuity, children, and enduring attachment.'
+    })
+
+    # 4. Stree Deergha Porutham (Longevity of Bride)
+    stree_ok = star_dist >= 13
+    poruthams.append({
+        'name': 'Stree Deergha Porutham',
+        'tamil': 'ஸ்திரீ தீர்க்கப் பொருத்தம்',
+        'passed': stree_ok,
+        'points': 1 if stree_ok else (0.5 if star_dist >= 7 else 0),
+        'max_points': 1,
+        'description': 'Auspicious fortune and well-being for the bride.'
+    })
+
+    # 5. Yoni Porutham (Physical Affinity)
+    b_animal = STAR_YONIS[b_star][0]
+    g_animal = STAR_YONIS[g_star][0]
+    enemies = {
+        'Horse': 'Buffalo', 'Buffalo': 'Horse', 'Elephant': 'Lion', 'Lion': 'Elephant',
+        'Sheep': 'Monkey', 'Monkey': 'Sheep', 'Serpent': 'Mongoose', 'Mongoose': 'Serpent',
+        'Dog': 'Deer', 'Deer': 'Dog', 'Cat': 'Rat', 'Rat': 'Cat', 'Cow': 'Tiger', 'Tiger': 'Cow'
+    }
+    is_enemy = (enemies.get(b_animal) == g_animal)
+    yoni_ok = (b_animal == g_animal) or not is_enemy
+    yoni_pts = 4 if b_animal == g_animal else (0 if is_enemy else 2)
+    poruthams.append({
+        'name': 'Yoni Porutham',
+        'tamil': 'யோனிப் பொருத்தம்',
+        'passed': yoni_ok and not is_enemy,
+        'points': yoni_pts,
+        'max_points': 4,
+        'description': f'Physical and sexual harmony ({g_animal} & {b_animal}).'
+    })
+
+    # 6. Rasi Porutham (Family Unity)
+    sign_dist = (b_sign - g_sign) % 12 + 1
+    rasi_ok = sign_dist in (7, 11, 10, 9, 3, 4, 5)
+    poruthams.append({
+        'name': 'Rasi Porutham',
+        'tamil': 'ராசிப் பொருத்தம்',
+        'passed': rasi_ok,
+        'points': 7 if rasi_ok else 0,
+        'max_points': 7,
+        'description': 'Family harmony, mutual understanding, and fortune.'
+    })
+
+    # 7. Rasiyathipathi Porutham (Sign Lords Friendship)
+    b_lord = SIGN_LORDS[b_sign]
+    g_lord = SIGN_LORDS[g_sign]
+    lord_rel = NATURAL_FRIENDS.get(b_lord, {}).get(g_lord, 0)
+    lord_ok = (b_lord == g_lord or lord_rel >= 0)
+    poruthams.append({
+        'name': 'Rasiyathipathi Porutham',
+        'tamil': 'ராசியாதிபதிப் பொருத்தம்',
+        'passed': lord_ok,
+        'points': 5 if b_lord == g_lord or lord_rel == 1 else (3 if lord_rel == 0 else 0),
+        'max_points': 5,
+        'description': f'Cordial friendship between sign rulers {g_lord} and {b_lord}.'
+    })
+
+    # 8. Vasiya Porutham (Magnetic Attraction)
+    vasiya_pairs = {
+        0: [4, 7], 1: [3, 6], 2: [5], 3: [7, 8], 4: [6], 5: [11, 2],
+        6: [9], 7: [3], 8: [11], 9: [0, 10], 10: [0], 11: [9]
+    }
+    vasiya_ok = (b_sign in vasiya_pairs.get(g_sign, [])) or (g_sign in vasiya_pairs.get(b_sign, []))
+    poruthams.append({
+        'name': 'Vasiya Porutham',
+        'tamil': 'வசியப் பொருத்தம்',
+        'passed': vasiya_ok,
+        'points': 2 if vasiya_ok else 0,
+        'max_points': 2,
+        'description': 'Mutual magnetism and enduring emotional devotion.'
+    })
+
+    # 9. Rajju Porutham (Marital Longevity - Critical)
+    b_rajju = STAR_RAJJUS[b_star]
+    g_rajju = STAR_RAJJUS[g_star]
+    rajju_ok = (b_rajju != g_rajju)  # Must be different!
+    poruthams.append({
+        'name': 'Rajju Porutham',
+        'tamil': 'ரஜ்ஜுப் பொருத்தம்',
+        'passed': rajju_ok,
+        'points': 8 if rajju_ok else 0,
+        'max_points': 8,
+        'critical': True,
+        'description': f'Essential marriage knot stability (Girl: {g_rajju}, Boy: {b_rajju}).'
+    })
+
+    # 10. Vedha Porutham (Absence of Affliction)
+    vedha_pairs = [
+        (0, 17), (1, 16), (2, 15), (3, 14), (4, 13), (5, 12),
+        (6, 19), (7, 20), (8, 21), (9, 22), (10, 23), (11, 24)
+    ]
+    is_vedha = False
+    for p1, p2 in vedha_pairs:
+        if (b_star == p1 and g_star == p2) or (b_star == p2 and g_star == p1):
+            is_vedha = True; break
+    poruthams.append({
+        'name': 'Vedha Porutham',
+        'tamil': 'வேதைப் பொருத்தம்',
+        'passed': not is_vedha,
+        'points': 4 if not is_vedha else 0,
+        'max_points': 4,
+        'description': 'Shield from invisible conflicts, sorrow, and sudden obstacles.'
+    })
+
+    # North Indian 36 Guna Milan
+    # 1. Varna (1)
+    varnas = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]  # Brahmin, Kshatriya, Vaishya, Shudra
+    varna_pts = 1 if varnas[b_sign] >= varnas[g_sign] else 0
+    # 2. Vashya (2)
+    vashya_pts = 2 if vasiya_ok else 1
+    # 3. Tara (3)
+    tara_pts = 3 if dina_ok else 1.5
+    # 4. Yoni (4)
+    yoni_milan_pts = yoni_pts
+    # 5. Graha Maitri (5)
+    graha_pts = 5 if b_lord == g_lord or lord_rel == 1 else (3 if lord_rel == 0 else 0)
+    # 6. Gana (6)
+    gana_pts = 6 if b_gana == g_gana else (3 if b_gana == 'Deva' and g_gana == 'Manushya' else 0)
+    # 7. Bhakoot (7)
+    bhakoot_pts = 7 if sign_dist in (7, 11, 10, 9, 3, 4, 5) else 0
+    # 8. Nadi (8)
+    nadis = ['Aadi', 'Madhya', 'Antya'] * 9
+    nadi_pts = 8 if nadis[b_star] != nadis[g_star] else 0
+
+    guna_score = varna_pts + vashya_pts + tara_pts + yoni_milan_pts + graha_pts + gana_pts + bhakoot_pts + nadi_pts
+    passed_poruthams = sum(1 for p in poruthams if p['passed'])
+
+    verdict = 'Auspicious Match' if (passed_poruthams >= 6 and rajju_ok and guna_score >= 18) else \
+              ('Moderate Match' if (passed_poruthams >= 5 and rajju_ok) else 'Inauspicious / Needs Remedies')
+
+    return {
+        'poruthams': poruthams,
+        'passed_count': passed_poruthams,
+        'total_poruthams': 10,
+        'rajju_agreement': rajju_ok,
+        'guna_milan': {
+            'varna': varna_pts,
+            'vashya': vashya_pts,
+            'tara': tara_pts,
+            'yoni': yoni_milan_pts,
+            'graha_maitri': graha_pts,
+            'gana': gana_pts,
+            'bhakoot': bhakoot_pts,
+            'nadi': nadi_pts,
+            'total_score': round(guna_score, 1),
+            'max_score': 36
+        },
+        'verdict': verdict
+    }
+
+def synthesize_readings(planets, dasha_active, yogas):
+    """Generate synthesized astrological life readings."""
+    asc = planets['Ascendant']
+    moon = planets['Moon']
+    sun = planets['Sun']
+    tenth_h = [p_name for p_name, p in planets.items() if p['house'] == 10]
+    seventh_h = [p_name for p_name, p in planets.items() if p['house'] == 7]
+    second_h = [p_name for p_name, p in planets.items() if p['house'] == 2]
+    eleventh_h = [p_name for p_name, p in planets.items() if p['house'] == 11]
+
+    career_planets = ', '.join(tenth_h) if tenth_h else f"governed by 10th Lord {SIGN_LORDS[(asc['sign_index'] + 9) % 12]}"
+    partner_planets = ', '.join(seventh_h) if seventh_h else f"governed by 7th Lord {SIGN_LORDS[(asc['sign_index'] + 6) % 12]}"
+    wealth_planets = ', '.join(second_h + eleventh_h) if (second_h or eleventh_h) else f"anchored by {SIGN_LORDS[(asc['sign_index'] + 1) % 12]} and {SIGN_LORDS[(asc['sign_index'] + 10) % 12]}"
+
+    active_summary = "Period information available upon chart date computation."
+    if dasha_active:
+        active_summary = f"Currently traversing {dasha_active['dasa']} Maha Dasa, {dasha_active['bhukti']} Bhukti, and {dasha_active['pratyantar']} Pratyantardasa. Focus aligns with the qualities and house lordship of {dasha_active['bhukti']}."
+
+    yoga_titles = [y['name'] for y in yogas[:4]]
+    yoga_text = f"Empowered by auspicious yogas including {', '.join(yoga_titles)}." if yoga_titles else "A balanced natal configuration with dynamic potential across houses."
+
+    return {
+        'lagna': f"Born with {asc['sign']} ({asc['tamil']}) Ascendant. Bestows distinct individuality, resilient constitution, and leadership driven by {SIGN_LORDS[asc['sign_index']]}.",
+        'moon': f"Chandra sits in {moon['sign']} ({moon['tamil']}) under {moon['nakshatra']} Nakshatra (Pada {moon['pada']}). Reflects deep intuition, thoughtful perceptiveness, and emotional responsiveness.",
+        'sun': f"Surya illuminates {sun['sign']} ({sun['tamil']}). Commands inner willpower, creative ambition, and personal authority.",
+        'career': f"10th House of Karma and Profession is {career_planets}. Directs worldly vocational focus toward strategic leadership, enterprise, and public credibility.",
+        'wealth': f"2nd House of Possessions and 11th House of Gains are influenced by {wealth_planets}. Supports sustained prosperity, progressive capital accumulation, and profitable associations.",
+        'relationships': f"7th House of Partnership is {partner_planets}. Emphasizes devotion, contractual integrity, and companionship based on mutual respect.",
+        'dasa_focus': active_summary,
+        'yogas_summary': yoga_text
+    }
+
+def calculate(data):
+    """Main calculation entry point."""
+    lat = float(data['latitude'])
+    lon = float(data['longitude'])
+    if not math.isfinite(lat) or not -66 <= lat <= 66:
+        raise ValueError('Latitude must be between 66° south and 66° north in this version.')
+    if not math.isfinite(lon) or not -180 <= lon <= 180:
+        raise ValueError('Longitude must be between -180 and 180.')
+
+    ayan = data.get('ayanamsa', 'Lahiri')
+    if ayan not in AYAN:
+        raise ValueError('Unsupported ayanamsa.')
+
+    fold = data.get('fold')
+    fold = None if fold in (None, '') else int(fold)
+    utc = local_to_utc(data['date'], data['time'], data['timezone'], fold)
+    jd = swe.julday(utc.year, utc.month, utc.day, utc.hour + utc.minute / 60 + utc.second / 3600)
+
+    swe.set_sid_mode(AYAN[ayan])
+    flags = swe.FLG_MOSEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
+
+    planets = {}
+    swe_map = [
+        ('Sun', swe.SUN), ('Moon', swe.MOON), ('Mars', swe.MARS),
+        ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER),
+        ('Venus', swe.VENUS), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE)
+    ]
+    for name, number in swe_map:
+        pos = swe.calc_ut(jd, number, flags)[0]
+        planets[name] = placement(pos[0], pos[3])
+
+    # Ketu is opposite Rahu
+    planets['Ketu'] = placement(planets['Rahu']['longitude'] + 180, planets['Rahu']['speed'])
+
+    # Ascendant (Lagna) & KP Placidus Cusps
+    kp_cusps_tuple, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
+    asc = ascmc[0]
+    planets['Ascendant'] = placement(asc)
+    kp_cusps = [kp_cusps_tuple[i] for i in range(1, 13)]
+
+    # Calculate whole-sign houses from Ascendant
+    asc_sign = planets['Ascendant']['sign_index']
+    for p in planets.values():
+        p['house'] = (p['sign_index'] - asc_sign) % 12 + 1
+
+    # Calculate Dignities and Combustion
+    sun_lon = planets['Sun']['longitude']
+    combust_thresholds = {'Moon': 12, 'Mars': 17, 'Mercury': 14, 'Jupiter': 11, 'Venus': 10, 'Saturn': 15}
+    for p_name, p in planets.items():
+        if p_name != 'Ascendant':
+            p['dignity'] = calculate_dignity(p_name, p['sign_index'], p['degree'], planets)
+            if p_name in combust_thresholds:
+                dist = min((p['longitude'] - sun_lon) % 360, (sun_lon - p['longitude']) % 360)
+                thresh = combust_thresholds[p_name]
+                if p['retrograde'] and p_name in ('Mercury', 'Venus'): thresh -= 2
+                p['combust'] = (dist <= thresh)
+            else:
+                p['combust'] = False
+
+    # Calculate Aspects (Drishti)
+    aspects_info = calculate_aspects(planets)
+    for p_name, asp in aspects_info.items():
+        planets[p_name]['aspects_cast'] = asp['casts_to_houses']
+        planets[p_name]['aspects_received'] = asp['aspects_received_from']
+
+    # Ashtakavarga
+    ashtakavarga = calculate_ashtakavarga(planets)
+
+    # Yogas and Doshas
+    yogas, doshas = detect_yogas(planets)
+
+    # 3-Tier Vimshottari Dasa
+    moon_lon = planets['Moon']['longitude']
+    dasha_rows = dasha(moon_lon, utc)
+    active_dasha = get_active_dasha(dasha_rows)
+
+    # Panchangam
+    panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon)
+
+    # Synthesized readings
+    readings = synthesize_readings(planets, active_dasha, yogas)
+
+    # House Details Summary
+    house_details = []
+    for h in range(1, 13):
+        h_sign = (asc_sign + h - 1) % 12
+        occupants = [n for n, p in planets.items() if p['house'] == h]
+        aspected_by = [
+            n for n, p in planets.items()
+            if n != 'Ascendant' and h in p.get('aspects_cast', [])
+        ]
+        house_details.append({
+            'house': h,
+            'sign': SIGNS[h_sign],
+            'tamil': TAMIL[h_sign],
+            'sign_index': h_sign,
+            'lord': SIGN_LORDS[h_sign],
+            'sav_points': ashtakavarga['SAV'][h_sign],
+            'occupants': occupants,
+            'aspected_by': aspected_by
+        })
+
+    # Vargas quick map for frontend renderers
+    vargas_map = {}
+    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D60']
+    for v_key in varga_keys:
+        vargas_map[v_key] = {
+            p_name: p['vargas'][v_key]
+            for p_name, p in planets.items()
+        }
+
+    chart_summary = dict(
+        planets=planets,
+        panchanga=panchangam,
+        active_dasha=active_dasha,
+        dasha=dasha_rows,
+        house_details=house_details,
+        ashtakavarga=ashtakavarga,
+        vargas=vargas_map,
+        yogas=yogas,
+        doshas=doshas,
+        jd=jd,
+        lat=lat,
+        lon=lon,
+        utc=utc,
+        kp_cusps=kp_cusps
+    )
+    predictions = generate_comprehensive_predictions(chart_summary)
+
+    return dict(
+        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold']},
+        utc=utc.isoformat(),
+        julian_day=jd,
+        ayanamsa_degrees=swe.get_ayanamsa_ut(jd),
+        planets=planets,
+        dasha=dasha_rows,
+        active_dasha=active_dasha,
+        panchanga=panchangam,
+        ashtakavarga=ashtakavarga,
+        yogas=yogas,
+        doshas=doshas,
+        vargas=vargas_map,
+        house_details=house_details,
+        readings=readings,
+        kp_cusps=kp_cusps,
+        predictions=predictions,
+        method=dict(
+            engine='Swiss Ephemeris ' + swe.version,
+            ephemeris='Moshier analytical ephemeris',
+            ayanamsa=ayan,
+            houses='Whole sign',
+            nodes='Mean node',
+            dasha_year_days=YEAR,
+            ashtakavarga_standard='Parashara (337 points)',
+            legacy_match='Enhanced high-precision Vedic & modern algorithms'
+        )
+    )

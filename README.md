@@ -1,0 +1,135 @@
+# JoRoScope (ஜோரோஸ்கோப்) — Modern Precision Vedic Astrology
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
+[![Tests: 23 Passed](https://img.shields.io/badge/tests-23%20passed-success)](tests/)
+[![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
+[![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
+
+JoRoScope is an authoritative, high-precision Vedic astrology application built with the Swiss Ephemeris AGPL. It seamlessly combines classical Parashara and Jaimini Jyotish, Bhrigu Nandi Nadi (BNN), Krishnamurti Paddhati (KP), and Shadbala into a modern luxury web interface and desktop application.
+
+---
+
+## Key Features
+
+### 🌌 Astronomical & Vedic Precision
+- **Swiss Ephemeris 2.10 Engine**: Sub-arcsecond planetary accuracy for dates between 1800 CE and 2200 CE.
+- **Multiple Ayanamsas**: Lahiri (Chitra Paksha standard), B.V. Raman, Krishnamurti (KP), and Fagan-Bradley.
+- **14 Parashara Divisional Vargas**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), and D60 (Shashtiamsa).
+- **Chart Styles**: South Indian (ஜாதகக் கட்டம்), North Indian Diamond, and East Indian formats.
+- **Interactive Inspector**: Click any house to see resident grahas, aspects received, house significations, and SAV points.
+
+### 📜 17 In-Depth Life Prediction Chapters
+1. **Birth Star (Nakshatra) & Lagna Personality**: Psychological and karmic nature.
+2. **Ascendant & Life Path**: Physical constitution and destiny trajectory.
+3. **12 Bhavas Comprehensive Analysis**: Detailed house-by-house readings.
+4. **Planetary Placements in Signs & Houses**: Dignities, exaltation, debilitation, and aspects.
+5. **Vimshottari Dasa-Bhukti Forecast**: 3-tier timing of planetary periods.
+6. **Gochara (Planetary Transits)**: Current Saturn, Jupiter, and Rahu-Ketu transits.
+7. **Sade Sati (ஏழரைச் சனி) Analysis**: Saturn phase assessment and guidance.
+8. **Detected Auspicious Yogas**: Gaja Kesari, Budhaditya, Raja Yogas, Pancha Mahapurusha.
+9. **Karmic Doshas & Mitigations**: Chevvai (Manglik), Rahu-Ketu, and Kala Sarpa.
+10. **Career, Wealth & Marriage Synthesis**: Tri-Bhava life goals summary.
+11. **Remedies, Gemstones & Deities**: Anukul Graha gemstone and spiritual remedies.
+12. **Shadbala (அறுவகை பலம்)**: 6-fold planetary potency, Virupas, and dominant planet detection.
+13. **Bhrigu Nandi Nadi (BNN) Karmic Sutras**: 1-5-9 Trinal directional alignments and Jeeva-Karma sutras.
+14. **KP System 249 Sub-Lord Analysis**: Cuspal Sub-Lord readings for 1st, 2nd, 5th, 7th, 10th, 11th cusps.
+15. **Planetary Avasthas & Fruition Potency**: Baladi & Jagradadi conscious states with % fruition.
+16. **108 Nakshatra Pada Destiny Readings**: Detailed Pada 1 to 4 psychological and life arc.
+17. **Sensitive Sahams (Cosmic Lots)**: Punya, Vidya, Vivaha, Karma, and Roga Sahams.
+
+### 👥 Multi-Person Profile Manager & Vault
+- **Form Quick Selector**: Instant 1-click loading and auto-calculation directly on the Birth Details form.
+- **Form Save & New Buttons**: Save or update anyone instantly; clear inputs for the next person with a single click.
+- **Rich Profile Cards**: Displays birth moments, location, and astrological badges (Lagna, Rasi, Star Pada).
+- **Horoscope Matching Shortcuts**: 1-click `👦 Boy` or `👧 Girl` to test compatibility between any two saved people.
+- **JSON Backup Export & Import**: Backup profiles to file or restore with automated de-duplication.
+
+### 💑 Horoscope Compatibility & 🌅 Daily Panchangam
+- **10 Poruthams & 36 Guna Milan**: Comprehensive marriage compatibility with Rajju Dosha verification.
+- **Daily Panchangam**: Real-time Tithi, Nakshatra, Yoga, Karana, Rahu Kalam, Yamagandam, Gulika, and Abhijit Muhurtham.
+
+### 🌐 Bilingual Support
+- Switch dynamically between **English** and **authentic Tamil (தமிழ்)** with 100% reactive coverage.
+
+---
+
+## Quick Start
+
+### 1. Requirements
+- **Operating System**: Windows, macOS, or Linux.
+- **Python**: 3.11 or 3.12 (64-bit recommended).
+
+### 2. Launch on Windows (1-Click)
+Double-click `Start JoRoScope.cmd` or run with PowerShell:
+```powershell
+.\Launch.ps1
+```
+
+### 3. Run with Python CLI
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server (opens automatically at http://127.0.0.1:8765)
+py -3.12 server.py
+# or
+python -m joroscope.cli serve
+```
+
+---
+
+## Repository Structure
+
+```
+JoRoScope/
+├── .github/workflows/ci.yml     # Automated CI testing
+├── docs/                        # Architecture, ephemeris, and prediction guides
+├── licenses/                    # AGPL and font license texts
+├── scripts/                     # PyInstaller builder and packaging scripts
+├── src/joroscope/
+│   ├── core/
+│   │   ├── engine.py            # Astronomical math & Swiss Ephemeris wrapper
+│   │   └── predictions.py       # 17 prediction chapters & classical rules
+│   ├── server.py                # Local REST API & static server
+│   ├── cli.py                   # Command-line interface
+│   └── web/                     # Single Page Application (HTML, CSS, JS, Cities)
+├── tests/                       # 23 automated unit and integration tests
+├── pyproject.toml               # PEP 621 package specification
+├── requirements.txt             # Runtime dependencies
+└── README.md                    # This documentation
+```
+
+---
+
+## Running Tests
+
+JoRoScope includes an automated test suite verifying calculation invariants, ephemeris regressions, API endpoints, and multi-profile lifecycles:
+```bash
+py -3.12 -m unittest discover -s tests -v
+```
+
+---
+
+## REST API Endpoints
+
+When running locally, JoRoScope provides secure JSON API endpoints:
+
+- `GET /api/health`: Health status and application version.
+- `POST /api/chart`: Computes full birth chart, divisional vargas, dasas, yogas, and all 17 prediction chapters.
+- `POST /api/match`: Computes 10 Poruthams, 36 Guna Milan, and Rajju agreement.
+- `POST /api/panchangam`: Computes 5 Panchanga Angas and daily Muhurthas.
+
+---
+
+## Privacy & Security
+
+- **100% Private & Offline**: All planetary positions and life readings are computed locally on your computer.
+- **No Cloud Tracking**: Birth details and profile records are stored exclusively in your local browser vault.
+- **Strict Origin Checks**: Local API rejects unauthorized external cross-origin requests.
+
+---
+
+## License
+
+JoRoScope is licensed under the [GNU Affero General Public License v3 (AGPLv3)](LICENSE). Astronomical calculations are powered by the Swiss Ephemeris by Astrodienst AG.
