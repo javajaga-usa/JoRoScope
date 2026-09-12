@@ -2614,21 +2614,33 @@ input:focus, select:focus {
 .timeline-details-toggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 8px;
+  padding: 8px 16px;
   background: var(--bg-subtle);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
   color: var(--gold);
-  font-size: 12.5px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-smooth);
+  user-select: none;
 }
 
 .timeline-details-toggle:hover {
-  background: rgba(229, 195, 120, 0.12);
+  background: rgba(229, 195, 120, 0.15);
   border-color: var(--gold);
+  transform: translateY(-1px);
+}
+
+.timeline-details-toggle.expanded {
+  background: linear-gradient(135deg, rgba(229, 195, 120, 0.22), rgba(229, 195, 120, 0.08));
+  border-color: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+
+.timeline-details-panel[hidden] {
+  display: none !important;
 }
 
 .timeline-details-panel {
@@ -2638,20 +2650,38 @@ input:focus, select:focus {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 14px;
+  animation: fadeInDetails 0.25s ease-out;
+}
+
+@keyframes fadeInDetails {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .timeline-dim-card {
   background: var(--bg-subtle);
   border: 1px solid var(--border-divider);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  transition: var(--transition-smooth);
+}
+
+.timeline-dim-card:hover {
+  border-color: var(--border-subtle);
+  background: var(--bg-subtle-hover);
 }
 
 .timeline-dim-card h4 {
-  font-size: 12.5px;
+  font-size: 13px;
   color: var(--gold);
   margin: 0;
   display: flex;
@@ -2660,9 +2690,9 @@ input:focus, select:focus {
 }
 
 .timeline-dim-card p {
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-main);
   margin: 0;
 }
 

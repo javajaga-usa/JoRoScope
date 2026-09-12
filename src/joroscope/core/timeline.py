@@ -535,91 +535,345 @@ DASA_BHUKTI_ARCHETYPES = {
     }
 }
 
-# Generic fallback builder for remaining Dasa-Bhukti pairs
+# Comprehensive Planetary Core Matrix for Dasa-Bhukti Life Forecasting
+PLANET_CORE = {
+    'Sun': {
+        'name_en': 'Sun', 'name_ta': 'சூரியன்',
+        'gov_en': 'authority, executive leadership, governance, high honors, and fatherly vitality',
+        'gov_ta': 'அரசு அனுகூலம், தலைமை ஆளுமை, கௌரவப் பதவிகள் மற்றும் தந்தைவழி மேன்மை',
+        'career_pos_ta': 'அரசுத் துறை, நிர்வாக மேலாண்மை, கார்ப்பரேட் தலைமைப் பொறுப்புகளில் பதவி உயர்வு மற்றும் அதிகாரிகளின் நன்மதிப்பு மேலோங்கும்.',
+        'career_pos_en': 'Executive appointments, government recognitions, public administration leadership, and sovereign honors flourish.',
+        'career_neg_ta': 'பணியிடத்தில் மேலதிகாரிகளுடன் வீண் வாக்குவாதங்களைத் தவிர்க்கவும்; அரசு ஆவணங்களில் விழிப்புணர்வுடன் கையெழுத்திடவும்.',
+        'career_neg_en': 'Avoid administrative friction with superiors; ensure meticulous compliance and diplomatic communication.',
+        'wealth_pos_ta': 'அரசு வழியிலான தன வரவு, பூர்வீகச் சொத்துக்கள், கௌரவமான தொழில் வருமானத்தால் பொருளாதார நிலை உயரும்.',
+        'wealth_pos_en': 'Substantial financial gains through state contracts, legitimate governance channels, and ancestral assets.',
+        'wealth_neg_ta': 'அந்தஸ்துக்கான கௌரவச் செலவுகள் மற்றும் அரசு வரி தொடர்பான விரயங்கள் ஏற்படலாம்; திட்டமிட்ட சேமிப்பு அவசியம்.',
+        'wealth_neg_en': 'High-profile overheads and regulatory taxes require prudent fiscal budgeting; avoid speculative risks.',
+        'health_pos_ta': 'ஆன்ம பலம், இதயம் மற்றும் இரத்த ஓட்டம் சீராக இயங்கும்; உத்வேகமும் சுறுசுறுப்பும் மேலோங்கும்.',
+        'health_pos_en': 'Radiant vitality, balanced cardiovascular stamina, and strong spinal resilience.',
+        'health_neg_ta': 'உஷ்ண உபாதைகள், கண் எரிச்சல், பித்த தலைவலி வரலாம்; வெயிலில் அலைவதைத் தவிர்த்து நீர்ச்சத்து உணவுகள் ஏற்கவும்.',
+        'health_neg_en': 'Vigilance over heat exhaustion, eye strain, and blood pressure fluctuations; prioritize hydration.',
+        'family_pos_ta': 'தந்தைக்கு மேன்மை, சமூகத்தில் குடும்பத்தின் மதிப்பும் மரியாதையும் உயரும்; மங்கல சுபகாரியங்கள் கைகூடும்.',
+        'family_pos_en': 'Elevated societal status for the household, paternal prosperity, and joyful domestic ceremonies.',
+        'family_neg_ta': 'குடும்ப விவகாரங்களில் பிடிவாதத்தைத் தவிர்த்து, பெரியவர்களின் ஆலோசனைகளுக்கு மதிப்பளிப்பது அமைதி தரும்.',
+        'family_neg_en': 'Subdue subtle ego stances in family dialogue; cultivate compassionate warmth toward elders.',
+        'milestone_ta': 'அரசு அங்கீகாரம் பெறுதல், தலைமைப் பொறுப்பு ஏறுதல், கௌரவப் பட்டங்கள் மற்றும் ஆன்மீகச் சடங்குகளுக்குத் தலைமை தாங்குதல்.',
+        'milestone_en': 'Attaining prestigious leadership mandates, receiving civic/corporate honors, and leading major ceremonies.',
+        'remedy_ta': 'ஞாயிறுதோறும் அதிகாலையில் சூரிய நமஸ்காரம் செய்து ஆதித்ய ஹிருதயம் பாராயணம் செய்யவும்; சிவபெருமானுக்கு செவ்வரளி மலர் சாற்றி கோதுமை தானம் செய்வது சுபம்.',
+        'remedy_en': 'Chant Aditya Hridaya Stotram at sunrise on Sundays; perform Surya Namaskar and distribute wheat grain charity.'
+    },
+    'Moon': {
+        'name_en': 'Moon', 'name_ta': 'சந்திரன்',
+        'gov_en': 'intuitive clarity, emotional equilibrium, public empathy, maternal grace, and travels',
+        'gov_ta': 'மன அமைதி, தாயாரின் ஆசிகள், பொது மக்கள் செல்வாக்கு மற்றும் தூர தேசப் பயணங்கள்',
+        'career_pos_ta': 'மக்கள் தொடர்பு, கலை, திரவங்கள், உணவு, மருத்துவம், ஆடை வடிவமைப்பு மற்றும் பயணத் துறைகளில் அபரிமிதமான வளர்ச்சி.',
+        'career_pos_en': 'Rapid elevation in public relations, creative arts, hospitality, healthcare, maritime commerce, and public popularity.',
+        'career_neg_ta': 'மனதில் ஏற்படும் சஞ்சலங்களால் தொழிலில் அவசர முடிவுகள் எடுப்பதைத் தவிர்த்து, அனுபவசாலிகளின் ஆலோசனையைப் பெறவும்.',
+        'career_neg_en': 'Guard against emotional vacillation; ground important business choices in rational data rather than moods.',
+        'wealth_pos_ta': 'நீரோட்டம் போன்ற பணப்புழக்கம், தாய்வழி ஆதரவு, பொதுமக்களின் நன்மதிப்பால் புதிய தனச்சேர்க்கை உண்டாகும்.',
+        'wealth_pos_en': 'Fluid cash liquidity, maternal financial blessings, and steady customer-driven revenue accumulation.',
+        'wealth_neg_ta': 'மனக்கலக்கத்தால் அநாவசிய செலவுகள் நேரலாம்; கடன் வாங்குவதையும் தேவையில்லாத ஆடம்பரங்களையும் தவிர்க்கவும்.',
+        'wealth_neg_en': 'Fluctuating liquidity and impulsive discretionary purchases warrant balanced financial containment.',
+        'health_pos_ta': 'மன அமைதி, தெளிவான சிந்தனை, ஆழ்ந்த தூக்கம் மற்றும் உற்சாகமான உடல் நிலை மேலோங்கும்.',
+        'health_pos_en': 'Serene emotional equanimity, restful sleep, and sound lymphatic vitality.',
+        'health_neg_ta': 'சளி, நீர் சம்பந்தமான உபாதைகள், தூக்கமின்மை வரலாம்; குளிர்ந்த உணவுகளைத் தவிர்த்து சுடுநீர் அருந்துவது நலம்.',
+        'health_neg_en': 'Beware cold, respiratory congestion, and psychosomatic fatigue; stay adequately rested and warm.',
+        'family_pos_ta': 'தாயாரின் அன்பு, இல்லற மகிழ்ச்சி, பெண் குழந்தைகளின் யோகம் மற்றும் உறவினர்களின் ஒத்துழைப்பு பெருகும்.',
+        'family_pos_en': 'Maternal blessings, domestic happiness, auspicious celebrations, and harmonious social ties.',
+        'family_neg_ta': 'தாயாரின் ஆரோக்கியத்தில் அக்கறை தேவை; குடும்ப விவகாரங்களில் உணர்ச்சிவசப்படுவதைத் தவிர்ப்பது நலம்.',
+        'family_neg_en': 'Care attentively for maternal wellness; avoid hypersensitive reactions in domestic discussions.',
+        'milestone_ta': 'வெளிநாட்டு அல்லது தூரதேசப் பயணங்கள், புதிய வீடு அல்லது வாகன யோகம், பொது வாழ்வில் நற்பெயர் அடைதல்.',
+        'milestone_en': 'Favorable overseas voyages, acquiring waterside property or new residence, and celebrated public acclaim.',
+        'remedy_ta': 'திங்கட்கிழமைகளில் சிவபெருமானுக்கு பால் அபிஷேகம் செய்து, சந்திர காயத்ரி பாராயணம் செய்யவும்; பச்சரிசி தானம் நலம்.',
+        'remedy_en': 'Offer milk abhishekam to Lord Shiva on Mondays; chant Chandra Gayatri and donate white rice or dairy.'
+    },
+    'Mars': {
+        'name_en': 'Mars', 'name_ta': 'செவ்வாய்',
+        'gov_en': 'dynamic courage, landed assets, executive decisiveness, engineering, and fraternal solidarity',
+        'gov_ta': 'வீரம், தைரியம், பூமி லாபம், பொறியியல், ரியல் எஸ்டேட் மற்றும் உடன்பிறப்புகளின் ஆதரவு',
+        'career_pos_ta': 'ரியல் எஸ்டேட், கட்டிடம், ராணுவம், காவல் துறை, பொறியியல், சட்டம் மற்றும் அறுவை சிகிச்சைத் துறைகளில் அபார வெற்றி.',
+        'career_pos_en': 'Aggressive professional breakthroughs, engineering achievements, military/police command, and real estate prowess.',
+        'career_neg_ta': 'பணியிடத்தில் அவசர முடிவுகளையோ, கோப உணர்ச்சிகளையோ தவிர்க்கவும்; சக ஊழியர்களிடம் இணக்கமாகச் செல்லவும்.',
+        'career_neg_en': 'Restrain workplace impulsiveness and hasty anger; channel competitive drive into constructive execution.',
+        'wealth_pos_ta': 'பூமி யோகம், புதிய மனை வாங்குதல், விவசாய நிலங்கள் மற்றும் துணிச்சலான முதலீடுகளில் பெருத்த லாபம் ஈட்டுதல்.',
+        'wealth_pos_en': 'Rapid wealth accumulation through tangible lands, residential plots, commercial properties, and bold contracts.',
+        'wealth_neg_ta': 'சொத்து விவகாரங்களில் ஆவணங்களை சரிபார்க்கவும்; வீண் வழக்குகளில் பண விரயம் ஏற்படாமல் பார்த்துக் கொள்ளவும்.',
+        'wealth_neg_en': 'Verify title deeds rigorously; guard against litigious expenditures and impetuous property investments.',
+        'health_pos_ta': 'உடல் வலிமை, தசை உறுதி மற்றும் அசைக்க முடியாத தன்னம்பிக்கை மேலோங்கும்.',
+        'health_pos_en': 'Dynamic physical vigor, muscular strength, and triumphant athletic endurance.',
+        'health_neg_ta': 'இரத்த அழுத்தம், உஷ்ணக் கட்டிகள், காயம் அல்லது வெட்டுக் காயங்கள் ஏற்படாமல் கவனமாக இருக்கவும்.',
+        'health_neg_en': 'Watch blood pressure spikes, inflammatory fevers, and minor accidents; avoid recklessness.',
+        'family_pos_ta': 'உடன்பிறப்புகளின் ஒத்துழைப்பு கிட்டும்; சகோதரர்களால் அனுகூலமும் குடும்பத்தில் சுபகாரியங்களும் நடக்கும்.',
+        'family_pos_en': 'Fraternal solidarity, brotherly backing, and dynamic progress in household undertakings.',
+        'family_neg_ta': 'கோபத்தைக் கட்டுப்படுத்தி, வாழ்க்கைத் துணையிடம் விட்டுக்கொடுத்துச் செல்வது குடும்ப அமைதியைக் காக்கும்.',
+        'family_neg_en': 'Temper short-fused reactions; practice mutual patience with spouse to maintain domestic tranquility.',
+        'milestone_ta': 'சொந்த மனை அல்லது வீடு பத்திரப்பதிவு செய்தல், போட்டிகளில் வெற்றி, சகோதர முன்னேற்றம்.',
+        'milestone_en': 'Registration of prime real estate, victory in competitive contests, and major fraternal milestones.',
+        'remedy_ta': 'செவ்வாய்க்கிழமைகளில் முருகப்பெருமானை வணங்கி கந்த சஷ்டி கவசம் ஓதவும்; துவரம் பருப்பு தானம் மற்றும் செவ்வரளி அர்ச்சனை சுபம்.',
+        'remedy_en': 'Worship Lord Muruga (Subrahmanya) on Tuesdays; recite Kanda Sashti Kavasam and donate red lentils.'
+    },
+    'Rahu': {
+        'name_en': 'Rahu', 'name_ta': 'ராகு',
+        'gov_en': 'unconventional expansion, cutting-edge technology, foreign cultures, and ambitious breakthroughs',
+        'gov_ta': 'திடீர் தன வரவு, புதிய தொழில்நுட்பம், அந்நிய தேசத் தொடர்புகள் மற்றும் அசாத்திய லட்சியங்கள்',
+        'career_pos_ta': 'மென்பொருள், செயற்கை நுண்ணறிவு, சர்வதேச வர்த்தகம், ஊடகம் மற்றும் வெளிநாட்டு நிறுவனங்களில் திடீர் உயர்வு.',
+        'career_pos_en': 'Disruptive technological innovation, multinational corporate ascendancy, aviation, and unconventional ventures.',
+        'career_neg_ta': 'சட்டத்திற்குப் புறம்பான கவர்ச்சிகரமான குறுக்கு வழிகளைத் தவிர்க்கவும்; ஒப்பந்தங்களில் நிதானம் தேவை.',
+        'career_neg_en': 'Steer clear of speculative shortcuts and dubious partnerships; verify compliance meticulously.',
+        'wealth_pos_ta': 'எதிர்பாராத தன வரவு, அந்நிய செலாவணி வருமானம், பங்குச் சந்தை மற்றும் ஏற்றுமதி தொழில்களில் பெருத்த லாபம்.',
+        'wealth_pos_en': 'Sudden windfall gains, foreign exchange inflows, smart technological ventures, and lucrative export contracts.',
+        'wealth_neg_ta': 'சூதாட்டம், அதிக ஆசை காட்டும் முதலீடுகளை முற்றிலும் தவிர்க்கவும்; திடீர் செலவுகள் ஏற்படலாம்.',
+        'wealth_neg_en': 'Avoid high-leverage gambles and get-rich-quick traps; prepare reserves for unexpected expenses.',
+        'health_pos_ta': 'புதிய மருத்துவ முறைகள் மற்றும் யோகப் பயிற்சிகளால் உடல் புத்துணர்ச்சி அடையும்.',
+        'health_pos_en': 'Innovative diagnostic breakthroughs and rejuvenating yogic healing regimes.',
+        'health_neg_ta': 'வாயு உபாதைகள், நரம்புத் தளர்ச்சி, விசித்திரமான ஒவ்வாமை வராமல் இயற்கை உணவுகளை ஏற்கவும்.',
+        'health_neg_en': 'Beware mysterious allergies, neurological fatigue, and toxic environmental exposures; detoxify.',
+        'family_pos_ta': 'அந்நிய கலாச்சார நட்புக்கள், குடும்பத்தில் நவீன வசதிகள் பெருகும்; புதிய தலைமுறையினரின் சாதனைகள்.',
+        'family_pos_en': 'Broadened multicultural connections, acquisition of modern luxury appliances, and younger kin achievements.',
+        'family_neg_ta': 'வீண் சந்தேகங்கள் மற்றும் கற்பனை பயங்களைத் தவிர்த்து வெளிப்படையாகப் பேசுவது குடும்ப அமைதியைத் தரும்.',
+        'family_neg_en': 'Dispel baseless suspicions and illusory anxieties; maintain open, grounded domestic communication.',
+        'milestone_ta': 'வெளிநாட்டு விசா மற்றும் குடியுரிமை பெறுதல், புதிய புத்தாக்கத் தொழில் தொடங்குதல் மற்றும் திடீர் பிரபல்யம் அடைதல்.',
+        'milestone_en': 'Cross-border visa/immigration milestone, launching an innovative commercial startup, and notable fame.',
+        'remedy_ta': 'செவ்வாய் அல்லது வெள்ளிக்கிழமைகளில் ராகு காலத்தில் துர்க்கை அம்மனுக்கு எலுமிச்சம்பழ தீபம் ஏற்றி வழிபடவும்; உளுந்து தானம் சுபம்.',
+        'remedy_en': 'Worship Goddess Durga with lemon oil lamps during Rahu Kalam on Tuesdays/Fridays; donate black gram (urad dal).'
+    },
+    'Jupiter': {
+        'name_en': 'Jupiter', 'name_ta': 'குரு',
+        'gov_en': 'divine wisdom, financial abundance, progeny auspiciousness, ethical righteousness, and higher counsel',
+        'gov_ta': 'ஞானம், புத்திர பாக்கியம், தெய்வ அனுகூலம், தன வளம், தர்ம நெறி மற்றும் குருவருள்',
+        'career_pos_ta': 'நீதிமன்றம், வங்கி, கல்வி நிறுவனங்கள், ஆன்மீக அறக்கட்டளைகள் மற்றும் உயர் ஆலோசனைத் துறைகளில் கௌரவப் பொறுப்புகள்.',
+        'career_pos_en': 'Distinguished appointments in judicial, academic, banking, ministerial, counseling, and high advisory roles.',
+        'career_neg_ta': 'அதிகப்படியான நன்நம்பிக்கையினால் பணிகளை அலட்சியப்படுத்தாமல், நடைமுறை சாத்தியங்களை கவனத்தில் கொள்ளவும்.',
+        'career_neg_en': 'Beware excessive complacency or over-promising; ground high ethical ideals in practical delivery.',
+        'wealth_pos_ta': 'அட்சய பாத்திரம் போன்ற தன சேர்க்கை; தர்ம வழியிலான வருமானம், வங்கி சேமிப்பு உயர்வு மற்றும் சொத்து பெருக்கம்.',
+        'wealth_pos_en': 'Pious, durable prosperity; effortless wealth preservation, treasury growth, and high financial safety.',
+        'wealth_neg_ta': 'பிறருக்கு ஜாமீன் கொடுப்பதையோ அல்லது தேவையில்லாத தர்மச் செலவுகளால் நிதிச் சுமை ஏற்படுவதையோ தவிர்க்கவும்.',
+        'wealth_neg_en': 'Refrain from standing surety for third parties; balance charitable philanthropy with domestic security.',
+        'health_pos_ta': 'சாத்வீகமான உடல் நிலை, முகத்தில் தெய்வீகப் பொலிவு, மன நிறைவு மற்றும் ஆரோக்கியம்.',
+        'health_pos_en': 'Optimistic psychological equilibrium, luminous vitality, and sound cellular constitution.',
+        'health_neg_ta': 'கல்லீரல், கொழுப்புச் சத்து மற்றும் சர்க்கரை அளவில் கவனம் தேவை; மிதமான எளிய உணவு நலம் தரும்.',
+        'health_neg_en': 'Watch liver health, lipid balance, and glycemic spikes; avoid excessive sweets and heavy banquets.',
+        'family_pos_ta': 'புத்திர பாக்கியம், பிள்ளைகளின் கல்வி மற்றும் திருமண மேன்மை; இல்லத்தில் மங்கல சுப காரியங்கள் இனிதே நடக்கும்.',
+        'family_pos_en': 'Blessed progeny conception or advancement, sacred weddings, preceptor blessings, and domestic sanctity.',
+        'family_neg_ta': 'குடும்பத்தில் பெரியவர்களின் கருத்துக்களை மதித்து நடப்பது நற்பலன்களைத் தரும்.',
+        'family_neg_en': 'Respect parental counsel with humility; cultivate mutual reverence among family generations.',
+        'milestone_ta': 'மழலைச் செல்வம் கிட்டுதல், புனித தீர்த்த யாத்திரைகள், குரு தரிசனம், அறப்பணிகள் தொடங்குதல் மற்றும் உயர்கல்வி நிறைவு.',
+        'milestone_en': 'Birth of noble progeny, pilgrimage to Mahakshetrams, authoring scholarly works, and receiving Guru deeksha.',
+        'remedy_ta': 'வியாழக்கிழமைகளில் தட்சிணாமூர்த்திக்கு முல்லை அல்லது மஞ்சள் மலர்கள் சாற்றி, கொண்டைக்கடலை மாலை அணிவித்து வழிபடவும்.',
+        'remedy_en': 'Worship Lord Dakshinamurthy or Brihaspati on Thursdays; offer yellow flowers, chana dal and chant Guru Stotram.'
+    },
+    'Saturn': {
+        'name_en': 'Saturn', 'name_ta': 'சனி',
+        'gov_en': 'unshakable perseverance, mass governance, discipline, judicial justice, industrial mining, and longevity',
+        'gov_ta': 'கடின உழைப்பு, ஆயுள் பலம், நீதி நேர்மை, தொழிற்சாலைகள், மக்கள் ஆதரவு மற்றும் ஸ்திரத்தன்மை',
+        'career_pos_ta': 'தொழிற்சாலை, இரும்பு, இயந்திரங்கள், உழைப்பாளர் நலம், சட்டம் மற்றும் நீண்டகால கட்டுமானத் திட்டங்களில் அழியா வெற்றி.',
+        'career_pos_en': 'Enduring structural mastery, industrial manufacturing, heavy machinery, administrative judiciary, and labor leadership.',
+        'career_neg_ta': 'பணியில் தேக்கமோ தாமதமோ ஏற்பட்டால் சோர்ந்து போகாமல், விடாமுயற்சியுடன் உழைப்பது வெற்றியைத் தரும்.',
+        'career_neg_en': 'Patience is paramount during administrative delays; perseverance and unyielding integrity secure ultimate victory.',
+        'wealth_pos_ta': 'படிப்படியான நிலையான வருமானம்; பழைய பாக்கிகள் வசூலாகும்; நீண்ட கால முதலீடுகளில் ஸ்திரமான பலன் கிட்டும்.',
+        'wealth_pos_en': 'Steady, hard-won tangible assets; patient accumulation through enduring foundations and institutional reserves.',
+        'wealth_neg_ta': 'திடீர் விரயங்கள், பணியாளர் ஊதியச் செலவுகள் அதிகரிக்கலாம்; சிக்கனத்தைக் கடைப்பிடிப்பது நலம்.',
+        'wealth_neg_en': 'Expect heavy operational overheads and slow cash conversion; maintain adequate cash buffers.',
+        'health_pos_ta': 'உடல் வலிமை மற்றும் ஆயுள் பலம் கூடும்; உழைப்பிற்கு ஏற்ற ஆழ்ந்த தூக்கம் அமையும்.',
+        'health_pos_en': 'Strong bone structure, longevity resilience, and rugged physical stamina.',
+        'health_neg_ta': 'மூட்டு வலி, வாத உபாதைகள், நரம்பு பிடிப்பு வராமல் நல்லெண்ணெய் தேய்த்துக் குளிப்பதும், நடைப்பயிற்சியும் நலம்.',
+        'health_neg_en': 'Guard against rheumatic stiffness, arthritis, sciatica, and dry exhaustion; practice oil massage and warmth.',
+        'family_pos_ta': 'முதியோர்களுக்கு பணிவிடை செய்தல், குடும்பப் பொறுப்புகளை செவ்வனே நிறைவேற்றுதல் மேன்மை தரும்.',
+        'family_pos_en': 'Fulfilling ancestral duties, caring for household elders, and establishing rock-solid family foundations.',
+        'family_neg_ta': 'குடும்பத்தில் தேவையற்ற கவலைகளைத் தவிர்த்து, மகிழ்ச்சியான சூழலை உருவாக்க முயற்சி செய்யவும்.',
+        'family_neg_en': 'Avoid morose isolation or unnecessary cynicism; foster warmth and lighthearted domestic cheer.',
+        'milestone_ta': 'நீண்ட நாள் உழைப்பிற்குரிய பெரும் பதவி, சொத்து உரிமை மீட்பு, தொழிலாளர் சங்க தலைமை மற்றும் நீடித்த வாழ்வியல் சாதனை.',
+        'milestone_en': 'Achieving career pinnacle through relentless grit, securing pension/land rights, and mass mandate.',
+        'remedy_ta': 'சனிக்கிழமைகளில் ஆஞ்சநேயருக்கு வடைமாலை சாற்றுதல், சனீஸ்வரருக்கு எள் தீபம் ஏற்றுதல் மற்றும் எளியோருக்கு அன்னதானம் செய்தல் சுபம்.',
+        'remedy_en': 'Worship Lord Hanuman or Lord Shaneeshwara on Saturdays; light sesame oil lamps (til oil) and feed laborers.'
+    },
+    'Mercury': {
+        'name_en': 'Mercury', 'name_ta': 'புதன்',
+        'gov_en': 'analytical intellect, commercial acumen, eloquent communication, journalism, and academic honors',
+        'gov_ta': 'புத்தி கூர்மை, வியாபார நுணுக்கம், வாக்கு சாதுரியம், தகவல் தொழில்நுட்பம் மற்றும் கல்வி மேன்மை',
+        'career_pos_ta': 'கணக்கு, தணிக்கை, மென்பொருள், எழுத்து, இதழியல், புரோக்கரேஜ் மற்றும் வணிகத் துறைகளில் அபார சாதனை.',
+        'career_pos_en': 'Brilliant triumphs in finance, chartered accountancy, journalism, publishing, software logic, and commercial trade.',
+        'career_neg_ta': 'பல வேலைகளில் ஒரே நேரத்தில் கவனம் சிதறாமல், ஒருமுகப்பட்டு செயலாற்றுவது தவறுகளைத் தவிர்க்கும்.',
+        'career_neg_en': 'Avoid scattered multitasking or verbal indiscretion; maintain methodical focus and written documentation.',
+        'wealth_pos_ta': 'பல வழிகளில் தன வரவு; வியாபார விரிவாக்கம், பங்குச் சந்தை முதலீடு மற்றும் அறிவுசார் உரிமங்களால் தன லாபம்.',
+        'wealth_pos_en': 'Versatile financial diversification, commercial commission gains, smart equity trading, and intellectual royalties.',
+        'wealth_neg_ta': 'வியாபாரக் கணக்குகளில் விழிப்புணர்வு தேவை; தவறான ஆலோசனைகளை நம்பி முதலீடு செய்வதைத் தவிர்க்கவும்.',
+        'wealth_neg_en': 'Inspect commercial contracts and accounts thoroughly; avoid speculative tips without fundamental audit.',
+        'health_pos_ta': 'சுறுசுறுப்பான மூளை செயல்பாடு, கூர்மையான நினைவாற்றல் மற்றும் உற்சாகமான உடல் நிலை.',
+        'health_pos_en': 'Agile neuro-cognitive alertness, sparkling wit, and youthful physiological vitality.',
+        'health_neg_ta': 'நரம்பு மண்டலம் மற்றும் தோல் ஆரோக்கியத்தில் கவனம்; கணினித் திரையில் அதிக நேரம் செலவிடுவதைத் தவிர்க்கவும்.',
+        'health_neg_en': 'Regulate screen time to prevent nervous agitation, eye fatigue, and skin hypersensitivity.',
+        'family_pos_ta': 'மாமன் வழி உறவுகளின் ஆதரவு; பிள்ளைகளின் கல்வி முன்னேற்றத்தால் குடும்பத்தில் மகிழ்ச்சி பொங்கும்.',
+        'family_pos_en': 'Lively witty banter, academic accolades for younger kin, and intellectual domestic harmony.',
+        'family_neg_ta': 'பேச்சில் சாதுரியத்தைக் கடைப்பிடித்து, குடும்பத்தாரிடம் விமர்சனங்களைத் தவிர்ப்பது ஒற்றுமையை வளர்க்கும்.',
+        'family_neg_en': 'Refrain from sarcastic critique in family conversations; cultivate empathetic communication.',
+        'milestone_ta': 'உயர்கல்விப் பட்டங்கள் வெல்லுதல், புதிய வணிக நிறுவனம் தொடங்குதல், நூல்கள் வெளியிடுதல் மற்றும் மேடைகளில் பாராட்டு.',
+        'milestone_en': 'Publishing scholarly works, securing high analytical qualifications, inaugurating new mercantile agency.',
+        'remedy_ta': 'புதன்கிழமைகளில் மகாவிஷ்ணுவை துளசி மாலை சாற்றி வழிபடவும்; விஷ்ணு சகஸ்ரநாமம் ஓதுதல் மற்றும் பாசிப்பயறு தானம் விசேஷம்.',
+        'remedy_en': 'Worship Lord Maha Vishnu on Wednesdays; chant Vishnu Sahasranamam, offer tulsi garlands and donate green moong dal.'
+    },
+    'Ketu': {
+        'name_en': 'Ketu', 'name_ta': 'கேது',
+        'gov_en': 'spiritual liberation, mystical perception, detached discernment, research breakthroughs, and esoteric healing',
+        'gov_ta': 'ஞான காரகன், ஆன்மீக முக்தி, யோக சித்தி, ஆராய்ச்சிப் பார்வை மற்றும் பற்றற்ற பெருநிலை',
+        'career_pos_ta': 'ஆராய்ச்சி, நுண்ணிய மருத்துவம், ஜோதிடம், மெய்யியல், மென்பொருள் ஆய்வு மற்றும் சுயேச்சையான ஆலோசனைகளில் மேன்மை.',
+        'career_pos_en': 'Deep breakthroughs in occult research, independent consultancy, surgical precision, theology, and cyber forensics.',
+        'career_neg_ta': 'பணியில் திடீர் சலிப்பு ஏற்படலாம்; சுயேச்சை மற்றும் ஆன்மீகப் பணிகள் மட்டுமே மன நிம்மதியைத் தரும்.',
+        'career_neg_en': 'Routine corporate hierarchy may feel stifling; pursue autonomous, specialized, or research-driven roles.',
+        'wealth_pos_ta': 'எதிர்பாராத தெய்வீகப் பொருளாதார உதவி கிட்டும்; ஆன்மீக அறக்கட்டளைகள் மற்றும் தர்ம காரியங்கள் தடையின்றி நடக்கும்.',
+        'wealth_pos_en': 'Spiritual windfalls and providential support; expenditures centered on noble dharma, temples, and charity.',
+        'wealth_neg_ta': 'பொருளாதார விஷயங்களில் ஏமாற்றங்களைத் தவிர்க்கவும்; புதிய கடன் வாங்குவதையோ கொடுப்பதையோ தவிர்க்கவும்.',
+        'wealth_neg_en': 'Avoid financial gullibility; guard against unvetted disbursements and maintain transparent records.',
+        'health_pos_ta': 'ஆன்ம அமைதி, தியானப் பழக்கம் மற்றும் யோக சாதனைகளால் உடல் நலன் மேலோங்கும்.',
+        'health_pos_en': 'Profound inner equanimity, meditative rejuvenation, and detachment from stressful anxieties.',
+        'health_neg_ta': 'காய்ச்சல், பூச்சி கடி, தோல் அரிப்பு அல்லது நரம்பு தளர்ச்சி வராமல் இயற்கை உணவுகளையும் நடைப்பயிற்சியையும் ஏற்கவும்.',
+        'health_neg_en': 'Guard against feverish flare-ups, insect stings, and subtle energetic fatigue; embrace satvik foods.',
+        'family_pos_ta': 'குடும்பத்தில் ஆன்மீகச் சூழல் நிலவும்; பெரியவர்களின் நல்லாசிகளால் மன அமைதி கூடும்.',
+        'family_pos_en': 'Serene spiritual sanctuary at home; respectful observance of traditional family rituals.',
+        'family_neg_ta': 'உறவினர்களின் சச்சரவுகளில் தலையிடாமல் மௌனம் காப்பது மன நிம்மதியைத் தரும்.',
+        'family_neg_en': 'Practice dignified silence during petty household disputes to preserve calm emotional sanctity.',
+        'milestone_ta': 'மகான்கள் மற்றும் சித்தர்களின் ஜீவ சமாதி தரிசனம், மந்திர உபதேசம் பெறுதல், ஆன்ம விழிப்புணர்வு அடைதல்.',
+        'milestone_en': 'Initiation into sacred mantras, solitary mountain pilgrimages, unveiling esoteric truths, and inner peace.',
+        'remedy_ta': 'விநாயகப் பெருமானுக்கு அருகம்புல் மாலை சாற்றி சிதறுகாய் உடைத்து வழிபடவும்; தெரு நாய்களுக்கு உணவு வழங்கவும்.',
+        'remedy_en': 'Worship Lord Ganesha with grass blades (Arugampul) and Modakam on Tuesdays/Saturdays; feed stray animals.'
+    },
+    'Venus': {
+        'name_en': 'Venus', 'name_ta': 'சுக்கிரன்',
+        'gov_en': 'artistic elegance, marital romance, luxury conveyances, culinary delight, and aesthetic diplomacy',
+        'gov_ta': 'களத்திர காரகன், கலை நயம், சொகுசு வாகன யோகம், ஆடை ஆபரணங்கள் மற்றும் இல்லற இன்பம்',
+        'career_pos_ta': 'சினிமா, இசை, ஆடை வடிவமைப்பு, ஆபரணங்கள், அழகு சாதனங்கள், ஹோட்டல் மற்றும் ஏற்றுமதி துறைகளில் உச்சக்கட்ட வெற்றி.',
+        'career_pos_en': 'Stellar triumphs in cinema, high fashion, luxury hospitality, diplomacy, interior architecture, and boutique commerce.',
+        'career_neg_ta': 'ஆடம்பரச் செலவுகளினால் தொழிலில் நிதிச் சுமை ஏற்படாமல் பார்த்துக் கொள்ளவும்; ஒப்பந்தங்களில் தெளிவு அவசியம்.',
+        'career_neg_en': 'Avoid overspending on lavish branding without core substance; formalize creative partnerships in writing.',
+        'wealth_pos_ta': 'வைரம், தங்கம் போன்ற ஆபரணச் சேர்க்கை; சொகுசு வாகனங்கள் வாங்கும் யோகம் மற்றும் திரண்ட தன லாபம்.',
+        'wealth_pos_en': 'Opulent wealth accumulation; acquisition of diamond jewelry, luxury imported conveyances, and prime real estate.',
+        'wealth_neg_ta': 'கவர்ச்சிகரமான ஆடம்பர ஆசைகளால் பண விரயம் ஏற்படலாம்; வரவுக்கேற்ற செலவுகளைத் திட்டமிடுவது நலம்.',
+        'wealth_neg_en': 'Guard against indulgence-driven expenditures; budget discretionary luxuries prudently.',
+        'health_pos_ta': 'பளபளப்பான மேனி அழகு, ஹார்மோன் சமநிலை மற்றும் வசீகரமான உடல் ஆரோக்கியம்.',
+        'health_pos_en': 'Radiant skin complexion, harmonic hormonal balance, and youthful physical charm.',
+        'health_neg_ta': 'சர்க்கரை மற்றும் சிறுநீரக நலனில் அக்கறை தேவை; அதிக இனிப்பு மற்றும் எண்ணெய் பலகாரங்களைத் தவிர்க்கவும்.',
+        'health_neg_en': 'Watch renal and urinary tract wellness; avoid excessive refined sugars and heavy oils.',
+        'family_pos_ta': 'களத்திர மேன்மை, திருமண யோகம், தம்பதியரிடையே அன்யோன்யம், பெண் குழந்தை பிறப்பு மற்றும் இல்லற இன்பம்.',
+        'family_pos_en': 'Blissful conjugal harmony, glamorous nuptial celebrations, joyful marital companionship, and daughter birth.',
+        'family_neg_ta': 'வாழ்க்கைத் துணையுடன் சிறு கருத்து வேறுபாடுகள் வராமல் அன்புடன் பேசித் தீர்ப்பது நலம்.',
+        'family_neg_en': 'Avoid petty misunderstandings with spouse through transparent affection and emotional generosity.',
+        'milestone_ta': 'திருமணம் இனிதே முடிதல், கனவு வாகனம் அல்லது சொகுசு பங்களா வாங்குதல், சர்வதேச கலை விருதுகள் பெறுதல்.',
+        'milestone_en': 'Grand wedding celebration, acquisition of dream luxury automobile, and prestigious creative awards.',
+        'remedy_ta': 'வெள்ளிக்கிழமைகளில் மகாலட்சுமிக்கு மல்லிகை அல்லது தாமரை மலர் சாற்றி நெய் தீபம் ஏற்றி வழிபடவும்; ஸ்ரீ சூக்தம் பாராயணம் நலம்.',
+        'remedy_en': 'Worship Goddess Mahalakshmi on Fridays with fragrant white flowers (jasmine/lotus); chant Sri Suktam.'
+    }
+}
+
+
 def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dignity: str, b_dignity: str) -> Dict[str, Any]:
     key = (d_lord, b_lord)
     if key in DASA_BHUKTI_ARCHETYPES:
-        arch = dict(DASA_BHUKTI_ARCHETYPES[key])
+        return dict(DASA_BHUKTI_ARCHETYPES[key])
+
+    d_info = PLANET_CORE.get(d_lord, PLANET_CORE['Jupiter'])
+    b_info = PLANET_CORE.get(b_lord, PLANET_CORE['Venus'])
+
+    is_trikone = mutual_kendra in (1, 5, 9)
+    is_upachaya = mutual_kendra in (3, 11)
+    is_kendra = mutual_kendra in (4, 7, 10)
+    is_dusthana = mutual_kendra in (6, 8, 12)
+
+    if is_trikone:
+        axis_en = f"Harmonious {mutual_kendra}-Trikona Alignment"
+        axis_ta = f"{mutual_kendra}-ஆம் திரிகோண சுப அமைப்பு"
+        potency = 5
+        theme_en = f"{d_info['name_en']} Maha Dasa combined with {b_info['name_en']} Bhukti in a blissful trine aspect. Brings auspicious expansion, spiritual merit fruition, and creative success across {b_info['gov_en']}."
+        theme_ta = f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி திரிகோண சுப அமைப்பில் இணைவதால், {b_info['gov_ta']} வழிகளில் நற்பலன்களை வாரி வழங்கும் உன்னதமான சுப காலம்."
+        career_en = f"{b_info['career_pos_en']} Under the commanding auspices of {d_info['name_en']}, professional milestones and promotions manifest smoothly."
+        career_ta = f"{b_info['career_pos_ta']} {d_info['name_ta']} தசா நாதரின் பலத்தால் உத்தியோகம் மற்றும் தொழிலில் புதிய நன்மதிப்பும் உயர் பதவிகளும் கிட்டும்."
+        wealth_en = f"{b_info['wealth_pos_en']} {d_info['wealth_pos_en']}"
+        wealth_ta = f"{b_info['wealth_pos_ta']} {d_info['wealth_pos_ta']}"
+        health_en = f"{b_info['health_pos_en']} Elevated vitality supported by {d_info['name_en']}'s structural strength."
+        health_ta = f"{b_info['health_pos_ta']} தசா நாதரின் அருளால் மன அமைதியும் உற்சாகமும் மேலோங்கும்."
+        family_en = f"{b_info['family_pos_en']} Household prestige and lineage honor rise significantly under {d_info['name_en']}."
+        family_ta = f"{b_info['family_pos_ta']} குடும்பத்தில் மகிழ்ச்சியும், பெரியவர்களின் ஆசிகளும் நிறைந்திருக்கும்."
+        milestones_en = f"{b_info['milestone_en']} Auspicious turning point supported by {d_info['name_en']}."
+        milestones_ta = f"{b_info['milestone_ta']} {d_info['milestone_ta']}"
+        remedy_en = f"{b_info['remedy_en']} Additionally, propitiate {d_info['name_en']} with regular prayers."
+        remedy_ta = f"{b_info['remedy_ta']} மேலும் {d_info['name_ta']} பகவானையும் வழிபடுவது சகல சவுபாக்கியங்களையும் தரும்."
+
+    elif is_upachaya:
+        axis_en = f"Progressive {mutual_kendra}-Upachaya Growth"
+        axis_ta = f"{mutual_kendra}-ஆம் உபசெய ஸ்தான வளர்ச்சி அமைப்பு"
+        potency = 4
+        theme_en = f"Steady effort yields tangible material gains and victory over competitors during {d_info['name_en']}-{b_info['name_en']}. Progressive elevation in status through determined enterprise."
+        theme_ta = f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி உபசெய ஸ்தானத்தில் அமைவதால், கடின உழைப்பிற்கு ஏற்ற நிலையான வெற்றி மற்றும் பொருளாதார வளர்ச்சி கிட்டும் உன்னத காலம்."
+        career_en = f"{b_info['career_pos_en']} Overcomes past professional bottlenecks through relentless grit and strategic networking."
+        career_ta = f"{b_info['career_pos_ta']} பழைய தடைகள் நீங்கி, புதிய தொழில் முயற்சிகளில் லாபமும் கூட்டாளிகள் ஆதரவும் கிடைக்கும்."
+        wealth_en = f"{b_info['wealth_pos_en']} Recovery of pending dues and steady upward momentum in accumulated savings."
+        wealth_ta = f"{b_info['wealth_pos_ta']} நிலுவைத் தொகைகள் வசூலாகும்; சேமிப்பும் பொருளாதார வலிமையும் படிப்படியாக உயரும்."
+        health_en = f"{b_info['health_pos_en']} Resilience overcomes minor seasonal fatigue; maintain steady exercise."
+        health_ta = f"{b_info['health_pos_ta']} உடல் வலிமை கூடும்; சோர்வு நீங்கி சுறுசுறுப்பு மேலோங்கும்."
+        family_en = f"{b_info['family_pos_en']} Extended relatives and friends rally with helpful cooperation."
+        family_ta = f"{b_info['family_pos_ta']} உறவினர்கள் மற்றும் நண்பர்களின் ஒத்துழைப்பால் குடும்பத்தில் முன்னேற்றம் ஏற்படும்."
+        milestones_en = f"{b_info['milestone_en']} Victory in prolonged competitive undertakings and enterprise expansion."
+        milestones_ta = f"{b_info['milestone_ta']} தொழில் விஸ்தரிப்பு, புதிய ஒப்பந்தங்கள் பெறுதல் மற்றும் போட்டிகளில் வெற்றி."
+        remedy_en = f"{b_info['remedy_en']} Distribute food to deserving seekers on {b_info['name_en']}'s sacred day."
+        remedy_ta = f"{b_info['remedy_ta']} ஏழைகளுக்கு அன்னதானம் மற்றும் வஸ்திர தானம் செய்வது வெற்றியை விரைவுபடுத்தும்."
+
+    elif is_dusthana:
+        axis_en = f"Transformational {mutual_kendra}-House Karmic Transition"
+        axis_ta = f"{mutual_kendra}-ஆம் மறைவு ஸ்தான கர்ம எச்சரிக்கை காலம்"
+        potency = 2
+        theme_en = f"Calls for patient vigilance, spiritual surrender, and avoidance of hasty gambles. Transformational inner growth while navigating external tests under {d_info['name_en']}-{b_info['name_en']}."
+        theme_ta = f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி மறைவு ஸ்தானத்தில் அமைவதால், நிதானமும் விவேகமும் ஆன்மீக சரணாகதியும் தேவைப்படும் கர்ம விழிப்புணர்வு காலம்."
+        career_en = f"{b_info['career_neg_en']} Exercise supreme patience in administrative hierarchies; safeguard sensitive records and adhere strictly to ethical protocols."
+        career_ta = f"{b_info['career_neg_ta']} பணியிடத்தில் உயர் அதிகாரிகளிடம் வீண் வாக்குவாதங்களைத் தவிர்க்கவும்; பொறுமையே நலம் பயக்கும்."
+        wealth_en = f"{b_info['wealth_neg_en']} Strictly avoid speculative bets, heavy loans, or standing guarantee for others. Maintain defensive fiscal liquidity."
+        wealth_ta = f"{b_info['wealth_neg_ta']} புதிய கடன் வாங்குவதையோ கொடுப்பதையோ தவிர்க்கவும்; தேவையற்ற ஆடம்பரச் செலவுகளைக் கட்டுப்படுத்துவது அவசியம்."
+        health_en = f"{b_info['health_neg_en']} Prioritize preventative medical checkups, stress-reducing meditation, and restful sleep."
+        health_ta = f"{b_info['health_neg_ta']} மன உளைச்சல் மற்றும் உடல் சோர்வு வராமல் தியானம், யோகா மற்றும் எளிய சத்தான உணவு ஏற்கவும்."
+        family_en = f"{b_info['family_neg_en']} Practice diplomatic tact and emotional generosity with household members during stressful days."
+        family_ta = f"{b_info['family_neg_ta']} குடும்பத்தாரிடம் வீண் சந்தேகங்களையும் வாக்குவாதங்களையும் தவிர்த்து அமைதி காப்பது ஒற்றுமை தரும்."
+        milestones_en = f"Sacred pilgrimage to powerful remedial shrines, mastering personal resilience, and overcoming karmic debts."
+        milestones_ta = f"புனித ஸ்தல யாத்திரைகள், குலதெய்வ பிரார்த்தனைகளை நிறைவேற்றுதல் மற்றும் சவால்களை வெல்லும் மன உறுதி பெறுதல்."
+        remedy_en = f"{b_info['remedy_en']} Perform Navagraha homam or dedicated archana to mitigate adverse planetary transits."
+        remedy_ta = f"{b_info['remedy_ta']} நவக்கிரக சாந்தி மற்றும் எளியோருக்கு அன்னதானம் செய்வது தோஷங்களை நீக்கி நலம் பயக்கும்."
+
     else:
-        # Generate astrological reading based on planetary nature & mutual house distance
-        d_ta = PLANET_TAMIL.get(d_lord, d_lord)
-        b_ta = PLANET_TAMIL.get(b_lord, b_lord)
+        # Kendra (1, 4, 7, 10)
+        axis_en = f"Dynamic {mutual_kendra}-Kendra Action"
+        axis_ta = f"{mutual_kendra}-ஆம் கேந்திர ஸ்தான ஆளுமை காலம்"
+        potency = 4
+        theme_en = f"Pivotal worldly developments, major domestic landmarks, and conspicuous career triumphs under {d_info['name_en']}-{b_info['name_en']}."
+        theme_ta = f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி கேந்திர ஸ்தானத்தில் அமைவதால், வாழ்வியல் திருப்பங்கள், புதிய பொறுப்புகள் மற்றும் சமுதாய அங்கீகாரம் கிட்டும் செயல் காலம்."
+        career_en = f"{b_info['career_pos_en']} Direct administrative authority and visible executive achievements."
+        career_ta = f"{b_info['career_pos_ta']} புதிய பொறுப்புகள், தலைமைப் பண்பு வெளிப்படுதல், தொழில் விரிவாக்கம் மற்றும் நிர்வாக வெற்றி."
+        wealth_en = f"{b_info['wealth_pos_en']} Solid capital investments in fixed real estate, business equipment, or luxury conveyances."
+        wealth_ta = f"{b_info['wealth_pos_ta']} நிலம், வீடு, வாகனங்கள் சார்ந்த சுப முதலீடுகளால் சொத்து மதிப்பு கணிசமாக உயரும்."
+        health_en = f"{b_info['health_pos_en']} Robust energetic constitution; balance active work routines with adequate relaxation."
+        health_ta = f"{b_info['health_pos_ta']} சுறுசுறுப்பான உடல் நிலை; அதிக உழைப்பின் போது போதிய ஓய்வு எடுப்பது நலம்."
+        family_en = f"{b_info['family_pos_en']} Important domestic events, home improvements, and joyful hospitality."
+        family_ta = f"{b_info['family_pos_ta']} இல்லத்தில் மங்கல சுபகாரியப் பேச்சுக்கள், புதிய உறவுகளின் வருகை மற்றும் குடும்ப அமைதி."
+        milestones_en = f"{b_info['milestone_en']} Major milestone accomplishment fulfilling long-standing ambitions."
+        milestones_ta = f"{b_info['milestone_ta']} நெடுநாளைய லட்சியங்கள் நிறைவேறுதல், புதிய சொத்து வாங்குதல் மற்றும் பொது மதிப்பு."
+        remedy_en = f"{b_info['remedy_en']} Light lamps at your family deity (Kula Devata) shrine."
+        remedy_ta = f"{b_info['remedy_ta']} குலதெய்வ வழிபாடு மற்றும் இஷ்ட தெய்வ ஆராதனை சகல காரிய சித்தியையும் தரும்."
 
-        is_trikone = mutual_kendra in (1, 5, 9)
-        is_upachaya = mutual_kendra in (3, 11)
-        is_kendra = mutual_kendra in (4, 7, 10)
-        is_dusthana = mutual_kendra in (6, 8, 12)
-
-        if is_trikone:
-            axis_en = f"Harmonious {mutual_kendra}-Trikona Alignment"
-            axis_ta = "திரிகோண சுப அமைப்பு"
-            potency = 5
-            trend_en = f"Brings auspicious expansion, spiritual merit fruition, and creative success under {d_lord}-{b_lord}."
-            trend_ta = f"{d_ta} தசையில் {b_ta} புக்தி நற்பலன்களை வாரி வழங்கும் திரிகோண சுப காலம்."
-            career_en = f"Promotions and favorable transitions; {b_lord} enhances professional reputation."
-            career_ta = "பதவி உயர்வு, பாராட்டுகள்; தொழிலில் புதிய உயரங்களை எட்டும் காலம்."
-            wealth_en = "Smooth financial liquidity and gains through legitimate efforts."
-            wealth_ta = "தன வரவு திருப்திகரமாக இருக்கும்; சுப காரியங்களுக்கு முதலீடுகள் உதவும்."
-            health_en = "Vibrant health and peaceful mental disposition."
-            health_ta = "ஆரோக்கியம் சிறப்பாக இருக்கும்; மன அமைதி கூடும்."
-        elif is_upachaya:
-            axis_en = f"Progressive {mutual_kendra}-Upachaya Growth"
-            axis_ta = "உபசெய ஸ்தான வளர்ச்சி"
-            potency = 4
-            trend_en = f"Steady effort yields tangible material gains and victory over past delays."
-            trend_ta = f"கடின உழைப்பிற்கு ஏற்ற நிலையான வெற்றி மற்றும் பொருளாதார வளர்ச்சி கிட்டும் காலம்."
-            career_en = f"Expansion of enterprise and network; {b_lord} channels practical achievements."
-            career_ta = "புதிய தொழில் முயற்சிகளில் லாபம்; நண்பர்கள் மற்றும் கூட்டாளிகள் ஆதரவு."
-            wealth_en = "Progressive increase in earnings, recovery of pending debts."
-            wealth_ta = "பண வரவு படிப்படியாக உயரும்; நிலுவைத் தொகைகள் வசூலாகும்."
-            health_en = "Strong stamina and resilience overcoming minor seasonal ailments."
-            health_ta = "உடல் வலிமை கூடும்; சோர்வு நீங்கி சுறுசுறுப்பு மேலோங்கும்."
-        elif is_dusthana:
-            axis_en = f"Transformational {mutual_kendra}-House Karmic Transition"
-            axis_ta = "மறைவு ஸ்தான எச்சரிக்கை & கர்ம காலம்"
-            potency = 2
-            trend_en = f"Calls for patient vigilance, spiritual surrender, and avoidance of hasty risks."
-            trend_ta = f"நிதானமும் விவேகமும் தேவைப்படும் காலம்; அவசர முடிவுகளைத் தவிர்ப்பது நல்லது."
-            career_en = f"Patience required in workplace interactions; safeguard documents and maintain ethics."
-            career_ta = "பணியிடத்தில் பொறுமை அவசியம்; உயர் அதிகாரிகளிடம் வீண் வாக்குவாதங்களை தவிர்க்கவும்."
-            wealth_en = "Controlled spending is essential; avoid speculative investments and lending."
-            wealth_ta = "சிக்கனம் தேவை; புதிய கடன் வாங்குவதையோ கொடுப்பதையோ தவிர்க்கவும்."
-            health_en = "Prioritize preventative wellness, stress management, and nutritious diet."
-            health_ta = "உடல் நலம் மற்றும் மன உளைச்சலில் கவனம்; தியானம் மற்றும் நடைப்பயிற்சி நலம் தரும்."
-        else:
-            axis_en = f"Dynamic {mutual_kendra}-Kendra Action"
-            axis_ta = "கேந்திர ஸ்தான செயல் காலம்"
-            potency = 4
-            trend_en = f"Worldly activity and major domestic and career developments."
-            trend_ta = f"வாழ்வியல் திருப்பங்கள் மற்றும் புதிய பொறுப்புகள் உருவாகும் காலம்."
-            career_en = f"Direct authority and visible leadership accomplishments."
-            career_ta = "புதிய பொறுப்புகள், தலைமைப் பண்பு வெளிப்படுதல், நிர்வாக வெற்றி."
-            wealth_en = "Investments in fixed assets, vehicles, or home enhancements."
-            wealth_ta = "நிலம், வீடு, வாகனங்கள் சார்ந்த சுபச் செலவுகள் உண்டாகும்."
-            health_en = "Energetic constitution; maintain adequate rest during busy schedules."
-            health_ta = "சுறுசுறுப்பான உடல் நிலை; உரிய ஓய்வு எடுப்பது நலம்."
-
-        arch = {
-            'title_en': f"{d_lord} Maha Dasa — {b_lord} Bhukti ({axis_en})",
-            'title_ta': f"{d_ta} தசை — {b_ta} புக்தி ({axis_ta})",
-            'theme_en': trend_en,
-            'theme_ta': trend_ta,
-            'career_en': career_en,
-            'career_ta': career_ta,
-            'wealth_en': wealth_en,
-            'wealth_ta': wealth_ta,
-            'health_en': health_en,
-            'health_ta': health_ta,
-            'family_en': f"Family events guided by {b_lord}; fostering cooperative dialogue and domestic stability.",
-            'family_ta': f"குடும்பத்தில் அமைதி; உறவினர்களிடையே ஒற்றுமை பேணுவது நலம் பயக்கும்.",
-            'milestones_en': f"Key milestone in {b_lord}'s domain; progress through deliberate dedication.",
-            'milestones_ta': f"முக்கிய சுப காரியங்கள், கல்வி / தொழில் முன்னேற்றம், சமூக மதிப்பு.",
-            'remedy_en': f"Propitiate {b_lord} through dedicated mantras and charitable food distribution.",
-            'remedy_ta': f"{b_ta} பகவானுக்குரிய வழிபாடுகள் செய்து, எளியோருக்கு அன்னதானம் செய்வது சுபம்.",
-            'base_potency': potency
-        }
-
-    return arch
+    return {
+        'title_en': f"{d_lord} Maha Dasa — {b_lord} Bhukti ({axis_en})",
+        'title_ta': f"{d_info['name_ta']} தசை — {b_info['name_ta']} புக்தி ({axis_ta})",
+        'theme_en': theme_en,
+        'theme_ta': theme_ta,
+        'career_en': career_en,
+        'career_ta': career_ta,
+        'wealth_en': wealth_en,
+        'wealth_ta': wealth_ta,
+        'health_en': health_en,
+        'health_ta': health_ta,
+        'family_en': family_en,
+        'family_ta': family_ta,
+        'milestones_en': milestones_en,
+        'milestones_ta': milestones_ta,
+        'remedy_en': remedy_en,
+        'remedy_ta': remedy_ta,
+        'base_potency': potency
+    }
 
 
 def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:

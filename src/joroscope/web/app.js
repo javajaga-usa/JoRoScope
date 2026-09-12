@@ -1399,11 +1399,14 @@ function renderTimelineStream(periods, isTa) {
         <strong>${esc(titleStr)}:</strong> ${esc(themeStr)}
       </div>
 
-      <button type="button" class="timeline-details-toggle">
-        <span>▶</span> <span>${isTa ? 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)' : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)'}</span>
+      <button type="button" class="timeline-details-toggle ${p.is_active ? 'expanded' : ''}" aria-expanded="${p.is_active ? 'true' : 'false'}">
+        <span class="toggle-icon">${p.is_active ? '▼' : '▶'}</span>
+        <span class="toggle-label">${isTa
+          ? (p.is_active ? 'விரிவான பலாபலன்கள் (திறக்கப்பட்டுள்ளது - மூட கிளிக் செய்யவும்)' : 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)')
+          : (p.is_active ? 'Detailed Breakdown (Expanded - Click to Collapse)' : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)')}</span>
       </button>
 
-      <div class="timeline-details-panel" hidden>
+      <div class="timeline-details-panel" ${p.is_active ? '' : 'hidden'} style="display: ${p.is_active ? 'grid' : 'none'};">
         <div class="timeline-dim-card">
           <h4>💼 ${isTa ? 'தொழில் & உத்தியோகம்' : 'Career & Profession'}</h4>
           <p>${esc(isTa ? p.career_ta : p.career_en)}</p>
@@ -1434,15 +1437,31 @@ function renderTimelineStream(periods, isTa) {
     const toggleBtn = card.querySelector('.timeline-details-toggle');
     const panel = card.querySelector('.timeline-details-panel');
     if (toggleBtn && panel) {
-      toggleBtn.addEventListener('click', () => {
-        const isClosed = panel.hidden;
-        panel.hidden = !isClosed;
-        toggleBtn.querySelector('span:first-child').textContent = isClosed ? '▼' : '▶';
+      toggleBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const willOpen = panel.hidden || panel.style.display === 'none' || panel.hasAttribute('hidden');
+        if (willOpen) {
+          panel.hidden = false;
+          panel.removeAttribute('hidden');
+          panel.style.display = 'grid';
+          toggleBtn.classList.add('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'true');
+          toggleBtn.querySelector('.toggle-icon').textContent = '▼';
+          toggleBtn.querySelector('.toggle-label').textContent = isTa
+            ? 'விரிவான பலாபலன்கள் (திறக்கப்பட்டுள்ளது - மூட கிளிக் செய்யவும்)'
+            : 'Detailed Breakdown (Expanded - Click to Collapse)';
+        } else {
+          panel.hidden = true;
+          panel.setAttribute('hidden', '');
+          panel.style.display = 'none';
+          toggleBtn.classList.remove('expanded');
+          toggleBtn.setAttribute('aria-expanded', 'false');
+          toggleBtn.querySelector('.toggle-icon').textContent = '▶';
+          toggleBtn.querySelector('.toggle-label').textContent = isTa
+            ? 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)'
+            : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)';
+        }
       });
-      if (p.is_active) {
-        panel.hidden = false;
-        toggleBtn.querySelector('span:first-child').textContent = '▼';
-      }
     }
 
     container.append(card);
