@@ -1,4 +1,4 @@
-# JoRoScope (ஜோரோஸ்கோப்) — Modern Precision Vedic Astrology
+# JoRoScope (ராஜகணிதம்) — Modern Precision Vedic Astrology
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
