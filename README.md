@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 44 Passed](https://img.shields.io/badge/tests-44%20passed-success)](tests/)
+[![Tests: 62 Passed](https://img.shields.io/badge/tests-62%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -22,8 +22,8 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 ### 📜 17 In-Depth Life Prediction Chapters
 1. **Birth Star (Nakshatra) & Lagna Personality**: Psychological and karmic nature.
 2. **Ascendant & Life Path**: Physical constitution and destiny trajectory.
-3. **12 Bhavas Comprehensive Analysis**: Detailed house-by-house readings.
-4. **Planetary Placements in Signs & Houses**: Dignities, exaltation, debilitation, and aspects.
+3. **12 Bhavas Comprehensive Analysis**: Chart-specific house readings weighing the lord's dignity and placement, occupants, Jupiter/Saturn aspects and Ashtakavarga bindus, with a strength verdict and the factors behind it.
+4. **Planetary Placements in Signs & Houses**: Dignity, functional lordship (Yogakaraka, benefic, malefic), Dig Bala, combustion, retrogression and aspects.
 5. **Vimshottari Dasa-Bhukti Forecast**: 3-tier timing of planetary periods.
 6. **Gochara (Planetary Transits)**: Current Saturn, Jupiter, and Rahu-Ketu transits.
 7. **Sade Sati (ஏழரைச் சனி) Analysis**: Saturn phase assessment and guidance.
@@ -59,7 +59,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 - **Daily Panchangam**: Tithi, Nakshatra, Yoga and Karana with local end times, plus Rahu Kalam, Yamagandam, Kuligai and Abhijit Muhurtham in local time.
 
 ### 🌐 Bilingual Support
-- Switch dynamically between **English** and **authentic Tamil (தமிழ்)** with 100% reactive coverage.
+- Switch dynamically between **English** and **authentic Tamil (தமிழ்)**: every label, tooltip, chart, reading, porutham, yoga and error message follows the chosen language, and the choice is remembered.
 
 ---
 

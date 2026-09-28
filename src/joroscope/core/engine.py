@@ -18,9 +18,9 @@ from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 try:
-    from .predictions import generate_comprehensive_predictions
+    from .predictions import generate_comprehensive_predictions, PLANET_TAMIL
 except (ImportError, ValueError):
-    from predictions import generate_comprehensive_predictions
+    from predictions import generate_comprehensive_predictions, PLANET_TAMIL
 
 SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 TAMIL = ['மேஷம்','ரிஷபம்','மிதுனம்','கடகம்','சிம்மம்','கன்னி','துலாம்','விருச்சிகம்','தனுசு','மகரம்','கும்பம்','மீனம்']
@@ -74,6 +74,71 @@ RAJJU_EFFECTS = {
     'Ooru': 'family wealth',
     'Pada': 'stability (frequent travel or separation)'
 }
+RAJJU_EFFECTS_TA = {
+    'Siro': 'கணவரின் ஆயுளை', 'Kantha': 'மனைவியின் ஆயுளை', 'Udara': 'சந்ததியை',
+    'Ooru': 'குடும்பச் செல்வத்தை', 'Pada': 'நிலைத்தன்மையை (அடிக்கடி பயணம் அல்லது பிரிவு)'
+}
+GANA_TA = {'Deva': 'தேவ கணம்', 'Manushya': 'மனுஷ கணம்', 'Rakshasa': 'ராட்சச கணம்'}
+RAJJU_TA = {'Siro': 'சிரசு', 'Kantha': 'கண்டம்', 'Udara': 'உதரம்', 'Ooru': 'தொடை', 'Pada': 'பாதம்'}
+NADI_TA = {'Aadi': 'ஆதி', 'Madhya': 'மத்திய', 'Antya': 'அந்திய'}
+YONI_TA = {
+    'Horse': 'குதிரை', 'Elephant': 'யானை', 'Sheep': 'ஆடு', 'Serpent': 'பாம்பு', 'Dog': 'நாய்',
+    'Cat': 'பூனை', 'Rat': 'எலி', 'Cow': 'பசு', 'Buffalo': 'எருமை', 'Tiger': 'புலி',
+    'Deer': 'மான்', 'Monkey': 'குரங்கு', 'Mongoose': 'கீரி', 'Lion': 'சிங்கம்'
+}
+EKA_GRADE_TA = {'uthamam': 'உத்தமம்', 'madhyamam': 'மத்திமம்', 'avoid': 'பொருந்தாது'}
+MATCH_VERDICT_TA = {
+    'Auspicious Match': 'உத்தமப் பொருத்தம்',
+    'Moderate Match': 'மத்திமப் பொருத்தம்',
+    'Inauspicious / Needs Remedies': 'பொருத்தம் குறைவு / பரிகாரம் தேவை'
+}
+
+# Tamil names and readings for the yogas detect_yogas reports, keyed by the English base name
+YOGA_TAMIL = {
+    'Ruchaka Yoga': ('ருசக யோகம்', 'வீரம், தலைமைப் பண்பு, போர்த்திறன் மற்றும் கம்பீரமான தோற்றம்.'),
+    'Bhadra Yoga': ('பத்ர யோகம்', 'கூர்மையான அறிவு, பேச்சுத் திறன், கல்வி மற்றும் அறிஞர் புகழ்.'),
+    'Hamsa Yoga': ('ஹம்ச யோகம்', 'ஞானம், அறநெறி, ஆன்மீக ஆழம் மற்றும் அரச குணம் கொண்ட கருணை.'),
+    'Malavya Yoga': ('மாளவ்ய யோகம்', 'அழகு, கலைத்திறன், சுக போகம் மற்றும் நிலைத்த அன்பு.'),
+    'Sasa Yoga': ('சச யோகம்', 'ஒழுக்கம், நிர்வாக அதிகாரம், மன உறுதி மற்றும் உழைப்பால் வரும் செல்வம்.'),
+    'Gaja Kesari Yoga': ('கஜகேசரி யோகம்', 'எதிரிகளை வெல்லுதல், நிலைத்த மதிப்பு, செல்வம், கூர்மையான அறிவு மற்றும் பெருந்தன்மை.'),
+    'Budhaditya Yoga': ('புதாதித்ய யோகம்', 'சிறந்த அறிவாற்றல், நிர்வாகத் திறன், தெளிவான சிந்தனை மற்றும் பேச்சு வன்மை.'),
+    'Chandra-Mangala Yoga': ('சந்திர மங்கள யோகம்', 'தொழில் முனைவு, வணிக ஆற்றல், பொருளீட்டும் ஊக்கம் மற்றும் சாதுர்யம்.'),
+    'Amala Yoga': ('அமல யோகம்', 'களங்கமற்ற புகழ், நேர்மையான நடத்தை, தொழிலில் சிறப்பு மற்றும் தான தர்மம்.'),
+    'Harsha Vipareeta Raja Yoga': ('ஹர்ஷ விபரீத ராஜ யோகம்', 'மறைமுக எதிரிகளிடமிருந்து பாதுகாப்பு, நெருக்கடியில் மன உறுதி, நல்ல உடல்நலம், துன்பங்களை வெல்லுதல்.'),
+    'Sarala Vipareeta Raja Yoga': ('சரள விபரீத ராஜ யோகம்', 'நீண்ட ஆயுள், அச்சமின்மை, திடீர் லாபம், வழக்குகளில் வெற்றி, சுயமாக உருவான அதிகாரம்.'),
+    'Vimala Vipareeta Raja Yoga': ('விமல விபரீத ராஜ யோகம்', 'பொருளாதாரச் சுதந்திரம், நற்செலவுகள், மன அமைதி மற்றும் ஆன்மீகப் பாதுகாப்பு.'),
+    'Neechabhanga Raja Yoga': ('நீசபங்க ராஜ யோகம்', None),
+    'Kemadruma Bhanga Yoga': ('கேமத்ரும பங்க யோகம்', 'கேந்திரங்களில் உள்ள சுப கிரகங்களால் கேமத்ரும தனிமை நீங்குகிறது.'),
+    'Kemadruma Yoga': ('கேமத்ரும யோகம்', 'தனிமை உணர்வு, ஏற்ற இறக்கமான பொருள் நிலை, மன சமநிலைக்கான ஏக்கம்.')
+}
+YOGA_CATEGORY_TA = {
+    'Pancha Mahapurusha': 'பஞ்ச மகாபுருஷ யோகம்', 'Raja Yoga': 'ராஜ யோகம்', 'Dhi / Intellect Yoga': 'அறிவு யோகம்',
+    'Dhana / Wealth Yoga': 'தன யோகம்', 'Virtue & Fame': 'அறநெறி & புகழ்', 'Vipareeta Yoga': 'விபரீத யோகம்',
+    'Elevation Yoga': 'உயர்வு யோகம்', 'Neutralized Challenge': 'நிவர்த்தியான சவால்', 'Mind & Solitude': 'மனம் & தனிமை'
+}
+YOGA_NATURE_TA = {
+    'Highly Auspicious': 'மிக்க சுபம்', 'Auspicious': 'சுபம்', 'Fortunate in Adversity': 'துன்பத்தில் வெற்றி',
+    'Neutralized': 'நிவர்த்தி', 'Challenging': 'சவாலானது'
+}
+KAAL_SARP_TYPES = [
+    ('Anant', 'அனந்த'), ('Kulik', 'குளிக'), ('Vasuki', 'வாசுகி'), ('Shankhapal', 'சங்கபால'),
+    ('Padma', 'பத்ம'), ('Mahapadma', 'மகாபத்ம'), ('Takshak', 'தக்ஷக'), ('Karkotak', 'கார்கோடக'),
+    ('Shankhachur', 'சங்கசூட'), ('Ghatak', 'காதக'), ('Vishdhar', 'விஷதர'), ('Sheshnag', 'சேஷநாக')
+]
+
+def add_yoga_tamil(yoga):
+    """Tamil name, category, nature and reading for a detected yoga."""
+    base, _, planet = yoga['name'].partition(' (')
+    name_ta, desc_ta = YOGA_TAMIL[base]
+    if planet:
+        name_ta = f"{name_ta} ({PLANET_TAMIL[planet.rstrip(')')]})"
+    if desc_ta is None:  # Neechabhanga: [debilitated planet, dispositor]
+        weak, lord = (PLANET_TAMIL[p] for p in yoga['planets'])
+        desc_ta = f'{weak} நீசம் பங்கமடைகிறது; கேந்திரத்தில் உள்ள அதிபதி {lord} மூலம் ராஜ யோகமாக உயர்கிறது.'
+    yoga.update(name_ta=name_ta, description_ta=desc_ta,
+                category_ta=YOGA_CATEGORY_TA[yoga['category']],
+                auspiciousness_ta=YOGA_NATURE_TA[yoga['auspiciousness']])
+    return yoga
 STAR_NADIS = [
     'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya',
     'Antya','Madhya','Aadi','Aadi','Madhya','Antya','Antya','Madhya','Aadi',
@@ -740,22 +805,24 @@ def detect_yogas(planets):
         diffs = [((planets[p]['longitude'] - r_lon) % 360) for p in classical_7]
         all_one_side = all(d < 180 for d in diffs) or all(d >= 180 for d in diffs)
         if all_one_side:
-            ks_types = [
-                'Anant Kaal Sarp', 'Kulik Kaal Sarp', 'Vasuki Kaal Sarp', 'Shankhapal Kaal Sarp',
-                'Padma Kaal Sarp', 'Mahapadma Kaal Sarp', 'Takshak Kaal Sarp', 'Karkotak Kaal Sarp',
-                'Shankhachur Kaal Sarp', 'Ghatak Kaal Sarp', 'Vishdhar Kaal Sarp', 'Sheshnag Kaal Sarp'
-            ]
             r_house = rahu['house']
+            ks_en, ks_ta = KAAL_SARP_TYPES[(r_house - 1) % 12]
             doshas['kaal_sarp'] = {
                 'present': True,
-                'type': ks_types[(r_house - 1) % 12],
+                'type': f'{ks_en} Kaal Sarp',
+                'type_ta': f'{ks_ta} கால சர்ப்ப தோஷம்',
                 'rahu_house': r_house,
-                'description': f'All 7 classical planets are hemmed between Rahu and Ketu ({ks_types[(r_house - 1) % 12]}). Fosters intense ambition and karmic acceleration.'
+                'description': f'All 7 classical planets are hemmed between Rahu and Ketu ({ks_en} Kaal Sarp). Fosters intense ambition and karmic acceleration.',
+                'description_ta': f'ஏழு கிரகங்களும் ராகு-கேது அச்சுக்குள் அடங்கியுள்ளன ({ks_ta} கால சர்ப்பம்). தீவிர லட்சியத்தையும் கர்ம வேகத்தையும் தூண்டும்.'
             }
         else:
-            doshas['kaal_sarp'] = {'present': False, 'type': 'None', 'description': 'Planets are freely dispersed around the nodal axis.'}
+            doshas['kaal_sarp'] = {
+                'present': False, 'type': 'None', 'type_ta': 'இல்லை',
+                'description': 'Planets are freely dispersed around the nodal axis.',
+                'description_ta': 'கிரகங்கள் ராகு-கேது அச்சின் இரு பக்கங்களிலும் பரவியுள்ளன.'
+            }
 
-    return yogas, doshas
+    return [add_yoga_tamil(y) for y in yogas], doshas
 
 def dasha(moon, birth, now=None):
     """Calculate 3-Tier Vimshottari Dasa (Maha Dasa, Bhukti, Pratyantardasa)."""
@@ -955,17 +1022,20 @@ def calculate_match(boy, girl):
         dina_ok = eka != 'avoid'
         dina_pts = 3 if eka == 'uthamam' else (1.5 if eka == 'madhyamam' else 0)
         dina_desc = f'Same birth star ({STARS[g_star]}): graded {eka} under Eka Nakshatra rules.'
+        dina_desc_ta = f'இருவருக்கும் ஒரே நட்சத்திரம் ({TAMIL_STARS[g_star]}): ஏக நட்சத்திர விதிப்படி {EKA_GRADE_TA[eka]}.'
     else:
         dina_ok = star_dist in DINA_GOOD_COUNTS
         dina_pts = 3 if dina_ok else 0
         dina_desc = f"Boy's star is {star_dist} from the girl's. Harmony in day-to-day vitality, health, and mutual longevity."
+        dina_desc_ta = f'பெண் நட்சத்திரத்திலிருந்து ஆண் நட்சத்திரம் {star_dist}-வது. அன்றாட ஆரோக்கியம், நலம் மற்றும் ஆயுள் ஒற்றுமை.'
     poruthams.append({
         'name': 'Dina Porutham',
         'tamil': 'தினப் பொருத்தம்',
         'passed': dina_ok,
         'points': dina_pts,
         'max_points': 3,
-        'description': dina_desc
+        'description': dina_desc,
+        'description_ta': dina_desc_ta
     })
 
     # 2. Gana Porutham (Temperament)
@@ -978,7 +1048,8 @@ def calculate_match(boy, girl):
         'passed': gana_ok,
         'points': 6 if gana_ok else (3 if b_gana == 'Manushya' and g_gana == 'Deva' else 0),
         'max_points': 6,
-        'description': f'Temperament alignment ({g_gana} & {b_gana}).'
+        'description': f'Temperament alignment ({g_gana} & {b_gana}).',
+        'description_ta': f'குண ஒற்றுமை ({GANA_TA[g_gana]} & {GANA_TA[b_gana]}).'
     })
 
     # 3. Mahendra Porutham (Progeny & Lineage)
@@ -990,7 +1061,8 @@ def calculate_match(boy, girl):
         'passed': mahendra_ok,
         'points': 2 if mahendra_ok else 0,
         'max_points': 2,
-        'description': 'Family continuity, children, and enduring attachment.'
+        'description': 'Family continuity, children, and enduring attachment.',
+        'description_ta': 'குடும்ப விருத்தி, சந்ததி மற்றும் நிலைத்த பந்தம்.'
     })
 
     # 4. Stree Deergha Porutham (Longevity of Bride)
@@ -1001,7 +1073,8 @@ def calculate_match(boy, girl):
         'passed': stree_ok,
         'points': 1 if stree_ok else (0.5 if star_dist >= 7 else 0),
         'max_points': 1,
-        'description': 'Auspicious fortune and well-being for the bride.'
+        'description': 'Auspicious fortune and well-being for the bride.',
+        'description_ta': 'மணமகளின் நலமும் சௌபாக்கியமும்.'
     })
 
     # 5. Yoni Porutham (Physical Affinity)
@@ -1021,7 +1094,8 @@ def calculate_match(boy, girl):
         'passed': yoni_ok and not is_enemy,
         'points': yoni_pts,
         'max_points': 4,
-        'description': f'Physical and sexual harmony ({g_animal} & {b_animal}).'
+        'description': f'Physical and sexual harmony ({g_animal} & {b_animal}).',
+        'description_ta': f'உடல் மற்றும் தாம்பத்திய ஒற்றுமை ({YONI_TA[g_animal]} & {YONI_TA[b_animal]}).'
     })
 
     # 6. Rasi Porutham (Family Unity)
@@ -1033,7 +1107,8 @@ def calculate_match(boy, girl):
         'passed': rasi_ok,
         'points': 7 if rasi_ok else 0,
         'max_points': 7,
-        'description': 'Family harmony, mutual understanding, and fortune.'
+        'description': 'Family harmony, mutual understanding, and fortune.',
+        'description_ta': 'குடும்ப ஒற்றுமை, பரஸ்பர புரிதல் மற்றும் அதிர்ஷ்டம்.'
     })
 
     # 7. Rasiyathipathi Porutham (Sign Lords Friendship)
@@ -1047,7 +1122,8 @@ def calculate_match(boy, girl):
         'passed': lord_ok,
         'points': 5 if b_lord == g_lord or lord_rel == 1 else (3 if lord_rel == 0 else 0),
         'max_points': 5,
-        'description': f'Cordial friendship between sign rulers {g_lord} and {b_lord}.'
+        'description': f'Cordial friendship between sign rulers {g_lord} and {b_lord}.',
+        'description_ta': f'ராசி அதிபதிகள் {PLANET_TAMIL[g_lord]} மற்றும் {PLANET_TAMIL[b_lord]} இடையிலான நட்பு.'
     })
 
     # 8. Vasiya Porutham (Magnetic Attraction)
@@ -1062,7 +1138,8 @@ def calculate_match(boy, girl):
         'passed': vasiya_ok,
         'points': 2 if vasiya_ok else 0,
         'max_points': 2,
-        'description': 'Mutual magnetism and enduring emotional devotion.'
+        'description': 'Mutual magnetism and enduring emotional devotion.',
+        'description_ta': 'பரஸ்பர ஈர்ப்பு மற்றும் நிலைத்த அன்பு.'
     })
 
     # 9. Rajju Porutham (Marital Longevity - Critical)
@@ -1077,7 +1154,9 @@ def calculate_match(boy, girl):
         'max_points': 8,
         'critical': True,
         'description': f'Essential marriage knot stability (Girl: {g_rajju}, Boy: {b_rajju}).' if rajju_ok else
-                       f'Both stars share {b_rajju} Rajju, traditionally said to threaten {RAJJU_EFFECTS[b_rajju]}.'
+                       f'Both stars share {b_rajju} Rajju, traditionally said to threaten {RAJJU_EFFECTS[b_rajju]}.',
+        'description_ta': f'மாங்கல்ய பலம் (பெண்: {RAJJU_TA[g_rajju]}, ஆண்: {RAJJU_TA[b_rajju]}).' if rajju_ok else
+                          f'இருவருக்கும் {RAJJU_TA[b_rajju]} ரஜ்ஜு; இது {RAJJU_EFFECTS_TA[b_rajju]} பாதிக்கும் என்பது மரபு.'
     })
 
     # 10. Vedha Porutham (Absence of Affliction)
@@ -1088,7 +1167,8 @@ def calculate_match(boy, girl):
         'passed': not is_vedha,
         'points': 4 if not is_vedha else 0,
         'max_points': 4,
-        'description': 'Shield from invisible conflicts, sorrow, and sudden obstacles.'
+        'description': 'Shield from invisible conflicts, sorrow, and sudden obstacles.',
+        'description_ta': 'மறைமுக முரண்பாடுகள், துயரங்கள் மற்றும் திடீர் தடைகளிலிருந்து பாதுகாப்பு.'
     })
 
     # North Indian 36 Guna Milan
@@ -1147,7 +1227,8 @@ def calculate_match(boy, girl):
             'max_score': 36
         },
         'dosha_samyam': dosha_samyam,
-        'verdict': verdict
+        'verdict': verdict,
+        'verdict_ta': MATCH_VERDICT_TA[verdict]
     }
 
 def synthesize_readings(planets, dasha_active, yogas):

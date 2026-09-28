@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .engine import (
     swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS,
-    STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS,
+    STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
 from .predictions import PLANET_TAMIL
@@ -76,15 +76,6 @@ SUBHA_HORAS = ('Moon', 'Mercury', 'Jupiter', 'Venus')
 
 # Mean daily motions (degrees) used to seed the Newton searches
 SUN_RATE, MOON_RATE = 0.9856, 13.176
-
-GANA_TA = {'Deva': 'தேவ கணம்', 'Manushya': 'மனுஷ கணம்', 'Rakshasa': 'ராட்சச கணம்'}
-RAJJU_TA = {'Siro': 'சிரசு', 'Kantha': 'கண்டம்', 'Udara': 'உதரம்', 'Ooru': 'தொடை', 'Pada': 'பாதம்'}
-NADI_TA = {'Aadi': 'ஆதி', 'Madhya': 'மத்திய', 'Antya': 'அந்திய'}
-YONI_TA = {
-    'Horse': 'குதிரை', 'Elephant': 'யானை', 'Sheep': 'ஆடு', 'Serpent': 'பாம்பு', 'Dog': 'நாய்',
-    'Cat': 'பூனை', 'Rat': 'எலி', 'Cow': 'பசு', 'Buffalo': 'எருமை', 'Tiger': 'புலி',
-    'Deer': 'மான்', 'Monkey': 'குரங்கு', 'Mongoose': 'கீரி', 'Lion': 'சிங்கம்'
-}
 
 DOSHA_REFERENCES = [('Ascendant', 'Lagna', 'லக்னம்'), ('Moon', 'Chandra', 'சந்திரன்'), ('Venus', 'Sukra', 'சுக்கிரன்')]
 CHEVVAI_HOUSES = (2, 4, 7, 8, 12)

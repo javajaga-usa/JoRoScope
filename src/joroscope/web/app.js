@@ -50,6 +50,75 @@ const VARGA_NAMES = {
   D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்']
 };
 
+const DIGNITY_TA = {
+  Exalted: 'உச்சம்', Debilitated: 'நீசம்', 'Own Sign': 'ஆட்சி', Moolatrikona: 'மூலத்திரிகோணம்',
+  'Great Friend': 'அதி நட்பு', Friend: 'நட்பு', Neutral: 'சமம்', Enemy: 'பகை', 'Great Enemy': 'அதி பகை',
+  Ascendant: 'லக்னம்'
+};
+
+const NITYA_YOGA_TA = {
+  Vishkambha: 'விஷ்கம்பம்', Priti: 'ப்ரீதி', Ayushman: 'ஆயுஷ்மான்', Saubhagya: 'சௌபாக்கியம்', Shobhana: 'சோபனம்',
+  Atiganda: 'அதிகண்டம்', Sukarma: 'சுகர்மம்', Dhriti: 'திருதி', Shula: 'சூலம்', Ganda: 'கண்டம்', Vriddhi: 'விருத்தி',
+  Dhruva: 'துருவம்', Vyaghata: 'வியாகாதம்', Harshana: 'ஹர்ஷணம்', Vajra: 'வஜ்ரம்', Siddhi: 'சித்தி',
+  Vyatipata: 'வியதீபாதம்', Variyan: 'வரியான்', Parigha: 'பரிகம்', Shiva: 'சிவம்', Siddha: 'சித்தம்', Sadhya: 'சாத்தியம்',
+  Shubha: 'சுபம்', Shukla: 'சுக்லம்', Brahma: 'பிரம்மம்', Indra: 'ஐந்திரம்', Vaidhriti: 'வைதிருதி'
+};
+
+const KARANA_TA = {
+  Bava: 'பவம்', Balava: 'பாலவம்', Kaulava: 'கௌலவம்', Taitila: 'தைதுலம்', Gara: 'கரசை', Vanija: 'வணிசை',
+  Vishti: 'பத்திரை (விஷ்டி)', Shakuni: 'சகுனி', Chatushpada: 'சதுஷ்பாதம்', Naga: 'நாகவம்', Kimstughna: 'கிம்ஸ்துக்னம்'
+};
+
+const AYANAMSA_TA = { Lahiri: 'லாஹிரி', Raman: 'ராமன்', Krishnamurti: 'கிருஷ்ணமூர்த்தி (KP)', 'Fagan-Bradley': 'ஃபேகன்-பிராட்லி' };
+
+const HOUSE_BHAVAS_TA = {
+  1: 'தனு பாவம் (சுயம்): உடல் வலிமை, மனநிலை, தோற்றம், வாழ்க்கைப் பாதை மற்றும் இயல்பான குணம்.',
+  2: 'தன பாவம் (செல்வம்): கையிருப்புச் செல்வம், குடும்பம், பேச்சு, பார்வை, உணவு மற்றும் ஆரம்பக் கல்வி.',
+  3: 'சகஜ பாவம் (தைரியம்): உடன்பிறப்புகள், வீரம், படைப்பாற்றல், தகவல் தொடர்பு, முயற்சி மற்றும் குறும் பயணங்கள்.',
+  4: 'சுக பாவம் (சுகம்): தாய், நிலம், வாகனம், கல்வி, மன நிறைவு மற்றும் இல்லற அமைதி.',
+  5: 'புத்திர பாவம் (சந்ததி & அறிவு): பூர்வ புண்ணியம், ஞானம், குழந்தைகள், முதலீடுகள் மற்றும் மந்திரம்.',
+  6: 'ருண ரோக சத்ரு பாவம்: அன்றாடக் கடமைகள், கடன், நோய், சேவை மற்றும் வழக்குகளை வெல்லுதல்.',
+  7: 'களத்திர பாவம் (வாழ்க்கைத் துணை): திருமணம், கூட்டுத் தொழில், பொது உறவுகள் மற்றும் ஒப்பந்தங்கள்.',
+  8: 'ஆயுள் பாவம் (ஆயுள் & மாற்றம்): ஆயுட்காலம், மறைஞானம், எதிர்பாராத பரம்பரைச் சொத்து, ஆழ்ந்த மாற்றம், ஆராய்ச்சி.',
+  9: 'பாக்ய பாவம் (அதிர்ஷ்டம் & ஞானம்): குரு, தர்மம், உயர் தத்துவம், புனித யாத்திரை, தந்தை, ஆன்மீகப் புண்ணியம்.',
+  10: 'கர்ம பாவம் (தொழில் & அதிகாரம்): உலக சாதனைகள், சமூக அந்தஸ்து, தொழில் அதிகாரம் மற்றும் கௌரவம்.',
+  11: 'லாப பாவம் (லாபம் & ஆசைகள்): ஆசைகள் நிறைவேறுதல், வருமான வளர்ச்சி, மூத்த உடன்பிறப்புகள், செல்வாக்குள்ள நண்பர்கள்.',
+  12: 'விரய பாவம் (மோட்சம் & தனிமை): மோட்சம், ஆன்மீகத் தனிமை, தானச் செலவுகள், வெளிநாடு மற்றும் நிம்மதியான உறக்கம்.'
+};
+
+// Server validation messages, so errors read in Tamil too
+const ERROR_TA = {
+  'Choose a date between 1800 and 2200.': '1800 முதல் 2200 வரையிலான தேதியைத் தேர்ந்தெடுக்கவும்.',
+  'Enter a valid IANA timezone, such as Asia/Kolkata.': 'சரியான IANA நேர வலயத்தை உள்ளிடவும் (எ.கா. Asia/Kolkata).',
+  'This local time did not exist because of a clock change. Correct the birth time.': 'கடிகார மாற்றத்தால் இந்த நேரம் நிகழவில்லை. பிறந்த நேரத்தைச் சரிசெய்யவும்.',
+  'This time occurred twice during a clock change. Select the first or second occurrence.': 'கடிகார மாற்றத்தால் இந்த நேரம் இருமுறை நிகழ்ந்தது. முதல் அல்லது இரண்டாம் நிகழ்வைத் தேர்ந்தெடுக்கவும்.',
+  'Latitude must be between 66° south and 66° north in this version.': 'அட்சரேகை 66° தெற்கு முதல் 66° வடக்கு வரை இருக்க வேண்டும்.',
+  'Longitude must be between -180 and 180.': 'தீர்க்கரேகை -180 முதல் 180 வரை இருக்க வேண்டும்.',
+  'Unsupported ayanamsa.': 'இந்த அயனாம்சம் ஆதரிக்கப்படவில்லை.',
+  'The Sun does not rise or set at this latitude on this date.': 'இந்த அட்சரேகையில் இன்று சூரியன் உதிப்பதோ மறைவதோ இல்லை.',
+  'Both boy and girl data are required for matchmaking.': 'பொருத்தம் பார்க்க ஆண், பெண் இருவரின் விவரங்களும் தேவை.',
+  'Invalid request size.': 'கோரிக்கையின் அளவு தவறானது.'
+};
+
+const txt = (en, ta) => (currentLang === 'ta' ? ta : en);
+const grahaName = name => PLANET_NAMES[name] ? txt(PLANET_NAMES[name].en, PLANET_NAMES[name].ta) : name;
+const grahaNames = (list, sep = ', ') => (list || []).map(grahaName).join(sep);
+const dignityLabel = d => txt(d || 'Neutral', DIGNITY_TA[d || 'Neutral'] || d);
+const nityaYogaLabel = n => txt(n, NITYA_YOGA_TA[n] || n);
+const karanaLabel = n => txt(n, KARANA_TA[n] || n);
+const ayanamsaLabel = a => txt(a, AYANAMSA_TA[a] || a);
+const errorText = msg => txt(msg, ERROR_TA[msg] || msg);
+
+function signName(sign) {
+  const i = typeof sign === 'number' ? sign : SIGNS_EN.indexOf(sign);
+  return i < 0 ? sign : txt(SIGNS_EN[i], SIGNS_TA[i]);
+}
+
+function starName(star) {
+  const i = STARS_EN.indexOf(star);
+  return i < 0 ? star : txt(STARS_EN[i], STARS_TA[i]);
+}
+
 const TITHI_TA = {
   Prathama: 'பிரதமை', Dwitiya: 'துவிதியை', Tritiya: 'திருதியை', Chaturthi: 'சதுர்த்தி', Panchami: 'பஞ்சமி',
   Shashthi: 'சஷ்டி', Saptami: 'சப்தமி', Ashtami: 'அஷ்டமி', Navami: 'நவமி', Dashami: 'தசமி',
@@ -301,7 +370,201 @@ const I18N = {
     next_chandrashtamam: 'NEXT CHANDRASHTAMAM',
     star_birthday: 'NAKSHATRA BIRTHDAY',
     hora_title: 'Hora (Orai) Timings',
-    hora_sub: 'Twelve day and twelve night horas from sunrise; Moon, Mercury, Jupiter and Venus horas are auspicious.'
+    hora_sub: 'Twelve day and twelve night horas from sunrise; Moon, Mercury, Jupiter and Venus horas are auspicious.',
+    sacred_geometry: "ASTRONOMICAL PRECISION & VEDIC TRADITION",
+    birth_chart_heading: "Your Celestial Blueprint",
+    birth_chart_sub: "Explore planetary alignments across Rasi, Navamsa, and 14 Parashara divisional vargas.",
+    planetary_status: "GRAHA AVASTHAS & DRISHTI",
+    planets_sub: "Detailed degrees, nakshatra padas, dignities, combustion, speed, and Vedic aspects.",
+    parashara_system: "PARASHARA ASHTAKAVARGA SYSTEM",
+    ashtakavarga_sub: "Sarvashtakavarga (337 total points) and Bhinnashtakavarga bindu distribution across all 12 signs.",
+    karmic_combinations: "VEDIC COMBINATIONS & DOSHAS",
+    yogas_sub: "Automatic detection of Pancha Mahapurusha, Raja, Dhana, and Vipareeta Yogas plus Kuja and Kaal Sarp analysis.",
+    planetary_cycles: "120-YEAR VIMSHOTTARI CYCLE & LIFE TIMELINE",
+    dasa_sub: "Chronological life forecasting across all 9 Maha Dasas & 81 Bhukti periods, mutual planetary alignments, and 10-year annual projections.",
+    astrological_synthesis: "COMPREHENSIVE HOROSCOPE PREDICTION REPORT",
+    predictions_sub: "Traditional Parashara and Tamil astrological readings: Nakshatra, Lagna, 12 Bhavas, Planets in Houses, Dasa-Bhukti, Transits & Lucky Gemstones.",
+    marital_compatibility: "KUNDALI MILAN & 10 PORUTHAMS",
+    matching_sub: "Compute traditional South Indian 10 Poruthams and North Indian 36 Guna Milan with precision.",
+    celestial_calendar: "NITYA PANCHANGA & TIMINGS",
+    panchangam_sub: "Five elements of time: Tithi, Vaara, Nakshatra, Yoga, and Karana with auspicious Muhurtham windows.",
+    browser_vault: "LOCAL BROWSER VAULT",
+    profiles_sub: "Manage your family and client charts locally in this browser. Backup and restore anytime.",
+    brand_sub: "VEDIC HOROSCOPE",
+    engine_status: "Swiss Ephemeris 2.10",
+    title_geo: "Use current GPS location",
+    title_lang: "Switch Language",
+    title_theme: "Toggle Light/Dark Theme",
+    title_print: "Print or Save PDF",
+    title_quick_load: "Choose a saved person to instantly load and calculate their horoscope",
+    title_save_person: "Save this person's details to local vault",
+    title_new_person: "Clear form for a new person",
+    ph_name: "Name for this chart",
+    city_count: "5,481 cities",
+    ph_city: "Type city name (e.g. Chennai, Madurai, London)...",
+    ayan_lahiri: "Lahiri (Chitra Paksha - Standard)",
+    ayan_raman: "B.V. Raman",
+    ayan_kp: "KP (Krishnamurti)",
+    ayan_fagan: "Fagan-Bradley (Western Sidereal)",
+    fold_auto: "Automatic",
+    fold_first: "1st occurrence (Standard)",
+    fold_second: "2nd occurrence (Repeated)",
+    pill_vargas: "✦ 14 Divisional Vargas",
+    pill_ashtaka: "✦ Parashara Ashtakavarga",
+    pill_dasa: "✦ 3-Tier Dasa",
+    pill_yoga: "✦ Yoga Engine",
+    pill_porutham: "✦ 10 Poruthams",
+    title_save_local: "Save to local browser storage",
+    title_export_pdf: "Export as PDF / Print",
+    legend_benefic: "Benefic",
+    legend_malefic: "Malefic",
+    legend_combust: "🔥 Combust",
+    click_house_rest: "to inspect lord, occupants, aspects received, and house significations.",
+    sav_note: "Auspicious houses (>28 points) cultivate strength and ease; houses under 28 require mindful attention.",
+    sav_total: "Total: 337 Bindus",
+    th_planet: "Planet",
+    kaal_sarp_title: "Kaal Sarp Dosha",
+    spotlight_calc_note: "Calculated via Swiss Ephemeris Vimshottari Balance",
+    tl_all: "🪐 All 9 Maha Dasas",
+    tl_sun: "☀️ Sun (சூரியன்)",
+    tl_moon: "🌙 Moon (சந்திரன்)",
+    tl_mars: "♂️ Mars (செவ்வாய்)",
+    tl_rahu: "☊ Rahu (ராகு)",
+    tl_jupiter: "♃ Jupiter (குரு)",
+    tl_saturn: "♄ Saturn (சனி)",
+    tl_mercury: "☿ Mercury (புதன்)",
+    tl_ketu: "☋ Ketu (கேது)",
+    tl_venus: "♀️ Venus (சுக்கிரன்)",
+    ph_jump_year: "Jump Year (e.g. 2026)",
+    title_jump_year: "Jump to year",
+    year_by_year: "Year-by-Year Forecast",
+    jump_active_dasa: "Jump to Active Dasa",
+    pt_natal: "🌟 Natal & Personality",
+    pt_bhavas: "🏛️ 12 Bhavas (Houses)",
+    pt_planets: "🪐 Planets in Houses",
+    pt_dasa: "⏳ Dasa-Bhukti Forecast",
+    pt_transits: "🌌 Transits (Gochara)",
+    pt_remedies: "💎 Lucky Gems & Remedies",
+    pt_jaimini: "🪷 Jaimini Karakas",
+    pt_timing: "⏱️ Double Transit (BVB)",
+    pt_career: "💼 D-10 Career & Vocation",
+    pt_ayur: "🌿 Ayur-Jyotish Wellness",
+    pt_kakshya: "📐 Ashtakavarga Kakshyas",
+    pt_shadbala: "⚖️ Shadbala Strengths",
+    pt_kp: "🔍 KP System Sub-Lords",
+    pt_bnn: "📜 Bhrigu Nandi Nadi",
+    pt_avasthas: "✨ Planetary Avasthas",
+    pt_pada: "🎯 Nakshatra Pada Reading",
+    pt_sahams: "🔮 Sensitive Sahams",
+    h_bhavas: "12 Bhavas Comprehensive Life Path",
+    pill_all_houses: "All 12 Houses",
+    p_bhavas: "Detailed astrological life readings for each house based on house lord placement, occupants, aspects, and Sarvashtakavarga strength.",
+    h_planet_positions: "Planetary Positions & Influence",
+    pill_9_grahas: "9 Grahas",
+    p_planets: "Specific effects of Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu in their respective natal houses.",
+    active_dasa_forecast: "ACTIVE DASA-BHUKTI FORECAST",
+    h_maha_dasas: "9 Maha Dasas Life Cycles",
+    pill_120_years: "120 Years",
+    h_transits: "Planetary Transits (Gochara)",
+    pill_current_weather: "Current Astrological Weather",
+    p_transits: "Transit analysis calculated from your Janma Rasi (Moon Sign).",
+    h_remedies: "Auspicious Factors, Gemstones & Remedies",
+    pill_guidance: "Astrological Guidance",
+    p_remedies: "Prescribed gemstones, auspicious numbers, days, colors, and protective deities calculated for your Lagna.",
+    h_gems: "Recommended Gemstones",
+    sub_gems: "Life & Fortune Stones",
+    h_lucky: "Lucky Numbers, Days & Colors",
+    sub_lucky: "Favorable Cosmic Alignments",
+    pill_upadesha: "Upadesha Sutras",
+    p_jaimini: "Degree-based variable significators revealing the soul's karmic evolution (Atmakaraka), career path (Amatyakaraka), mentors, mother, progeny, challenges, and life partner (Darakaraka).",
+    soul_purpose: "SOUL'S SUPREME PURPOSE (KARAKAMSHA IN NAVAMSA D-9)",
+    p_double_transit: "Empirically validated law: Major milestones eventuate only when Saturn (Discipline & Karma) and Jupiter (Grace & Expansion) simultaneously cast their aspects on designated natal houses.",
+    transit_saturn_today: "TRANSIT SATURN TODAY",
+    transit_jupiter_today: "TRANSIT JUPITER TODAY",
+    h_career: "D-10 Dasamsa & Vocation Aptitude Analysis",
+    pill_bvb: "BVB Tested Framework",
+    p_career: "Cross-analysis of Rasi (D-1), Dasamsa (D-10), and Amatyakaraka (AmK) calculating objective aptitude scores across 5 proven career archetypes.",
+    h_ayur: "Ayur-Jyotish & Tridosha Wellness Framework",
+    pill_charaka: "Charaka & Prashna Marga",
+    p_ayur: "Classical Ayurvedic constitutional analysis evaluating Vata, Pitta, and Kapha balances, metabolic tendencies, and organ system resilience.",
+    prakriti: "NATAL PRAKRITI CONSTITUTION",
+    vata_label: "Vata (வாதம் - Air/Ether)",
+    pitta_label: "Pitta (பித்தம் - Fire)",
+    kapha_label: "Kapha (கபம் - Water/Earth)",
+    h_vulnerabilities: "Anatomical Vulnerabilities",
+    sub_6th: "6th House (Roga Bhava) & 6th Lord",
+    h_lifestyle: "Ayurvedic Preventative Lifestyle",
+    sub_lifestyle: "Dietary & Yogic Recommendations",
+    h_kakshya: "Ashtakavarga Kakshya Micro-Transit System",
+    pill_raman_patel: "Dr. B.V. Raman & C.S. Patel",
+    p_kakshya: "Precision timing dividing each zodiac sign into 8 Kakshyas (3°45' each). A transit planet yields fruitful results (Phala-Prada) only when passing through Kakshyas where it contributed a bindu in its BAV.",
+    h_sat_kakshya: "Saturn Transit Kakshyas",
+    h_jup_kakshya: "Jupiter Transit Kakshyas",
+    th_degree_range: "Degree Range",
+    th_lord: "Lord",
+    th_bav_bindu: "BAV Bindu",
+    th_result: "Result",
+    h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
+    pill_shadbala: "Classical Vedic Mathematical Strength",
+    dominant_planet: "DOMINANT GUIDING PLANET (ATMA BALA)",
+    karmic_vulnerability: "KARMIC VULNERABILITY (GROWTH FOCUS)",
+    h_kp: "Krishnamurti Paddhati (KP System) Sub-Lord Analysis",
+    pill_kp: "Prof. K.S. Krishnamurti 249 Divisions",
+    p_kp: "The KP System subdivides each of the 27 nakshatras into 9 unequal sub-divisions based on Vimshottari Dasa proportions, pin-pointing life results with extraordinary mathematical precision.",
+    h_kp_cuspal: "Core Cuspal Sub-Lord Predictions",
+    h_kp_cusps: "12 KP Placidus Cusps (Bhava Sandhis)",
+    th_cusp: "Cusp",
+    th_degree: "Degree",
+    th_sign: "Sign",
+    th_sign_lord: "Sign Lord",
+    th_star_lord: "Star Lord",
+    th_sub_lord: "Sub-Lord",
+    h_kp_planets: "9 Planets KP Coordinates",
+    h_bnn: "Bhrigu Nandi Nadi (BNN) Karmic Planetary Sutras",
+    pill_bnn: "Classical Sage Bhrigu Tradition",
+    h_bnn_combos: "Detected Nadi Karmic Combinations & Life Lessons",
+    h_avasthas: "Planetary Avasthas & Consciousness States",
+    pill_avasthas: "Baladi & Jagradadi Avasthas",
+    p_avasthas: "Planets deliver results depending on their age state (Bala, Kumara, Yuva, Vriddha, Mrita) and state of consciousness (Jagrat/Awake, Swapna/Dreaming, Sushupti/Sleeping). This reveals the actual percentage of promised results that materialize in physical reality.",
+    h_pada: "Birth Star Quarter (Nakshatra Pada) Destiny Reading",
+    birth_star_pada: "BIRTH STAR & PADA",
+    navamsa_sign_lord: "NAVAMSA SIGN & LORD",
+    h_sahams: "Sensitive Sahams (Tajika Cosmic Lots)",
+    p_sahams: "Mathematical sensitive points synthesized from Ascendant, Sun, Moon, and planetary distances, revealing focal vortexes of fortune, wisdom, marriage, career, and physical resilience.",
+    h_match_candidates: "Select Match Candidates",
+    h_bride: "Bride (Girl's Star & Sign)",
+    h_groom: "Groom (Boy's Star & Sign)",
+    label_saved_profile: "Saved Profile (Optional)",
+    label_nakshatra: "Nakshatra (Birth Star)",
+    label_rasi: "Rasi (Moon Sign)",
+    btn_calc_match: "Calculate Compatibility Match",
+    of_36_gunas: "/ 36 Gunas",
+    final_verdict: "FINAL VERDICT",
+    h_10_poruthams: "10 South Indian Poruthams",
+    th_porutham: "Porutham",
+    th_significance: "Significance",
+    th_status: "Status",
+    th_points: "Points",
+    h_ashta_koota: "North Indian Ashta Koota (36 Gunas)",
+    footer_calc: "Calculated with Swiss Ephemeris AGPL",
+    footer_private: "Private & Offline Capable · Your charts remain on your machine",
+    gem_primary_label: "Primary Life Stone (Lagna Lord):",
+    gem_fortune_label: "Fortune Stone (9th Lord):",
+    gem_metal_label: "Recommended Metal:",
+    gem_finger_label: "Finger to Wear:",
+    gem_day_label: "Auspicious Day:",
+    luck_numbers_label: "Lucky Numbers:",
+    luck_days_label: "Lucky Days:",
+    luck_colors_label: "Favorable Colors:",
+    luck_deities_label: "Auspicious Deities:",
+    h_jaimini: "Maharshi Jaimini’s 7 Chara Karakas & Karakamsha",
+    h_double_transit: "K.N. Rao & BVB Double Transit (Dwi-Gochara) Timing Engine",
+    ph_profile_search: "Search profiles by name, city, rasi, or star...",
+    title_profiles_new: "Enter a new person on the birth chart form",
+    title_export_json: "Export all profiles as JSON file",
+    title_import_json: "Import profiles from a JSON backup file",
+    title_clear_all: "Clear all saved profiles",
+    footer_tagline: "Modern Precision Vedic Astrology"
   },
   ta: {
     workspace: 'பணிப் பகுதி',
@@ -324,18 +587,18 @@ const I18N = {
     birth_date: 'பிறந்த தேதி',
     birth_time: 'பிறந்த நேரம் (24 மணி)',
     birthplace: 'பிறந்த ஊர்',
-    latitude: 'அட்சரேகை (Lat)',
-    longitude: 'தீர்க்கரேகை (Lon)',
-    timezone: 'நேர வலயம் (Timezone)',
+    latitude: 'அட்சரேகை',
+    longitude: 'தீர்க்கரேகை',
+    timezone: 'IANA நேர வலயம்',
     ayanamsa: 'அயனாம்சம்',
-    dst_clock: 'கடிகார மாற்றம் (DST)',
+    dst_clock: 'கடிகார மாற்றம்',
     generate_chart: 'ஜாதகம் கணிக்கவும்',
     ready_to_reveal: 'வான மண்டலம் கணிக்கத் தயார்',
     enter_details_prompt: 'பிறப்பு விவரங்களை உள்ளிட்டு "ஜாதகம் கணிக்கவும்" பொத்தானை அழுத்தவும்.',
     save_profile: 'ஜாதகத்தை சேமி',
     export_pdf: 'பிடிஎஃப் ஆக எடு',
-    ascendant: 'லக்னம் (ASCENDANT)',
-    moon_sign: 'சந்திர ராசி (MOON SIGN)',
+    ascendant: 'லக்னம்',
+    moon_sign: 'சந்திர ராசி',
     birth_star: 'பிறந்த நட்சத்திரம்',
     active_dasa: 'இன்றைய தசை இருப்பு',
     south_indian: 'தென்னிந்திய கட்டம்',
@@ -379,7 +642,7 @@ const I18N = {
     clear_all: 'அனைத்தும் நீக்கு',
     load_saved_profile: 'சேமிக்கப்பட்ட நபர்',
     quick_load_person: '👤 -- நபரைத் தேர்வு செய்க --',
-    timeline_predictions_mode: 'காலவரிசை பலன்கள் (Timeline)',
+    timeline_predictions_mode: 'காலவரிசை பலன்கள்',
     tabular_cycles_mode: 'அட்டவணை சுழற்சிகள் (3 அடுக்குகள்)',
     live_active_period: 'இன்று இயங்கும் தசா-புக்தி பலன்',
     running_dates: 'காலம் & தேதிகள்',
@@ -442,7 +705,201 @@ const I18N = {
     next_chandrashtamam: 'அடுத்த சந்திராஷ்டமம்',
     star_birthday: 'நட்சத்திரப் பிறந்தநாள்',
     hora_title: 'ஓரை நேரங்கள்',
-    hora_sub: 'சூரிய உதயம் முதல் 12 பகல், 12 இரவு ஓரைகள்; சந்திரன், புதன், குரு, சுக்கிர ஓரைகள் சுபம்.'
+    hora_sub: 'சூரிய உதயம் முதல் 12 பகல், 12 இரவு ஓரைகள்; சந்திரன், புதன், குரு, சுக்கிர ஓரைகள் சுபம்.',
+    sacred_geometry: "வானியல் துல்லியம் & வேத மரபு",
+    birth_chart_heading: "உங்கள் ஜாதக வரைபடம்",
+    birth_chart_sub: "இராசி, நவாம்சம் மற்றும் 14 பராசர வர்க்கங்களில் கிரக அமைப்புகளை ஆராயுங்கள்.",
+    planetary_status: "கிரக நிலைகள் & பார்வைகள்",
+    planets_sub: "பாகைகள், நட்சத்திரப் பாதங்கள், கிரக நிலைகள், அஸ்தங்கம், வேகம் மற்றும் வேதப் பார்வைகள்.",
+    parashara_system: "பராசர அஷ்டகவர்க்க முறை",
+    ashtakavarga_sub: "சர்வாஷ்டகவர்க்கம் (மொத்தம் 337 பரல்கள்) மற்றும் 12 ராசிகளிலும் பின்னாஷ்டகவர்க்கப் பரல் பரவல்.",
+    karmic_combinations: "யோகங்கள் & தோஷங்கள்",
+    yogas_sub: "பஞ்ச மகாபுருஷ, ராஜ, தன, விபரீத யோகங்கள் மற்றும் செவ்வாய், கால சர்ப்ப தோஷ ஆய்வு.",
+    planetary_cycles: "120 ஆண்டு விம்சோத்தரி சுழற்சி & வாழ்க்கைக் காலவரிசை",
+    dasa_sub: "9 மகா தசைகள், 81 புக்திகள், கிரகங்களின் பரஸ்பர அமைப்பு மற்றும் 10 ஆண்டு வருடாந்திரப் பலன்கள்.",
+    astrological_synthesis: "முழுமையான ஜாதகப் பலன் அறிக்கை",
+    predictions_sub: "பராசர மற்றும் தமிழ் ஜோதிடப் பலன்கள்: நட்சத்திரம், லக்னம், 12 பாவங்கள், கிரக அமர்வு, தசா-புக்தி, கோச்சாரம் & அதிர்ஷ்டக் கற்கள்.",
+    marital_compatibility: "ஜாதகப் பொருத்தம் & 10 பொருத்தங்கள்",
+    matching_sub: "தென்னிந்திய 10 பொருத்தங்கள் மற்றும் வடஇந்திய 36 குண மிலனைத் துல்லியமாகக் கணிக்கவும்.",
+    celestial_calendar: "நித்திய பஞ்சாங்கம் & நேரங்கள்",
+    panchangam_sub: "காலத்தின் ஐந்து அங்கங்கள்: திதி, வாரம், நட்சத்திரம், யோகம், கரணம் மற்றும் முகூர்த்த நேரங்கள்.",
+    browser_vault: "உலாவிச் சேமிப்பகம்",
+    profiles_sub: "குடும்பத்தினர் மற்றும் வாடிக்கையாளர் ஜாதகங்களை இந்த உலாவியிலேயே நிர்வகிக்கவும். எப்போது வேண்டுமானாலும் பேக்கப் எடுக்கலாம்.",
+    brand_sub: "வேத ஜாதகம்",
+    engine_status: "சுவிஸ் எபிமெரிஸ் 2.10",
+    title_geo: "தற்போதைய GPS இருப்பிடத்தைப் பயன்படுத்து",
+    title_lang: "மொழி மாற்று",
+    title_theme: "ஒளி/இருள் தோற்றம்",
+    title_print: "அச்சிடு அல்லது PDF ஆகச் சேமி",
+    title_quick_load: "சேமித்த நபரைத் தேர்ந்தெடுத்து உடனே ஜாதகம் கணிக்கவும்",
+    title_save_person: "இந்த நபரின் விவரங்களைச் சேமிக்கவும்",
+    title_new_person: "புதிய நபருக்காகப் படிவத்தை அழி",
+    ph_name: "இந்த ஜாதகத்தின் பெயர்",
+    city_count: "5,481 நகரங்கள்",
+    ph_city: "நகரப் பெயரைத் தட்டச்சு செய்க (எ.கா. Chennai, Madurai)...",
+    ayan_lahiri: "லாஹிரி (சித்ரா பக்ஷம் - நிலையானது)",
+    ayan_raman: "பி.வி. ராமன்",
+    ayan_kp: "கே.பி (கிருஷ்ணமூர்த்தி)",
+    ayan_fagan: "ஃபேகன்-பிராட்லி (மேற்கத்திய சாயன)",
+    fold_auto: "தானியங்கி",
+    fold_first: "முதல் நிகழ்வு (நிலையான நேரம்)",
+    fold_second: "இரண்டாம் நிகழ்வு (மீண்டும் வந்த நேரம்)",
+    pill_vargas: "✦ 14 வர்க்கச் சக்கரங்கள்",
+    pill_ashtaka: "✦ பராசர அஷ்டகவர்க்கம்",
+    pill_dasa: "✦ 3 அடுக்கு தசை",
+    pill_yoga: "✦ யோகக் கணிப்பு",
+    pill_porutham: "✦ 10 பொருத்தங்கள்",
+    title_save_local: "உலாவியில் சேமிக்கவும்",
+    title_export_pdf: "PDF ஆக எடு / அச்சிடு",
+    legend_benefic: "சுபர்",
+    legend_malefic: "பாவர்",
+    legend_combust: "🔥 அஸ்தங்கம்",
+    click_house_rest: "அதிபதி, அமர்ந்த கிரகங்கள், பார்வைகள் மற்றும் பாவப் பலன்களைக் காணலாம்.",
+    sav_note: "28-க்கு மேல் பரல்கள் உள்ள வீடுகள் பலமும் எளிமையும் தரும்; 28-க்குக் குறைவானவை கவனம் தேவைப்படுபவை.",
+    sav_total: "மொத்தம்: 337 பரல்கள்",
+    th_planet: "கிரகம்",
+    kaal_sarp_title: "கால சர்ப்ப தோஷம்",
+    spotlight_calc_note: "சுவிஸ் எபிமெரிஸ் விம்சோத்தரி இருப்பின்படி கணிக்கப்பட்டது",
+    tl_all: "🪐 அனைத்து 9 மகா தசைகள்",
+    tl_sun: "☀️ சூரியன்",
+    tl_moon: "🌙 சந்திரன்",
+    tl_mars: "♂️ செவ்வாய்",
+    tl_rahu: "☊ ராகு",
+    tl_jupiter: "♃ குரு",
+    tl_saturn: "♄ சனி",
+    tl_mercury: "☿ புதன்",
+    tl_ketu: "☋ கேது",
+    tl_venus: "♀️ சுக்கிரன்",
+    ph_jump_year: "ஆண்டுக்குச் செல் (எ.கா. 2026)",
+    title_jump_year: "ஆண்டுக்குச் செல்",
+    year_by_year: "ஆண்டுவாரிப் பலன்கள்",
+    jump_active_dasa: "நடப்புத் தசைக்குச் செல்",
+    pt_natal: "🌟 ஜென்ம இயல்பு",
+    pt_bhavas: "🏛️ 12 பாவங்கள்",
+    pt_planets: "🪐 பாவங்களில் கிரகங்கள்",
+    pt_dasa: "⏳ தசா-புக்தி பலன்கள்",
+    pt_transits: "🌌 கோச்சாரம்",
+    pt_remedies: "💎 அதிர்ஷ்டக் கற்கள் & பரிகாரம்",
+    pt_jaimini: "🪷 ஜைமினி காரகங்கள்",
+    pt_timing: "⏱️ இரட்டைக் கோச்சாரம்",
+    pt_career: "💼 தசாம்சம்: தொழில்",
+    pt_ayur: "🌿 ஆயுர்-ஜோதிட நலம்",
+    pt_kakshya: "📐 அஷ்டகவர்க்கக் கக்ஷ்யைகள்",
+    pt_shadbala: "⚖️ ஷட்பலம்",
+    pt_kp: "🔍 கே.பி உப-அதிபதிகள்",
+    pt_bnn: "📜 பிருகு நந்தி நாடி",
+    pt_avasthas: "✨ கிரக அவஸ்தைகள்",
+    pt_pada: "🎯 நட்சத்திரப் பாத பலன்",
+    pt_sahams: "🔮 சகமங்கள்",
+    h_bhavas: "12 பாவங்களின் முழுமையான வாழ்க்கைப் பலன்கள்",
+    pill_all_houses: "அனைத்து 12 பாவங்கள்",
+    p_bhavas: "பாவாதிபதியின் அமர்வு, அமர்ந்த கிரகங்கள், பார்வைகள் மற்றும் சர்வாஷ்டகவர்க்கப் பலத்தின் அடிப்படையில் ஒவ்வொரு பாவத்தின் பலன்.",
+    h_planet_positions: "கிரக நிலைகள் & தாக்கம்",
+    pill_9_grahas: "9 கிரகங்கள்",
+    p_planets: "சூரியன் முதல் கேது வரை ஒன்பது கிரகங்களும் ஜாதகத்தில் அமர்ந்த பாவங்களில் தரும் பலன்கள்.",
+    active_dasa_forecast: "நடப்புத் தசா-புக்தி பலன்",
+    h_maha_dasas: "9 மகா தசைகளின் வாழ்க்கைச் சுழற்சி",
+    pill_120_years: "120 ஆண்டுகள்",
+    h_transits: "கிரகக் கோச்சாரம்",
+    pill_current_weather: "தற்போதைய கிரக நிலவரம்",
+    p_transits: "உங்கள் ஜென்ம ராசியிலிருந்து கணிக்கப்பட்ட கோச்சாரப் பலன்கள்.",
+    h_remedies: "அதிர்ஷ்டக் காரணிகள், ரத்தினங்கள் & பரிகாரங்கள்",
+    pill_guidance: "ஜோதிட வழிகாட்டல்",
+    p_remedies: "உங்கள் லக்னத்திற்கு ஏற்ற ரத்தினங்கள், அதிர்ஷ்ட எண்கள், கிழமைகள், நிறங்கள் மற்றும் வழிபட வேண்டிய தெய்வங்கள்.",
+    h_gems: "பரிந்துரைக்கப்படும் ரத்தினங்கள்",
+    sub_gems: "ஜீவ ரத்தினம் & பாக்ய ரத்தினம்",
+    h_lucky: "அதிர்ஷ்ட எண்கள், கிழமைகள் & நிறங்கள்",
+    sub_lucky: "சாதகமான கிரக அமைப்புகள்",
+    pill_upadesha: "உபதேச சூத்திரங்கள்",
+    p_jaimini: "பாகை அடிப்படையிலான சர காரகங்கள்: ஆன்ம வளர்ச்சி (ஆத்மகாரகன்), தொழில் (அமாத்யகாரகன்), குரு, தாய், சந்ததி, சவால்கள் மற்றும் வாழ்க்கைத் துணை (தாரகாரகன்).",
+    soul_purpose: "ஆன்மாவின் உயர் நோக்கம் (நவாம்சத்தில் காரகாம்சம்)",
+    p_double_transit: "சனியும் (ஒழுக்கம் & கர்மா) குருவும் (அருள் & வளர்ச்சி) ஒரே நேரத்தில் குறிப்பிட்ட ஜாதக பாவங்களைப் பார்க்கும் போதே முக்கிய நிகழ்வுகள் நடைபெறும்.",
+    transit_saturn_today: "இன்றைய சனி கோச்சாரம்",
+    transit_jupiter_today: "இன்றைய குரு கோச்சாரம்",
+    h_career: "தசாம்சம் (D-10) & தொழில் திறன் ஆய்வு",
+    pill_bvb: "பாரதிய வித்யா பவன் முறை",
+    p_career: "இராசி (D-1), தசாம்சம் (D-10) மற்றும் அமாத்யகாரகன் அடிப்படையில் 5 தொழில் வகைகளுக்கான திறன் மதிப்பீடு.",
+    h_ayur: "ஆயுர்-ஜோதிடம் & திரிதோஷ நல ஆய்வு",
+    pill_charaka: "சரகர் & பிரசன்ன மார்க்கம்",
+    p_ayur: "வாதம், பித்தம், கபம் சமநிலை, செரிமானப் போக்கு மற்றும் உறுப்புகளின் வலிமையை மதிப்பிடும் ஆயுர்வேத உடலமைப்பு ஆய்வு.",
+    prakriti: "பிறவிப் பிரகிருதி",
+    vata_label: "வாதம் (காற்று/ஆகாயம்)",
+    pitta_label: "பித்தம் (நெருப்பு)",
+    kapha_label: "கபம் (நீர்/நிலம்)",
+    h_vulnerabilities: "உடல் பலவீனங்கள்",
+    sub_6th: "6-ம் பாவம் (ரோக பாவம்) & 6-ம் அதிபதி",
+    h_lifestyle: "ஆயுர்வேத நோய்த்தடுப்பு வாழ்க்கை முறை",
+    sub_lifestyle: "உணவு & யோகப் பரிந்துரைகள்",
+    h_kakshya: "அஷ்டகவர்க்கக் கக்ஷ்யா நுண் கோச்சார முறை",
+    pill_raman_patel: "டாக்டர் பி.வி. ராமன் & சி.எஸ். படேல்",
+    p_kakshya: "ஒவ்வொரு ராசியும் 8 கக்ஷ்யைகளாக (தலா 3°45′) பிரிக்கப்படுகிறது. கோச்சார கிரகம் தன் அஷ்டகவர்க்கத்தில் பரல் அளித்த கக்ஷ்யையில் செல்லும் போதே பலன் தரும்.",
+    h_sat_kakshya: "சனி கோச்சாரக் கக்ஷ்யைகள்",
+    h_jup_kakshya: "குரு கோச்சாரக் கக்ஷ்யைகள்",
+    th_degree_range: "பாகை வரம்பு",
+    th_lord: "அதிபதி",
+    th_bav_bindu: "அஷ்டகவர்க்கப் பரல்",
+    th_result: "பலன்",
+    h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
+    pill_shadbala: "பாரம்பரிய வேதக் கணித பலம்",
+    dominant_planet: "ஆதிக்க கிரகம் (ஆத்ம பலம்)",
+    karmic_vulnerability: "கர்ம பலவீனம் (வளர்ச்சிக் கவனம்)",
+    h_kp: "கிருஷ்ணமூர்த்தி பத்ததி (கே.பி) உப-அதிபதி ஆய்வு",
+    pill_kp: "பேரா. கே.எஸ். கிருஷ்ணமூர்த்தி 249 பிரிவுகள்",
+    p_kp: "கே.பி முறை ஒவ்வொரு நட்சத்திரத்தையும் விம்சோத்தரி விகிதப்படி 9 சமமற்ற உப பிரிவுகளாகப் பிரித்து பலன்களைத் துல்லியமாகக் கணிக்கிறது.",
+    h_kp_cuspal: "முக்கிய பாவ ஆரம்ப உப-அதிபதி பலன்கள்",
+    h_kp_cusps: "12 கே.பி பிளாசிடஸ் பாவ ஆரம்பங்கள்",
+    th_cusp: "பாவம்",
+    th_degree: "பாகை",
+    th_sign: "ராசி",
+    th_sign_lord: "ராசி அதிபதி",
+    th_star_lord: "நட்சத்திர அதிபதி",
+    th_sub_lord: "உப-அதிபதி",
+    h_kp_planets: "9 கிரகங்களின் கே.பி நிலைகள்",
+    h_bnn: "பிருகு நந்தி நாடி கர்ம சூத்திரங்கள்",
+    pill_bnn: "பிருகு முனிவர் மரபு",
+    h_bnn_combos: "நாடி கர்ம சேர்க்கைகள் & வாழ்க்கைப் பாடங்கள்",
+    h_avasthas: "கிரக அவஸ்தைகள் & விழிப்பு நிலைகள்",
+    pill_avasthas: "பாலாதி & ஜாக்ரதாதி அவஸ்தைகள்",
+    p_avasthas: "கிரகங்கள் தங்கள் வயது நிலை (பால, குமார, யுவ, விருத்த, மிருத) மற்றும் விழிப்பு நிலைக்கு (ஜாக்ரத், ஸ்வப்ன, சுஷுப்தி) ஏற்ப பலன் தருகின்றன; வாக்களிக்கப்பட்ட பலனில் எத்தனை சதவீதம் நடைமுறையில் கிடைக்கும் என்பதைக் காட்டுகிறது.",
+    h_pada: "நட்சத்திரப் பாத விதிப் பலன்",
+    birth_star_pada: "ஜென்ம நட்சத்திரம் & பாதம்",
+    navamsa_sign_lord: "நவாம்ச ராசி & அதிபதி",
+    h_sahams: "சகமங்கள் (தாஜிக உணர்வுப் புள்ளிகள்)",
+    p_sahams: "லக்னம், சூரியன், சந்திரன் மற்றும் கிரக இடைவெளிகளிலிருந்து கணிக்கப்படும் புள்ளிகள்: அதிர்ஷ்டம், ஞானம், திருமணம், தொழில், உடல் வலிமை.",
+    h_match_candidates: "பொருத்தம் பார்க்க வேண்டியவர்கள்",
+    h_bride: "மணமகள் (நட்சத்திரம் & ராசி)",
+    h_groom: "மணமகன் (நட்சத்திரம் & ராசி)",
+    label_saved_profile: "சேமித்த ஜாதகம் (விருப்பத்தேர்வு)",
+    label_nakshatra: "நட்சத்திரம்",
+    label_rasi: "ராசி",
+    btn_calc_match: "பொருத்தம் கணிக்கவும்",
+    of_36_gunas: "/ 36 குணங்கள்",
+    final_verdict: "இறுதி முடிவு",
+    h_10_poruthams: "தென்னிந்திய 10 பொருத்தங்கள்",
+    th_porutham: "பொருத்தம்",
+    th_significance: "பலன்",
+    th_status: "நிலை",
+    th_points: "மதிப்பெண்",
+    h_ashta_koota: "வடஇந்திய அஷ்ட கூடம் (36 குணங்கள்)",
+    footer_calc: "சுவிஸ் எபிமெரிஸ் AGPL மூலம் கணிக்கப்பட்டது",
+    footer_private: "தனிப்பட்டது & இணையமின்றி இயங்கும் · உங்கள் ஜாதகங்கள் உங்கள் கணினியிலேயே இருக்கும்",
+    gem_primary_label: "ஜீவ ரத்தினம் (லக்னாதிபதி):",
+    gem_fortune_label: "பாக்ய ரத்தினம் (9-ம் அதிபதி):",
+    gem_metal_label: "உலோகம்:",
+    gem_finger_label: "அணிய வேண்டிய விரல்:",
+    gem_day_label: "அணிய உகந்த கிழமை:",
+    luck_numbers_label: "அதிர்ஷ்ட எண்கள்:",
+    luck_days_label: "அதிர்ஷ்டக் கிழமைகள்:",
+    luck_colors_label: "உகந்த நிறங்கள்:",
+    luck_deities_label: "வழிபட வேண்டிய தெய்வங்கள்:",
+    h_jaimini: "மகரிஷி ஜைமினியின் 7 சர காரகங்கள் & காரகாம்சம்",
+    h_double_transit: "கே.என். ராவ் & பாரதிய வித்யா பவன் இரட்டைக் கோச்சாரக் கணிப்பு",
+    ph_profile_search: "பெயர், ஊர், ராசி அல்லது நட்சத்திரம் மூலம் தேடுக...",
+    title_profiles_new: "புதிய நபரின் விவரங்களை உள்ளிடவும்",
+    title_export_json: "அனைத்து ஜாதகங்களையும் JSON கோப்பாக ஏற்றுமதி செய்",
+    title_import_json: "JSON பேக்கப் கோப்பிலிருந்து இறக்குமதி செய்",
+    title_clear_all: "அனைத்து ஜாதகங்களையும் நீக்கு",
+    footer_tagline: "நவீன துல்லிய வேத ஜோதிடம்"
   }
 };
 
@@ -612,6 +1069,13 @@ document.addEventListener('DOMContentLoaded', () => {
   } catch (e) {}
   applyTheme(initialTheme);
 
+  // Restore the language choice before anything renders
+  try {
+    if (localStorage.getItem('joroscope_lang') === 'ta') currentLang = 'ta';
+  } catch (e) {}
+  $('#lang-label').textContent = currentLang === 'en' ? 'தமிழ்' : 'English';
+  applyLanguage();
+
   // Load cities
   loadInitialData();
 });
@@ -654,6 +1118,9 @@ function switchPredictionTab(ptab) {
 // Language Management
 function toggleLanguage() {
   currentLang = currentLang === 'en' ? 'ta' : 'en';
+  try {
+    localStorage.setItem('joroscope_lang', currentLang);
+  } catch (e) {}
   $('#lang-label').textContent = currentLang === 'en' ? 'தமிழ்' : 'English';
   applyLanguage();
   if (currentChart) {
@@ -662,12 +1129,13 @@ function toggleLanguage() {
     renderQuickStats();
     renderAshtakavarga();
     renderYogasAndDoshas();
+    renderDashaAccordion();
     renderJathagaKurippu();
     renderLifeReadings();
     renderDasaTimelineView();
   }
   if (lastDailyPanchangam) populatePanchangamView(lastDailyPanchangam);
-  if (lastMatch) renderDoshaSamyam(lastMatch);
+  if (lastMatch) renderMatchResult(lastMatch);
   populateQuickProfileDropdown();
   renderProfilesList();
   populateMatchDropdowns();
@@ -675,10 +1143,25 @@ function toggleLanguage() {
 
 function applyLanguage() {
   const dict = I18N[currentLang];
+  document.documentElement.lang = currentLang;
   $$('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (dict[key]) el.textContent = dict[key];
   });
+  $$('[data-i18n-placeholder]').forEach(el => {
+    const text = dict[el.dataset.i18nPlaceholder];
+    if (text) el.placeholder = text;
+  });
+  $$('[data-i18n-title]').forEach(el => {
+    const text = dict[el.dataset.i18nTitle];
+    if (text) el.title = text;
+  });
+  $$('.varga-pill').forEach(btn => {
+    const [en, ta] = VARGA_NAMES[btn.dataset.varga];
+    btn.textContent = `${btn.dataset.varga} ${txt(en, ta)}`;
+  });
+  const activeNav = $('.nav-item.active .nav-text');
+  if (activeNav) $('#current-page-badge').textContent = activeNav.textContent;
   const themeText = $('#theme-text');
   if (themeText) {
     themeText.textContent = currentLang === 'ta'
@@ -690,26 +1173,26 @@ function applyLanguage() {
 // Geolocation
 function detectCurrentLocation() {
   if (!navigator.geolocation) {
-    notify('Geolocation is not supported by your browser.');
+    notify(txt('Geolocation is not supported by your browser.', 'உங்கள் உலாவி இருப்பிட வசதியை ஆதரிக்கவில்லை.'));
     return;
   }
-  notify('Querying coordinates...');
+  notify(txt('Querying coordinates...', 'இருப்பிடம் கண்டறியப்படுகிறது...'));
   navigator.geolocation.getCurrentPosition(
     pos => {
       const lat = pos.coords.latitude.toFixed(4);
       const lon = pos.coords.longitude.toFixed(4);
       $('#input-lat').value = lat;
       $('#input-lon').value = lon;
-      $('#city-search').value = `Current Location (${lat}, ${lon})`;
+      $('#city-search').value = txt(`Current Location (${lat}, ${lon})`, `தற்போதைய இருப்பிடம் (${lat}, ${lon})`);
       // Try to auto-guess timezone
       try {
         const guessedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
         if (guessedTz) $('#input-timezone').value = guessedTz;
       } catch (e) {}
-      notify(`Coordinates updated: ${lat}, ${lon}`);
+      notify(txt(`Coordinates updated: ${lat}, ${lon}`, `இருப்பிடம் புதுப்பிக்கப்பட்டது: ${lat}, ${lon}`));
     },
     err => {
-      notify('Could not retrieve location. Please enter coordinates manually.');
+      notify(txt('Could not retrieve location. Please enter coordinates manually.', 'இருப்பிடத்தைப் பெற முடியவில்லை. அட்சரேகை, தீர்க்கரேகையை உள்ளிடவும்.'));
     },
     { timeout: 8000 }
   );
@@ -786,7 +1269,7 @@ function setupCityAutocomplete() {
           ? `நேர வலயம் நகரின் நிலையான நேர வேறுபாட்டிலிருந்து (${c.legacy_offset}) ஊகிக்கப்பட்டது; பிறந்த இடத்தின் சரியான IANA வலயத்தை உறுதிசெய்யவும்.`
           : `Timezone guessed from the city's standard offset (${c.legacy_offset}); confirm the birthplace's IANA zone.`);
         $('#city-helper').classList.toggle('field-warning', !guess.confident);
-        notify(`Selected ${c.name}`);
+        notify(txt(`Selected ${c.name}`, `${c.name} தேர்ந்தெடுக்கப்பட்டது`));
       };
       dropdown.append(b);
     });
@@ -856,9 +1339,9 @@ async function handleFormSubmit(e) {
     // Sync calculated astrological attributes with saved profiles if already stored
     syncCalculatedProfileWithStorage(result);
 
-    notify(`Chart generated for ${result.profile.name}`);
+    notify(txt(`Chart generated for ${result.profile.name}`, `${result.profile.name} ஜாதகம் கணிக்கப்பட்டது`));
   } catch (err) {
-    errorEl.textContent = err.message;
+    errorEl.textContent = errorText(err.message);
     errorEl.hidden = false;
   } finally {
     btn.disabled = false;
@@ -871,8 +1354,8 @@ function renderQuickStats() {
   const p = currentChart.planets;
   const prof = currentChart.profile;
 
-  $('#res-name').textContent = prof.name || 'Unnamed Chart';
-  $('#res-details').textContent = `${prof.date} · ${prof.time} · ${prof.city} · ${prof.timezone} · ${prof.ayanamsa} Ayanamsa`;
+  $('#res-name').textContent = prof.name || txt('Unnamed Chart', 'பெயரிடப்படாத ஜாதகம்');
+  $('#res-details').textContent = `${prof.date} · ${prof.time} · ${prof.city} · ${prof.timezone} · ${ayanamsaLabel(prof.ayanamsa)} ${txt('Ayanamsa', 'அயனாம்சம்')}`;
 
   const ascSignIdx = p.Ascendant.sign_index;
   $('#res-zodiac-icon').textContent = ZODIAC_SYMBOLS[ascSignIdx];
@@ -884,19 +1367,28 @@ function renderQuickStats() {
   $('#stat-moon-tamil').textContent = currentLang === 'ta' ? p.Moon.sign : p.Moon.tamil;
 
   $('#stat-star').textContent = currentLang === 'ta' ? p.Moon.tamil_nakshatra : p.Moon.nakshatra;
-  $('#stat-star-pada').textContent = `Pada ${p.Moon.pada} · Ruler: ${p.Moon.nakshatra_lord}`;
+  $('#stat-star-pada').textContent = txt(
+    `Pada ${p.Moon.pada} · Ruler: ${p.Moon.nakshatra_lord}`,
+    `பாதம் ${p.Moon.pada} · அதிபதி: ${grahaName(p.Moon.nakshatra_lord)}`);
 
   if (currentChart.active_dasha) {
     const ad = currentChart.active_dasha;
-    $('#stat-dasa').textContent = `${ad.dasa} · ${ad.bhukti}`;
-    $('#stat-dasa-sub').textContent = `Pratyantar: ${ad.pratyantar}`;
-    $('#hero-dasa-names').textContent = `${ad.dasa} Maha Dasa → ${ad.bhukti} Bhukti → ${ad.pratyantar} Pratyantar`;
-    $('#hero-dasa-dates').textContent = `Active through ${ad.end.slice(0, 10)} (Maha Dasa ends ${ad.dasa_end.slice(0, 10)})`;
+    $('#stat-dasa').textContent = `${grahaName(ad.dasa)} · ${grahaName(ad.bhukti)}`;
+    $('#stat-dasa-sub').textContent = txt(`Pratyantar: ${ad.pratyantar}`, `அந்தரம்: ${grahaName(ad.pratyantar)}`);
+    $('#hero-dasa-names').textContent = txt(
+      `${ad.dasa} Maha Dasa → ${ad.bhukti} Bhukti → ${ad.pratyantar} Pratyantar`,
+      `${grahaName(ad.dasa)} மகா தசை → ${grahaName(ad.bhukti)} புக்தி → ${grahaName(ad.pratyantar)} அந்தரம்`);
+    $('#hero-dasa-dates').textContent = txt(
+      `Active through ${ad.end.slice(0, 10)} (Maha Dasa ends ${ad.dasa_end.slice(0, 10)})`,
+      `${ad.end.slice(0, 10)} வரை நடைமுறையில் (மகா தசை ${ad.dasa_end.slice(0, 10)} அன்று முடிகிறது)`);
   } else {
     $('#stat-dasa').textContent = '—';
   }
 
-  $('#calc-engine-desc').textContent = `${currentChart.method.engine} (${currentChart.method.ephemeris}). Houses: ${currentChart.method.houses}. Nodes: ${currentChart.method.nodes}.`;
+  const m = currentChart.method;
+  $('#calc-engine-desc').textContent = txt(
+    `${m.engine} (${m.ephemeris}). Houses: ${m.houses}. Nodes: ${m.nodes}.`,
+    `${m.engine} (மோஷியர் பகுப்பாய்வு எபிமெரிஸ்). பாவங்கள்: முழு ராசி முறை. ராகு-கேது: சராசரி கணு.`);
   $('#calc-jd').textContent = currentChart.julian_day.toFixed(6);
   $('#calc-ayanamsa-val').textContent = formatDegrees(currentChart.ayanamsa_degrees);
 }
@@ -940,7 +1432,7 @@ function renderJathagaKurippu() {
     [pick('Dinamanam (day length)', 'தினமானம்'), pick(`${nz.dinamanam} nazhigai`, `${nz.dinamanam} நாழிகை`)],
     [pick('Tithi', 'திதி'), `${tithiLabel(panch.tithi_name)} · ${pakshaLabel(panch.paksha)}`],
     [pick('Nakshatra & Pada', 'நட்சத்திரம் & பாதம்'), `${isTa ? STARS_TA[starIdx] : p.Moon.nakshatra} · ${pick('Pada', 'பாதம்')} ${p.Moon.pada}`],
-    [pick('Nitya Yoga · Karana', 'யோகம் · கரணம்'), `${panch.yoga_name} · ${panch.karana_name}`],
+    [pick('Nitya Yoga · Karana', 'யோகம் · கரணம்'), `${nityaYogaLabel(panch.yoga_name)} · ${karanaLabel(panch.karana_name)}`],
     [pick('Lagna', 'லக்னம்'), pick(p.Ascendant.sign, p.Ascendant.tamil)],
     [pick('Rasi', 'ராசி'), pick(p.Moon.sign, p.Moon.tamil)],
     [pick('Gana · Yoni', 'கணம் · யோனி'), pick(`${star.gana} · ${star.yoni}`, `${star.gana_ta} · ${star.yoni_ta}`)],
@@ -1272,11 +1764,13 @@ function openHouseInspector(houseNum, signIdx) {
   const inspector = $('#house-inspector-card');
   inspector.hidden = false;
 
-  const signName = currentLang === 'ta' ? SIGNS_TA[signIdx] : SIGNS_EN[signIdx];
-  const signLord = currentChart.house_details[houseNum - 1].lord;
+  const sign = signName(signIdx);
+  const signLord = grahaName(currentChart.house_details[houseNum - 1].lord);
 
-  $('#inspect-title').textContent = `House ${houseNum} (${signName}) Inspector`;
-  $('#inspect-sign').textContent = `Sign: ${signName} · Lord: ${signLord} · House ${houseNum} from Lagna`;
+  $('#inspect-title').textContent = txt(`House ${houseNum} (${sign}) Inspector`, `${houseNum}-ம் பாவம் (${sign}) விவரம்`);
+  $('#inspect-sign').textContent = txt(
+    `Sign: ${sign} · Lord: ${signLord} · House ${houseNum} from Lagna`,
+    `ராசி: ${sign} · அதிபதி: ${signLord} · லக்னத்திலிருந்து ${houseNum}-ம் பாவம்`);
 
   // Occupants in D1
   const occupants = Object.entries(currentChart.planets).filter(([n, p]) => p.house === houseNum);
@@ -1286,11 +1780,11 @@ function openHouseInspector(houseNum, signIdx) {
     occupants.forEach(([n, p]) => {
       const pill = document.createElement('span');
       pill.className = 'planet-badge';
-      pill.textContent = `${PLANET_NAMES[n].en} (${formatDegrees(p.degree)})`;
+      pill.textContent = `${grahaName(n)} (${formatDegrees(p.degree)})`;
       occEl.append(pill);
     });
   } else {
-    occEl.innerHTML = '<span class="muted">No occupant planets</span>';
+    occEl.innerHTML = `<span class="muted">${txt('No occupant planets', 'கிரகங்கள் இல்லை')}</span>`;
   }
 
   // Aspects received
@@ -1303,19 +1797,19 @@ function openHouseInspector(houseNum, signIdx) {
     aspecting.forEach(([n, p]) => {
       const pill = document.createElement('span');
       pill.className = 'planet-badge benefic';
-      pill.textContent = `${PLANET_NAMES[n].en} (from H${p.house})`;
+      pill.textContent = txt(`${grahaName(n)} (from H${p.house})`, `${grahaName(n)} (${p.house}-ம் பாவத்திலிருந்து)`);
       aspEl.append(pill);
     });
   } else {
-    aspEl.innerHTML = '<span class="muted">No direct major aspects</span>';
+    aspEl.innerHTML = `<span class="muted">${txt('No direct major aspects', 'நேரடிப் பார்வைகள் இல்லை')}</span>`;
   }
 
   // Ashtakavarga SAV points
   const sav = currentChart.ashtakavarga.SAV[signIdx];
-  $('#inspect-sav').textContent = `${sav} Bindus`;
+  $('#inspect-sav').textContent = txt(`${sav} Bindus`, `${sav} பரல்கள்`);
 
   // Significations
-  $('#inspect-significations').textContent = HOUSE_BHAVAS[houseNum] || 'Auspicious celestial node.';
+  $('#inspect-significations').textContent = txt(HOUSE_BHAVAS[houseNum], HOUSE_BHAVAS_TA[houseNum]);
 
   inspector.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
@@ -1339,10 +1833,10 @@ function renderPlanetsTable() {
       <td><strong>${pLabel}</strong></td>
       <td>${signName}</td>
       <td>${formatDegrees(p.degree)}</td>
-      <td>${starName} (Pada ${p.pada})</td>
-      <td><strong>House ${p.house}</strong></td>
-      <td><span class="dignity-badge ${dignityClass}">${p.dignity || 'Neutral'}</span></td>
-      <td>${p.retrograde ? '<span class="legend-badge retro">Retrograde (Rx)</span>' : 'Direct'} ${p.combust ? '<span class="legend-badge combust">🔥 Combust</span>' : ''}</td>
+      <td>${starName} (${txt('Pada', 'பாதம்')} ${p.pada})</td>
+      <td><strong>${txt(`House ${p.house}`, `${p.house}-ம் பாவம்`)}</strong></td>
+      <td><span class="dignity-badge ${dignityClass}">${dignityLabel(p.dignity)}</span></td>
+      <td>${p.retrograde ? `<span class="legend-badge retro">${txt('Retrograde (Rx)', 'வக்ரம் (வ)')}</span>` : txt('Direct', 'நேர்கதி')} ${p.combust ? `<span class="legend-badge combust">🔥 ${txt('Combust', 'அஸ்தங்கம்')}</span>` : ''}</td>
       <td>${aspectsCastStr}</td>
     `;
     tbody.append(tr);
@@ -1366,14 +1860,14 @@ function renderAshtakavarga() {
     card.innerHTML = `
       <small>${currentLang === 'ta' ? SIGNS_TA[idx] : SIGNS_EN[idx]}</small>
       <div class="sav-points">${pts}</div>
-      <span class="muted">${isStrong ? 'Auspicious' : 'Average'}</span>
+      <span class="muted">${isStrong ? txt('Auspicious', 'சுபம்') : txt('Average', 'சராசரி')}</span>
     `;
     grid.append(card);
   });
 
   // Render BAV Table
   const thead = $('#bav-header');
-  thead.innerHTML = '<th>Planet</th>' + SIGNS_EN.map((s, i) => `<th>${currentLang === 'ta' ? SIGNS_TA[i] : s.slice(0, 3)}</th>`).join('') + '<th>Total</th>';
+  thead.innerHTML = `<th>${txt('Planet', 'கிரகம்')}</th>` + SIGNS_EN.map((s, i) => `<th>${currentLang === 'ta' ? SIGNS_TA[i] : s.slice(0, 3)}</th>`).join('') + `<th>${txt('Total', 'மொத்தம்')}</th>`;
 
   const tbody = $('#bav-tbody');
   tbody.replaceChildren();
@@ -1381,7 +1875,7 @@ function renderAshtakavarga() {
   Object.entries(bav).forEach(([pName, row]) => {
     const tr = document.createElement('tr');
     const rowSum = row.reduce((a, b) => a + b, 0);
-    tr.innerHTML = `<td><strong>${pName}</strong></td>` + row.map(v => `<td>${v}</td>`).join('') + `<td><strong>${rowSum}</strong></td>`;
+    tr.innerHTML = `<td><strong>${grahaName(pName)}</strong></td>` + row.map(v => `<td>${v}</td>`).join('') + `<td><strong>${rowSum}</strong></td>`;
     tbody.append(tr);
   });
 }
@@ -1458,18 +1952,18 @@ function renderYogasAndDoshas() {
     if (ks.present) {
       ksCard.className = 'cosmic-card dosha-card active-dosha';
       $('#kaalsarp-status').className = 'status-pill danger';
-      $('#kaalsarp-status').textContent = ks.type;
-      $('#kaalsarp-desc').textContent = ks.description;
+      $('#kaalsarp-status').textContent = txt(ks.type, ks.type_ta);
+      $('#kaalsarp-desc').textContent = txt(ks.description, ks.description_ta);
     } else {
       ksCard.className = 'cosmic-card dosha-card';
       $('#kaalsarp-status').className = 'status-pill neutral';
-      $('#kaalsarp-status').textContent = 'Not Present';
-      $('#kaalsarp-desc').textContent = ks.description;
+      $('#kaalsarp-status').textContent = txt('Not Present', 'இல்லை');
+      $('#kaalsarp-desc').textContent = txt(ks.description, ks.description_ta);
     }
   }
 
   // Detected Yogas Grid
-  $('#yogas-count').textContent = `${yogas.length} Detected`;
+  $('#yogas-count').textContent = txt(`${yogas.length} Detected`, `${yogas.length} யோகங்கள்`);
   const grid = $('#yogas-grid');
   grid.replaceChildren();
 
@@ -1478,17 +1972,17 @@ function renderYogasAndDoshas() {
       const card = document.createElement('div');
       card.className = 'yoga-card';
       card.innerHTML = `
-        <h3>${y.name}</h3>
-        <div class="yoga-meta">${y.category} · <span style="color:var(--emerald)">${y.auspiciousness}</span></div>
-        <p class="yoga-desc">${y.description}</p>
+        <h3>${esc(txt(y.name, y.name_ta))}</h3>
+        <div class="yoga-meta">${esc(txt(y.category, y.category_ta))} · <span style="color:var(--emerald)">${esc(txt(y.auspiciousness, y.auspiciousness_ta))}</span></div>
+        <p class="yoga-desc">${esc(txt(y.description, y.description_ta))}</p>
         <div class="pill-list" style="margin-top:8px">
-          ${(y.planets || []).map(p => `<span class="planet-badge benefic">${p}</span>`).join('')}
+          ${(y.planets || []).map(p => `<span class="planet-badge benefic">${grahaName(p)}</span>`).join('')}
         </div>
       `;
       grid.append(card);
     });
   } else {
-    grid.innerHTML = '<p class="muted">No major classical yogas triggered under primary rules.</p>';
+    grid.innerHTML = `<p class="muted">${txt('No major classical yogas triggered under primary rules.', 'முதன்மை விதிகளின்படி முக்கிய யோகங்கள் எதுவும் அமையவில்லை.')}</p>`;
   }
 }
 
@@ -1507,8 +2001,8 @@ function renderDashaAccordion() {
     summary.className = `dasa-summary ${d.is_active ? 'active-period' : ''}`;
     summary.innerHTML = `
       <div>
-        <span class="dasa-name">${d.lord} Maha Dasa</span>
-        ${d.is_active ? '<span class="status-pill success" style="margin-left:8px">ACTIVE</span>' : ''}
+        <span class="dasa-name">${txt(`${d.lord} Maha Dasa`, `${grahaName(d.lord)} மகா தசை`)}</span>
+        ${d.is_active ? `<span class="status-pill success" style="margin-left:8px">${txt('ACTIVE', 'நடப்பில்')}</span>` : ''}
       </div>
       <span class="dasa-dates">${d.start.slice(0, 10)} → ${d.end.slice(0, 10)}</span>
     `;
@@ -1520,17 +2014,17 @@ function renderDashaAccordion() {
     table.innerHTML = `
       <thead>
         <tr>
-          <th>Bhukti</th>
-          <th>Pratyantardasa Details</th>
-          <th>Start (UTC)</th>
-          <th>End (UTC)</th>
+          <th>${txt('Bhukti', 'புக்தி')}</th>
+          <th>${txt('Pratyantardasa Details', 'அந்தர விவரங்கள்')}</th>
+          <th>${txt('Start (UTC)', 'தொடக்கம் (UTC)')}</th>
+          <th>${txt('End (UTC)', 'முடிவு (UTC)')}</th>
         </tr>
       </thead>
       <tbody>
         ${d.subperiods.map(b => `
           <tr class="${b.is_active ? 'active-period' : ''}">
-            <td><strong>${b.lord}</strong> ${b.is_active ? '<span class="status-pill success">Active</span>' : ''}</td>
-            <td>${(b.pratyantars || []).map(p => `<span class="planet-badge ${p.is_active ? 'asc' : ''}" style="margin:2px">${p.lord}</span>`).join('')}</td>
+            <td><strong>${grahaName(b.lord)}</strong> ${b.is_active ? `<span class="status-pill success">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
+            <td>${(b.pratyantars || []).map(p => `<span class="planet-badge ${p.is_active ? 'asc' : ''}" style="margin:2px">${grahaName(p.lord)}</span>`).join('')}</td>
             <td>${b.start.slice(0, 10)}</td>
             <td>${b.end.slice(0, 10)}</td>
           </tr>
@@ -1825,6 +2319,14 @@ function renderTimelineStream(periods, isTa) {
 }
 
 // Life Predictions Multi-Chapter Comprehensive Renderer
+// Verdict pill for a house or planet reading: strong / moderate / weak
+function strengthPill(item) {
+  if (!item.strength) return '';
+  const cls = { strong: 'success', moderate: 'neutral', weak: 'danger' }[item.strength];
+  const en = { strong: 'Strong', moderate: 'Moderate', weak: 'Needs care' }[item.strength];
+  return `<span class="status-pill ${cls}">${txt(en, item.strength_ta)}</span>`;
+}
+
 function renderLifeReadings() {
   if (!currentChart) return;
   const pred = currentChart.predictions;
@@ -1865,13 +2367,13 @@ function renderLifeReadings() {
 
     // Sun & Tithi
     $('#pred-sun-title').textContent = isTa
-      ? `சூரியன் & திதி: ${ov.tithi_name} (யோகம்: ${ov.yoga_name})`
+      ? `சூரியன் & திதி: ${tithiLabel(ov.tithi_name)} (யோகம்: ${nityaYogaLabel(ov.yoga_name)})`
       : `Sun & Tithi: ${ov.tithi_name} (${ov.yoga_name} Yoga)`;
     $('#pred-sun-sub').textContent = isTa
       ? 'ஆன்ம பலம், கௌரவம் மற்றும் நித்திய சுப யோகம்'
       : 'Soul Vitality, Integrity & Auspicious Alignment';
     $('#pred-sun-text').textContent = isTa
-      ? `நீங்கள் ${ov.tithi_name} திதியிலும், ${ov.yoga_name} யோகத்திலும் அவதரித்துள்ளீர்கள். ஆன்ம காரகனான சூரியனின் ஆதிக்கத்தால் சமூக அந்தஸ்து, கடமை உணர்வு, தர்ம சிந்தனை மற்றும் அசைக்க முடியாத தன்னம்பிக்கை உங்களை முன்னிறுத்தும்.`
+      ? `நீங்கள் ${tithiLabel(ov.tithi_name)} திதியிலும், ${nityaYogaLabel(ov.yoga_name)} யோகத்திலும் அவதரித்துள்ளீர்கள். ஆன்ம காரகனான சூரியனின் ஆதிக்கத்தால் சமூக அந்தஸ்து, கடமை உணர்வு, தர்ம சிந்தனை மற்றும் அசைக்க முடியாத தன்னம்பிக்கை உங்களை முன்னிறுத்தும்.`
       : `Born under the sacred lunar day ${ov.tithi_name} and soli-lunar combination ${ov.yoga_name}. Sun governs your core vital spark and moral resolve, bestowing natural authority, honorable ambition, and perseverance in duty.`;
   }
 
@@ -1883,8 +2385,8 @@ function renderLifeReadings() {
       const card = document.createElement('div');
       card.className = 'bhava-card';
       const isSavStrong = b.sav_points >= 28;
-      const occStr = b.occupants && b.occupants.length ? b.occupants.join(', ') : (isTa ? 'கிரகங்கள் இல்லை' : 'None');
-      const aspStr = b.aspected_by && b.aspected_by.length ? b.aspected_by.join(', ') : (isTa ? 'நேரடி பார்வைகள் இல்லை' : 'None');
+      const occStr = b.occupants && b.occupants.length ? grahaNames(b.occupants) : (isTa ? 'கிரகங்கள் இல்லை' : 'None');
+      const aspStr = b.aspected_by && b.aspected_by.length ? grahaNames(b.aspected_by) : (isTa ? 'நேரடி பார்வைகள் இல்லை' : 'None');
       const title = isTa ? b.title_ta : b.title_en;
       const narrative = isTa ? b.prediction_ta : b.prediction_en;
 
@@ -1894,17 +2396,21 @@ function renderLifeReadings() {
             <span class="bhava-num-badge">${b.house}</span>
             <div>
               <h3>${esc(title)}</h3>
-              <small class="muted">${isTa ? b.tamil_sign : b.sign} · ${isTa ? 'அதிபதி' : 'Lord'}: ${b.lord} (${isTa ? 'பாவம்' : 'H'}${b.lord_house})</small>
+              <small class="muted">${isTa ? b.tamil_sign : b.sign} · ${isTa ? 'அதிபதி' : 'Lord'}: ${grahaName(b.lord)} (${isTa ? `${b.lord_house}-ம் பாவம்` : `H${b.lord_house}`})</small>
             </div>
           </div>
-          <span class="bhava-meta-pill ${isSavStrong ? 'highlight' : ''}">${b.sav_points} SAV Bindus</span>
+          <span class="bhava-meta-pill ${isSavStrong ? 'highlight' : ''}">${b.sav_points} ${txt('SAV Bindus', 'சர்வாஷ்டக பரல்கள்')}</span>
         </div>
         <div class="bhava-meta-strip">
-          <span class="bhava-meta-pill">${isTa ? 'அதிபதி நிலை' : 'Lord Dignity'}: <strong>${b.lord_dignity}</strong></span>
+          ${strengthPill(b)}
+          <span class="bhava-meta-pill">${isTa ? 'அதிபதி நிலை' : 'Lord Dignity'}: <strong>${dignityLabel(b.lord_dignity)}</strong></span>
           <span class="bhava-meta-pill">${isTa ? 'அமர்ந்த கிரகங்கள்' : 'Occupants'}: <strong>${esc(occStr)}</strong></span>
           <span class="bhava-meta-pill">${isTa ? 'பார்வை கிரகங்கள்' : 'Aspects'}: <strong>${esc(aspStr)}</strong></span>
         </div>
         <p class="reading-body">${esc(narrative)}</p>
+        ${(b.factors || []).length ? `<ul class="bhava-factors">${b.factors.map(f => `
+          <li class="${f.effect > 0 ? 'plus' : (f.effect < 0 ? 'minus' : 'neutral')}">${esc(txt(f.en, f.ta))}</li>`).join('')}
+        </ul>` : ''}
       `;
       bhavasContainer.append(card);
     });
@@ -1931,9 +2437,10 @@ function renderLifeReadings() {
               <small class="muted">${isTa ? 'பாவம்' : 'House'} ${p.house} · ${isTa ? p.tamil_sign : p.sign}</small>
             </div>
           </div>
-          <span class="dignity-badge ${dignityClass}">${p.dignity || 'Neutral'}</span>
+          <span class="dignity-badge ${dignityClass}">${dignityLabel(p.dignity)}</span>
         </div>
         <div class="planet-meta-strip">
+          ${strengthPill(p)}
           ${p.retrograde ? `<span class="legend-badge retro">${isTa ? 'வக்ரம் (Rx)' : 'Retrograde (Rx)'}</span>` : ''}
           ${p.combust ? `<span class="legend-badge combust">${isTa ? '🔥 அஸ்தமனம்' : '🔥 Combust'}</span>` : ''}
           <span class="bhava-meta-pill">${isTa ? 'ராசி' : 'Rasi'}: <strong>${isTa ? p.tamil_sign : p.sign}</strong></span>
@@ -1950,7 +2457,7 @@ function renderLifeReadings() {
     if (dasaForecast.active_period) {
       const ad = dasaForecast.active_period;
       $('#pred-dasa-active-title').textContent = isTa
-        ? `தற்போதைய இயங்கும் தசா-புக்தி: ${ad.dasa} தசை — ${ad.bhukti} புக்தி`
+        ? `தற்போதைய இயங்கும் தசா-புக்தி: ${grahaName(ad.dasa)} தசை — ${grahaName(ad.bhukti)} புக்தி`
         : `Active Running Period: ${ad.dasa} Maha Dasa — ${ad.bhukti} Bhukti`;
       $('#pred-dasa-active-desc').textContent = isTa ? dasaForecast.active_forecast_ta : dasaForecast.active_forecast_en;
     }
@@ -1995,11 +2502,11 @@ function renderLifeReadings() {
     const j = transits.jupiter;
     if (j) {
       $('#jupiter-transit-title').textContent = isTa
-        ? 'குருப் பெயர்ச்சி பலன் (Guru Peyarchi)'
+        ? 'குருப் பெயர்ச்சி பலன்'
         : 'Jupiter Transit (Guru Peyarchi)';
       $('#jupiter-transit-badge').textContent = j.favorable
-        ? (isTa ? 'சுப பலன் (Auspicious)' : 'Auspicious')
-        : (isTa ? 'மத்திம பலன் (Moderate)' : 'Moderate');
+        ? (isTa ? 'சுப பலன்' : 'Auspicious')
+        : (isTa ? 'மத்திம பலன்' : 'Moderate');
       $('#jupiter-transit-badge').className = `status-pill ${j.favorable ? 'success' : 'neutral'}`;
       $('#jupiter-transit-desc').textContent = isTa ? j.prediction_ta : j.prediction_en;
     }
@@ -2019,15 +2526,15 @@ function renderLifeReadings() {
   // Chapter 6: Lucky Gemstones & Remedies
   const luck = pred.lucky_factors;
   if (luck) {
-    $('#gem-primary').textContent = luck.primary_gem || '—';
-    $('#gem-fortune').textContent = luck.fortune_gem || '—';
-    $('#gem-metal').textContent = luck.metal || '—';
-    $('#gem-finger').textContent = luck.finger || '—';
-    $('#gem-day').textContent = luck.wearing_day || '—';
+    $('#gem-primary').textContent = txt(luck.primary_gem, luck.primary_gem_ta) || '—';
+    $('#gem-fortune').textContent = txt(luck.fortune_gem, luck.fortune_gem_ta) || '—';
+    $('#gem-metal').textContent = txt(luck.metal, luck.metal_ta) || '—';
+    $('#gem-finger').textContent = txt(luck.finger, luck.finger_ta) || '—';
+    $('#gem-day').textContent = txt(luck.wearing_day, luck.wearing_day_ta) || '—';
 
     $('#luck-numbers').textContent = luck.lucky_numbers ? luck.lucky_numbers.join(', ') : '—';
-    $('#luck-days').textContent = luck.lucky_days ? luck.lucky_days.join(', ') : '—';
-    $('#luck-colors').textContent = luck.lucky_colors ? luck.lucky_colors.join(', ') : '—';
+    $('#luck-days').textContent = (txt(luck.lucky_days, luck.lucky_days_ta) || []).join(', ') || '—';
+    $('#luck-colors').textContent = (txt(luck.lucky_colors, luck.lucky_colors_ta) || []).join(', ') || '—';
     $('#luck-deities').textContent = isTa ? luck.deity_worship_ta : luck.deity_worship_en;
   }
 
@@ -2064,7 +2571,7 @@ function renderLifeReadings() {
             <span class="bhava-meta-pill">${isTa ? 'கிரகம்' : 'Planet'}: <strong>${isTa ? k.tamil_planet : k.planet}</strong></span>
             <span class="bhava-meta-pill">${isTa ? 'ராசி' : 'Sign'}: <strong>${isTa ? k.tamil_sign : k.sign}</strong></span>
             <span class="bhava-meta-pill">${isTa ? 'பாவம்' : 'House'}: <strong>${k.house}</strong></span>
-            <span class="bhava-meta-pill">${isTa ? 'நிலை' : 'Dignity'}: <strong>${k.dignity}</strong></span>
+            <span class="bhava-meta-pill">${isTa ? 'நிலை' : 'Dignity'}: <strong>${dignityLabel(k.dignity)}</strong></span>
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(isTa ? k.reading_ta : k.reading_en)}</p>
         `;
@@ -2077,7 +2584,7 @@ function renderLifeReadings() {
   const dt = pred.double_transit;
   if (dt) {
     if (dt.calculation_date_utc) {
-      $('#timing-calc-date').textContent = `Live: ${dt.calculation_date_utc.slice(0, 10)}`;
+      $('#timing-calc-date').textContent = `${txt('Live', 'நேரலை')}: ${dt.calculation_date_utc.slice(0, 10)}`;
     }
     if (dt.transit_saturn) {
       $('#timing-saturn-pos').textContent = `${isTa ? dt.transit_saturn.tamil_sign : dt.transit_saturn.sign} (${dt.transit_saturn.degree_str})`;
@@ -2190,10 +2697,10 @@ function renderLifeReadings() {
         const tr = document.createElement('tr');
         if (row.is_current) tr.className = 'active-period';
         tr.innerHTML = `
-          <td><strong>${row.kakshya_num}</strong> ${row.is_current ? '<span class="status-pill success" style="font-size:9px">Active</span>' : ''}</td>
+          <td><strong>${row.kakshya_num}</strong> ${row.is_current ? `<span class="status-pill success" style="font-size:9px">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
           <td>${row.range_str}</td>
           <td><strong>${isTa ? row.lord_ta : row.lord}</strong></td>
-          <td>${row.has_bindu ? '<span style="color:#2ecc71; font-weight:700">1 Bindu</span>' : '<span style="color:#e63946">0 Bindu</span>'}</td>
+          <td>${row.has_bindu ? `<span style="color:#2ecc71; font-weight:700">${txt('1 Bindu', '1 பரல்')}</span>` : `<span style="color:#e63946">${txt('0 Bindu', '0 பரல்')}</span>`}</td>
           <td><span class="dignity-badge ${row.has_bindu ? 'own-sign' : 'enemy'}">${isTa ? row.status_ta : row.status_en}</span></td>
         `;
         sBody.append(tr);
@@ -2212,10 +2719,10 @@ function renderLifeReadings() {
         const tr = document.createElement('tr');
         if (row.is_current) tr.className = 'active-period';
         tr.innerHTML = `
-          <td><strong>${row.kakshya_num}</strong> ${row.is_current ? '<span class="status-pill success" style="font-size:9px">Active</span>' : ''}</td>
+          <td><strong>${row.kakshya_num}</strong> ${row.is_current ? `<span class="status-pill success" style="font-size:9px">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
           <td>${row.range_str}</td>
           <td><strong>${isTa ? row.lord_ta : row.lord}</strong></td>
-          <td>${row.has_bindu ? '<span style="color:#2ecc71; font-weight:700">1 Bindu</span>' : '<span style="color:#e63946">0 Bindu</span>'}</td>
+          <td>${row.has_bindu ? `<span style="color:#2ecc71; font-weight:700">${txt('1 Bindu', '1 பரல்')}</span>` : `<span style="color:#e63946">${txt('0 Bindu', '0 பரல்')}</span>`}</td>
           <td><span class="dignity-badge ${row.has_bindu ? 'exalted' : 'neutral'}">${isTa ? row.status_ta : row.status_en}</span></td>
         `;
         jBody.append(tr);
@@ -2255,8 +2762,8 @@ function renderLifeReadings() {
           <div class="reading-header">
             <span class="bhava-num-badge" style="border-color:${pInfo.color}; color:${pInfo.color}">#${p.rank}</span>
             <div>
-              <h3>${esc(label)} — ${p.total_rupas} Rupas (${p.total_virupas} Virupas)</h3>
-              <small class="muted">${isTa ? 'தேவை' : 'Required'}: ${p.min_required_rupas} Rupas · Rank ${p.rank} of 7</small>
+              <h3>${esc(label)} — ${p.total_rupas} ${txt('Rupas', 'ரூபம்')} (${p.total_virupas} ${txt('Virupas', 'விரூபம்')})</h3>
+              <small class="muted">${isTa ? 'தேவை' : 'Required'}: ${p.min_required_rupas} ${txt('Rupas', 'ரூபம்')} · ${txt(`Rank ${p.rank} of 7`, `7-ல் ${p.rank}-வது இடம்`)}</small>
             </div>
           </div>
           <div class="timing-score-bar" style="margin:8px 0;">
@@ -2267,12 +2774,12 @@ function renderLifeReadings() {
             ${statusBadge}
           </div>
           <div class="bhava-meta-strip" style="font-size:11px;">
-            <span class="bhava-meta-pill">Sthana: <strong>${p.sthana_bala}</strong></span>
-            <span class="bhava-meta-pill">Dig: <strong>${p.dig_bala}</strong></span>
-            <span class="bhava-meta-pill">Kaala: <strong>${p.kaala_bala}</strong></span>
-            <span class="bhava-meta-pill">Chesta: <strong>${p.chesta_bala}</strong></span>
-            <span class="bhava-meta-pill">Naisargika: <strong>${p.naisargika_bala}</strong></span>
-            <span class="bhava-meta-pill">Drik: <strong>${p.drik_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Sthana', 'ஸ்தான')}: <strong>${p.sthana_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Dig', 'திக்')}: <strong>${p.dig_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Kaala', 'கால')}: <strong>${p.kaala_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Chesta', 'சேஷ்டா')}: <strong>${p.chesta_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Naisargika', 'நைசர்கிக')}: <strong>${p.naisargika_bala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Drik', 'திருக்')}: <strong>${p.drik_bala}</strong></span>
           </div>
           <p class="reading-body" style="font-size:12.5px; margin-top:8px;">${esc(reading)}</p>
         `;
@@ -2317,7 +2824,7 @@ function renderLifeReadings() {
           <td>${c.degree_str}</td>
           <td>${isTa ? c.sign_ta : c.sign}</td>
           <td>${isTa ? c.sign_lord_ta : c.sign_lord}</td>
-          <td>${c.star_name} (${isTa ? c.star_lord_ta : c.star_lord})</td>
+          <td>${starName(c.star_name)} (${isTa ? c.star_lord_ta : c.star_lord})</td>
           <td><strong style="color:var(--gold)">${isTa ? c.sub_lord_ta : c.sub_lord}</strong></td>
         `;
         cBody.append(tr);
@@ -2334,7 +2841,7 @@ function renderLifeReadings() {
           <td>${p.degree_str}</td>
           <td>${isTa ? p.sign_ta : p.sign}</td>
           <td>${isTa ? p.sign_lord_ta : p.sign_lord}</td>
-          <td>${p.star_name} (${isTa ? p.star_lord_ta : p.star_lord})</td>
+          <td>${starName(p.star_name)} (${isTa ? p.star_lord_ta : p.star_lord})</td>
           <td><strong style="color:var(--gold)">${isTa ? p.sub_lord_ta : p.sub_lord}</strong></td>
         `;
         pBody.append(tr);
@@ -2374,7 +2881,7 @@ function renderLifeReadings() {
             <span class="reading-icon">📜</span>
             <div>
               <h3 style="color:var(--gold);">${esc(title)}</h3>
-              <small class="muted">${isTa ? 'இணைந்த கிரகங்கள்' : 'Associated Grahas'}: ${s.planets.join(' + ')}</small>
+              <small class="muted">${isTa ? 'இணைந்த கிரகங்கள்' : 'Associated Grahas'}: ${grahaNames(s.planets, ' + ')}</small>
             </div>
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(desc)}</p>
@@ -2499,7 +3006,7 @@ async function loadDailyPanchangam() {
     lastDailyPanchangam = panch;
     populatePanchangamView(panch);
   } catch (err) {
-    errorEl.textContent = err.message;
+    errorEl.textContent = errorText(err.message);
     errorEl.hidden = false;
   }
 }
@@ -2556,10 +3063,10 @@ function populatePanchangamView(panch) {
   $('#panch-nakshatra').textContent = isTa ? panch.tamil_nakshatra : `${panch.nakshatra} (${panch.tamil_nakshatra})`;
   $('#panch-pada').textContent = `${isTa ? 'பாதம்' : 'Pada'} ${panch.pada} · ${untilLabel(ends.nakshatra, day)}`;
 
-  $('#panch-yoga').textContent = `${panch.yoga_name} (${panch.yoga_number})`;
-  $('#panch-yoga-nature').textContent = `${panch.yoga_auspiciousness} · ${untilLabel(ends.yoga, day)}`;
+  $('#panch-yoga').textContent = `${nityaYogaLabel(panch.yoga_name)} (${panch.yoga_number})`;
+  $('#panch-yoga-nature').textContent = `${panch.yoga_auspiciousness === 'Auspicious' ? txt('Auspicious', 'சுபம்') : txt('Inauspicious', 'அசுபம்')} · ${untilLabel(ends.yoga, day)}`;
 
-  $('#panch-karana').textContent = panch.karana_name;
+  $('#panch-karana').textContent = karanaLabel(panch.karana_name);
   $('#panch-karana-type').textContent = untilLabel(ends.karana, day);
 
   // Older payloads (a chart's birth panchanga) only carry UTC timings
@@ -2699,14 +3206,20 @@ function populateMatchDropdowns() {
 
   if (gStar && !gStar.options.length) {
     STARS_EN.forEach((s, i) => {
-      gStar.add(new Option(`${i + 1}. ${s} (${STARS_TA[i]})`, i));
-      bStar.add(new Option(`${i + 1}. ${s} (${STARS_TA[i]})`, i));
+      gStar.add(new Option('', i));
+      bStar.add(new Option('', i));
     });
     SIGNS_EN.forEach((s, i) => {
-      gSign.add(new Option(`${s} (${SIGNS_TA[i]})`, i));
-      bSign.add(new Option(`${s} (${SIGNS_TA[i]})`, i));
+      gSign.add(new Option('', i));
+      bSign.add(new Option('', i));
     });
   }
+  [gStar, bStar].forEach(sel => [...(sel?.options || [])].forEach((o, i) => {
+    o.textContent = txt(`${i + 1}. ${STARS_EN[i]} (${STARS_TA[i]})`, `${i + 1}. ${STARS_TA[i]} (${STARS_EN[i]})`);
+  }));
+  [gSign, bSign].forEach(sel => [...(sel?.options || [])].forEach((o, i) => {
+    o.textContent = txt(`${SIGNS_EN[i]} (${SIGNS_TA[i]})`, `${SIGNS_TA[i]} (${SIGNS_EN[i]})`);
+  }));
 
   // Populate profiles
   const profiles = getSavedProfiles();
@@ -2776,62 +3289,68 @@ async function runHoroscopeMatch() {
     });
     const match = await resp.json();
     if (!resp.ok) throw new Error(match.error);
-
-    $('#match-results-container').hidden = false;
-    $('#match-score-num').textContent = match.guna_milan.total_score;
-    $('#match-verdict-title').textContent = match.verdict;
-    $('#match-verdict-desc').textContent = `${match.passed_count} of 10 Poruthams passed. Guna score: ${match.guna_milan.total_score} of 36.`;
-
-    const rajjuBadge = $('#match-rajju-badge');
-    rajjuBadge.textContent = match.rajju_agreement ? 'Rajju Match: Harmonious (Passed)' : 'Rajju Dosha: Inauspicious (Same Rajju)';
-    rajjuBadge.className = `badge ${match.rajju_agreement ? 'status-pill success' : 'status-pill danger'}`;
-
-    $('#match-porutham-count').textContent = `${match.passed_count} of 10 Passed`;
     lastMatch = match;
-    renderDoshaSamyam(match);
-
-    // 10 Poruthams table
-    const tbody = $('#poruthams-tbody');
-    tbody.replaceChildren();
-    match.poruthams.forEach(p => {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td><strong>${p.name}</strong> <small style="display:block;color:var(--gold-dim)">${p.tamil}</small></td>
-        <td>${p.description}</td>
-        <td><span class="status-pill ${p.passed ? 'success' : 'danger'}">${p.passed ? 'Passed ✔' : 'Not Matched ✖'}</span></td>
-        <td>${p.points} / ${p.max_points}</td>
-      `;
-      tbody.append(tr);
-    });
-
-    // 8 Gunas Grid
-    const gunasGrid = $('#gunas-grid');
-    gunasGrid.replaceChildren();
-    const gObj = match.guna_milan;
-    const gLabels = [
-      ['Varna (Work & Spiritual Nature)', gObj.varna, 1],
-      ['Vashya (Mutual Magnetism)', gObj.vashya, 2],
-      ['Tara (Health & Longevity)', gObj.tara, 3],
-      ['Yoni (Physical Harmony)', gObj.yoni, 4],
-      ['Graha Maitri (Mental Friendship)', gObj.graha_maitri, 5],
-      ['Gana (Temperament Alignment)', gObj.gana, 6],
-      ['Bhakoot (Family Fortune)', gObj.bhakoot, 7],
-      ['Nadi (Genetic / Health Affinity)', gObj.nadi, 8]
-    ];
-    gLabels.forEach(([label, pts, max]) => {
-      const card = document.createElement('div');
-      card.className = 'guna-card';
-      card.innerHTML = `
-        <small style="font-size:10px;color:var(--text-muted)">${label}</small>
-        <div style="font-size:18px;font-weight:700;color:var(--gold);margin:4px 0">${pts} / ${max}</div>
-      `;
-      gunasGrid.append(card);
-    });
-
-    notify('Horoscope compatibility calculated');
+    renderMatchResult(match);
+    notify(txt('Horoscope compatibility calculated', 'திருமணப் பொருத்தம் கணிக்கப்பட்டது'));
   } catch (err) {
-    notify('Matching error: ' + err.message);
+    notify(`${txt('Matching error', 'பொருத்தப் பிழை')}: ${errorText(err.message)}`);
   }
+}
+
+const GUNA_LABELS = [
+  ['varna', 1, 'Varna (Work & Spiritual Nature)', 'வர்ணம் (தொழில் & ஆன்மீக இயல்பு)'],
+  ['vashya', 2, 'Vashya (Mutual Magnetism)', 'வசியம் (பரஸ்பர ஈர்ப்பு)'],
+  ['tara', 3, 'Tara (Health & Longevity)', 'தாரை (ஆரோக்கியம் & ஆயுள்)'],
+  ['yoni', 4, 'Yoni (Physical Harmony)', 'யோனி (உடல் ஒற்றுமை)'],
+  ['graha_maitri', 5, 'Graha Maitri (Mental Friendship)', 'கிரக மைத்ரி (மன நட்பு)'],
+  ['gana', 6, 'Gana (Temperament Alignment)', 'கணம் (குண ஒற்றுமை)'],
+  ['bhakoot', 7, 'Bhakoot (Family Fortune)', 'பகூட் (குடும்ப அதிர்ஷ்டம்)'],
+  ['nadi', 8, 'Nadi (Genetic / Health Affinity)', 'நாடி (மரபு & ஆரோக்கிய ஒற்றுமை)']
+];
+
+function renderMatchResult(match) {
+  const g = match.guna_milan;
+  $('#match-results-container').hidden = false;
+  $('#match-score-num').textContent = g.total_score;
+  $('#match-verdict-title').textContent = txt(match.verdict, match.verdict_ta);
+  $('#match-verdict-desc').textContent = txt(
+    `${match.passed_count} of 10 Poruthams passed. Guna score: ${g.total_score} of 36.`,
+    `10-ல் ${match.passed_count} பொருத்தங்கள் உள்ளன. குண மதிப்பெண்: 36-ல் ${g.total_score}.`);
+
+  const rajjuBadge = $('#match-rajju-badge');
+  rajjuBadge.textContent = match.rajju_agreement
+    ? txt('Rajju Match: Harmonious (Passed)', 'ரஜ்ஜு பொருத்தம் உண்டு')
+    : txt('Rajju Dosha: Inauspicious (Same Rajju)', 'ரஜ்ஜு தோஷம்: ஒரே ரஜ்ஜு');
+  rajjuBadge.className = `badge ${match.rajju_agreement ? 'status-pill success' : 'status-pill danger'}`;
+  $('#match-porutham-count').textContent = txt(`${match.passed_count} of 10 Passed`, `10-ல் ${match.passed_count} பொருத்தம்`);
+
+  // 10 Poruthams table: the other language's name sits underneath
+  const tbody = $('#poruthams-tbody');
+  tbody.replaceChildren();
+  match.poruthams.forEach(p => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><strong>${txt(p.name, p.tamil)}</strong> <small style="display:block;color:var(--gold-dim)">${txt(p.tamil, p.name)}</small></td>
+      <td>${esc(txt(p.description, p.description_ta))}</td>
+      <td><span class="status-pill ${p.passed ? 'success' : 'danger'}">${p.passed ? txt('Passed ✔', 'உண்டு ✔') : txt('Not Matched ✖', 'இல்லை ✖')}</span></td>
+      <td>${p.points} / ${p.max_points}</td>
+    `;
+    tbody.append(tr);
+  });
+
+  // 8 Gunas Grid
+  const gunasGrid = $('#gunas-grid');
+  gunasGrid.replaceChildren();
+  GUNA_LABELS.forEach(([key, max, en, ta]) => {
+    const card = document.createElement('div');
+    card.className = 'guna-card';
+    card.innerHTML = `
+      <small style="font-size:10px;color:var(--text-muted)">${txt(en, ta)}</small>
+      <div style="font-size:18px;font-weight:700;color:var(--gold);margin:4px 0">${g[key]} / ${max}</div>
+    `;
+    gunasGrid.append(card);
+  });
+  renderDoshaSamyam(match);
 }
 
 function renderDoshaSamyam(match) {
@@ -3041,7 +3560,7 @@ function saveCurrentProfile() {
     notify(msg);
   } catch (err) {
     console.error(err);
-    notify('Storage error: please export profiles backup.');
+    notify(txt('Storage error: please export profiles backup.', 'சேமிப்புப் பிழை: ஜாதகங்களை பேக்கப் எடுக்கவும்.'));
   }
 }
 
@@ -3186,23 +3705,23 @@ function renderProfilesList() {
         <div class="profile-avatar-initial">${initial}</div>
         <div class="profile-header-meta">
           <h3>${esc(p.name)}</h3>
-          <span class="pill-badge" style="font-size:10px;padding:2px 8px;">${esc(p.city || 'Custom Location')}</span>
+          <span class="pill-badge" style="font-size:10px;padding:2px 8px;">${esc(p.city || txt('Custom Location', 'தனிப்பயன் இருப்பிடம்'))}</span>
         </div>
       </div>
 
       <p class="muted" style="font-size:11.5px;margin:6px 0 8px;line-height:1.5;">
         📅 ${esc(p.date)} · ⏰ ${esc(p.time)}<br>
-        🌐 ${esc(p.timezone || 'Asia/Kolkata')} · ${esc(p.ayanamsa || 'Lahiri')}
+        🌐 ${esc(p.timezone || 'Asia/Kolkata')} · ${esc(ayanamsaLabel(p.ayanamsa || 'Lahiri'))}
       </p>
 
       <div class="profile-astro-badges">
-        <span class="mini-astro-tag lagna-tag" title="Ascendant">
+        <span class="mini-astro-tag lagna-tag" title="${txt('Ascendant', 'லக்னம்')}">
           <span>🌌</span> <strong>${isTa ? 'லக்னம்' : 'Asc'}:</strong> ${esc(lagnaStr)}
         </span>
-        <span class="mini-astro-tag moon-tag" title="Moon Sign / Rasi">
+        <span class="mini-astro-tag moon-tag" title="${txt('Moon Sign / Rasi', 'சந்திர ராசி')}">
           <span>🌙</span> <strong>${isTa ? 'ராசி' : 'Rasi'}:</strong> ${esc(moonStr)}
         </span>
-        <span class="mini-astro-tag star-tag" title="Birth Star / Nakshatra">
+        <span class="mini-astro-tag star-tag" title="${txt('Birth Star / Nakshatra', 'ஜென்ம நட்சத்திரம்')}">
           <span>⭐</span> <strong>${isTa ? 'நட்சத்திரம்' : 'Star'}:</strong> ${esc(starStr)} ${padaStr}
         </span>
       </div>
@@ -3211,13 +3730,13 @@ function renderProfilesList() {
         <button class="action-btn btn-full" data-load="${originalIdx}">
           <span>🪐</span> <span>${isTa ? 'ஜாதகம் திறக்க ↗' : 'Open Chart ↗'}</span>
         </button>
-        <button class="action-btn" data-match-boy="${originalIdx}" title="Use as Boy in Horoscope Compatibility">
+        <button class="action-btn" data-match-boy="${originalIdx}" title="${txt('Use as Boy in Horoscope Compatibility', 'திருமணப் பொருத்தத்தில் மணமகனாகப் பயன்படுத்து')}">
           <span>👦</span> <span>${isTa ? 'மணமகன்' : 'Boy'}</span>
         </button>
-        <button class="action-btn" data-match-girl="${originalIdx}" title="Use as Girl in Horoscope Compatibility">
+        <button class="action-btn" data-match-girl="${originalIdx}" title="${txt('Use as Girl in Horoscope Compatibility', 'திருமணப் பொருத்தத்தில் மணமகளாகப் பயன்படுத்து')}">
           <span>👧</span> <span>${isTa ? 'மணமகள்' : 'Girl'}</span>
         </button>
-        <button class="action-btn" data-delete="${originalIdx}" style="color:var(--ruby);grid-column:1/-1;" title="Delete this person's record">
+        <button class="action-btn" data-delete="${originalIdx}" style="color:var(--ruby);grid-column:1/-1;" title="${txt("Delete this person's record", 'இந்த நபரின் ஜாதகத்தை நீக்கு')}">
           <span>🗑️</span> <span>${isTa ? 'நீக்கு' : 'Delete'}</span>
         </button>
       </div>
@@ -3269,7 +3788,7 @@ function exportProfilesJSON() {
   a.download = `JoRoScope-Profiles-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
-  notify('Exported profiles backup');
+  notify(txt('Exported profiles backup', 'ஜாதகங்கள் பேக்கப் எடுக்கப்பட்டது'));
 }
 
 async function importProfilesJSON(e) {
@@ -3296,9 +3815,9 @@ async function importProfilesJSON(e) {
     populateQuickProfileDropdown();
     renderProfilesList();
     populateMatchDropdowns();
-    notify(`Imported ${addedCount} new profiles successfully.`);
+    notify(txt(`Imported ${addedCount} new profiles successfully.`, `${addedCount} புதிய ஜாதகங்கள் இறக்குமதி செய்யப்பட்டன.`));
   } catch (err) {
-    notify('Import error: ' + err.message);
+    notify(`${txt('Import error', 'இறக்குமதிப் பிழை')}: ${err.message}`);
   } finally {
     e.target.value = '';
   }

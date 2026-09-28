@@ -28,7 +28,7 @@
             <span class="icon-symbol">✦</span>
           </div>
           <div class="brand-text">
-            <span class="brand-sub">VEDIC HOROSCOPE</span>
+            <span class="brand-sub" data-i18n="brand_sub">VEDIC HOROSCOPE</span>
             <strong class="brand-title">JoRoScope</strong>
           </div>
         </a>
@@ -94,21 +94,21 @@
           <button class="mobile-menu-btn" id="mobile-menu-toggle" aria-label="Toggle Navigation">☰</button>
           <div class="header-breadcrumb">
             <span class="pill-badge" id="current-page-badge">Birth Chart & Vargas</span>
-            <span class="subtext-badge" id="engine-status">Swiss Ephemeris 2.10</span>
+            <span class="subtext-badge" id="engine-status" data-i18n="engine_status">Swiss Ephemeris 2.10</span>
           </div>
         </div>
 
         <div class="header-actions">
-          <button class="tool-btn" id="geo-btn" title="Use current GPS location" aria-label="Use Current Location">
+          <button class="tool-btn" id="geo-btn" title="Use current GPS location" data-i18n-title="title_geo" aria-label="Use Current Location">
             <span>📍</span> <span class="hide-mobile" data-i18n="my_location">My Location</span>
           </button>
-          <button class="tool-btn" id="lang-btn" title="Switch Language" aria-label="Switch Language">
+          <button class="tool-btn" id="lang-btn" title="Switch Language" data-i18n-title="title_lang" aria-label="Switch Language">
             <span>🌐</span> <strong id="lang-label">தமிழ்</strong>
           </button>
-          <button class="tool-btn" id="theme-btn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+          <button class="tool-btn" id="theme-btn" title="Toggle Light/Dark Theme" data-i18n-title="title_theme" aria-label="Toggle Theme">
             <span id="theme-icon">🌙</span> <span class="hide-mobile" id="theme-text">Theme</span>
           </button>
-          <button class="tool-btn" id="print-btn" title="Print or Save PDF" aria-label="Print Report">
+          <button class="tool-btn" id="print-btn" title="Print or Save PDF" data-i18n-title="title_print" aria-label="Print Report">
             <span>🖨️</span> <span class="hide-mobile" data-i18n="print_pdf">Print / PDF</span>
           </button>
         </div>
@@ -139,15 +139,15 @@
               <!-- Quick Profile Bar: Multi-person load/save/new -->
               <div class="form-quick-profile-bar">
                 <div class="quick-profile-select-wrap">
-                  <select id="quick-profile-select" aria-label="Select Saved Person" title="Choose a saved person to instantly load and calculate their horoscope">
-                    <option value="">👤 -- Quick Load Person --</option>
+                  <select id="quick-profile-select" aria-label="Select Saved Person" title="Choose a saved person to instantly load and calculate their horoscope" data-i18n-title="title_quick_load">
+                    <option value="" data-i18n="quick_load_person">👤 -- Quick Load Person --</option>
                   </select>
                 </div>
                 <div class="quick-profile-buttons">
-                  <button type="button" class="action-btn small-btn" id="form-save-profile-btn" title="Save this person's details to local vault">
+                  <button type="button" class="action-btn small-btn" id="form-save-profile-btn" title="Save this person's details to local vault" data-i18n-title="title_save_person">
                     <span>💾</span> <span data-i18n="save_person">Save</span>
                   </button>
-                  <button type="button" class="action-btn small-btn" id="form-new-profile-btn" title="Clear form for a new person">
+                  <button type="button" class="action-btn small-btn" id="form-new-profile-btn" title="Clear form for a new person" data-i18n-title="title_new_person">
                     <span>➕</span> <span data-i18n="new_person">New</span>
                   </button>
                 </div>
@@ -155,7 +155,7 @@
 
               <div class="form-group">
                 <label for="input-name" data-i18n="full_name">Full Name</label>
-                <input id="input-name" name="name" placeholder="Name for this chart" maxlength="100" value="Sri Raman" required>
+                <input id="input-name" name="name" placeholder="Name for this chart" data-i18n-placeholder="ph_name" maxlength="100" value="Sri Raman" required>
               </div>
 
               <div class="form-row">
@@ -172,9 +172,9 @@
               <div class="form-group relative">
                 <div class="label-row">
                   <label for="city-search" data-i18n="birthplace">Birthplace</label>
-                  <small class="city-count">5,481 cities</small>
+                  <small class="city-count" data-i18n="city_count">5,481 cities</small>
                 </div>
-                <input id="city-search" name="city" placeholder="Type city name (e.g. Chennai, Madurai, London)..." autocomplete="off" value="Chennai (Madras)">
+                <input id="city-search" name="city" placeholder="Type city name (e.g. Chennai, Madurai, London)..." data-i18n-placeholder="ph_city" autocomplete="off" value="Chennai (Madras)">
                 <div id="city-dropdown" class="city-dropdown" hidden></div>
                 <small id="city-helper" class="field-hint" data-i18n="city_helper">Search historical database or use coordinates below.</small>
               </div>
@@ -211,18 +211,18 @@
                 <div class="form-group">
                   <label for="input-ayanamsa" data-i18n="ayanamsa">Ayanamsa</label>
                   <select id="input-ayanamsa" name="ayanamsa">
-                    <option value="Lahiri" selected>Lahiri (Chitra Paksha - Standard)</option>
-                    <option value="Raman">B.V. Raman</option>
-                    <option value="Krishnamurti">KP (Krishnamurti)</option>
-                    <option value="Fagan-Bradley">Fagan-Bradley (Western Sidereal)</option>
+                    <option value="Lahiri" selected data-i18n="ayan_lahiri">Lahiri (Chitra Paksha - Standard)</option>
+                    <option value="Raman" data-i18n="ayan_raman">B.V. Raman</option>
+                    <option value="Krishnamurti" data-i18n="ayan_kp">KP (Krishnamurti)</option>
+                    <option value="Fagan-Bradley" data-i18n="ayan_fagan">Fagan-Bradley (Western Sidereal)</option>
                   </select>
                 </div>
                 <div class="form-group">
                   <label for="input-fold" data-i18n="dst_clock">Clock Fold (DST)</label>
                   <select id="input-fold" name="fold">
-                    <option value="">Automatic</option>
-                    <option value="0">1st occurrence (Standard)</option>
-                    <option value="1">2nd occurrence (Repeated)</option>
+                    <option value="" data-i18n="fold_auto">Automatic</option>
+                    <option value="0" data-i18n="fold_first">1st occurrence (Standard)</option>
+                    <option value="1" data-i18n="fold_second">2nd occurrence (Repeated)</option>
                   </select>
                 </div>
               </div>
@@ -247,11 +247,11 @@
               <h2 data-i18n="ready_to_reveal">Ready to Reveal the Sky</h2>
               <p data-i18n="enter_details_prompt">Enter birth details and click Generate to view South Indian, North Indian, and 14 Divisional Vargas with deep planetary analysis.</p>
               <div class="feature-pills">
-                <span>✦ 14 Divisional Vargas</span>
-                <span>✦ Parashara Ashtakavarga</span>
-                <span>✦ 3-Tier Dasa</span>
-                <span>✦ Yoga Engine</span>
-                <span>✦ 10 Poruthams</span>
+                <span data-i18n="pill_vargas">✦ 14 Divisional Vargas</span>
+                <span data-i18n="pill_ashtaka">✦ Parashara Ashtakavarga</span>
+                <span data-i18n="pill_dasa">✦ 3-Tier Dasa</span>
+                <span data-i18n="pill_yoga">✦ Yoga Engine</span>
+                <span data-i18n="pill_porutham">✦ 10 Poruthams</span>
               </div>
             </div>
 
@@ -269,10 +269,10 @@
                   </div>
                 </div>
                 <div class="banner-actions">
-                  <button class="action-btn" id="save-profile-btn" title="Save to local browser storage">
+                  <button class="action-btn" id="save-profile-btn" title="Save to local browser storage" data-i18n-title="title_save_local">
                     <span>💾</span> <span data-i18n="save_profile">Save Profile</span>
                   </button>
-                  <button class="action-btn" id="quick-print-btn" title="Export as PDF / Print">
+                  <button class="action-btn" id="quick-print-btn" title="Export as PDF / Print" data-i18n-title="title_export_pdf">
                     <span>🖨️</span> <span data-i18n="export_pdf">Export PDF</span>
                   </button>
                 </div>
@@ -358,12 +358,12 @@
                 </div>
 
                 <div class="chart-footnote">
-                  <span>💡 <strong data-i18n="click_house">Click any house</strong> to inspect lord, occupants, aspects received, and house significations.</span>
+                  <span>💡 <strong data-i18n="click_house">Click any house</strong> <span data-i18n="click_house_rest">to inspect lord, occupants, aspects received, and house significations.</span></span>
                   <span class="legend-items">
-                    <span class="legend-badge benefic">Benefic</span>
-                    <span class="legend-badge malefic">Malefic</span>
+                    <span class="legend-badge benefic" data-i18n="legend_benefic">Benefic</span>
+                    <span class="legend-badge malefic" data-i18n="legend_malefic">Malefic</span>
                     <span class="legend-badge retro" id="legend-retro">Rx Retro</span>
-                    <span class="legend-badge combust">🔥 Combust</span>
+                    <span class="legend-badge combust" data-i18n="legend_combust">🔥 Combust</span>
                     <span class="legend-badge lagna-mark" id="legend-lagna">╱ Lagna</span>
                   </span>
                 </div>
@@ -478,9 +478,9 @@
           <div class="card-header">
             <div>
               <h2 data-i18n="sav_title">Sarvashtakavarga (SAV) Points</h2>
-              <p class="muted">Auspicious houses (&gt;28 points) cultivate strength and ease; houses under 28 require mindful attention.</p>
+              <p class="muted" data-i18n="sav_note">Auspicious houses (&gt;28 points) cultivate strength and ease; houses under 28 require mindful attention.</p>
             </div>
-            <div class="sav-badge">Total: 337 Bindus</div>
+            <div class="sav-badge" data-i18n="sav_total">Total: 337 Bindus</div>
           </div>
           <div class="sav-signs-grid" id="sav-signs-grid"></div>
         </div>
@@ -494,7 +494,7 @@
             <table class="luxury-table" id="bav-table">
               <thead>
                 <tr id="bav-header">
-                  <th>Planet</th>
+                  <th data-i18n="th_planet">Planet</th>
                 </tr>
               </thead>
               <tbody id="bav-tbody"></tbody>
@@ -537,7 +537,7 @@
 
           <div class="cosmic-card dosha-card" id="kaalsarp-card">
             <div class="card-header">
-              <h3>Kaal Sarp Dosha</h3>
+              <h3 data-i18n="kaal_sarp_title">Kaal Sarp Dosha</h3>
               <span class="status-pill" id="kaalsarp-status">Analyzing...</span>
             </div>
             <p id="kaalsarp-desc" class="muted"></p>
@@ -617,7 +617,7 @@
               </div>
               <div class="progress-labels">
                 <span id="spotlight-progress-text">0% Complete</span>
-                <span id="spotlight-progress-sub">Calculated via Swiss Ephemeris Vimshottari Balance</span>
+                <span id="spotlight-progress-sub" data-i18n="spotlight_calc_note">Calculated via Swiss Ephemeris Vimshottari Balance</span>
               </div>
             </div>
 
@@ -665,22 +665,22 @@
               <div class="timeline-select-group">
                 <label for="timeline-planet-select" data-i18n="filter_by_lord">Maha Dasa Lord:</label>
                 <select id="timeline-planet-select" aria-label="Filter by Maha Dasa Lord">
-                  <option value="all">🪐 All 9 Maha Dasas</option>
-                  <option value="Sun">☀️ Sun (சூரியன்)</option>
-                  <option value="Moon">🌙 Moon (சந்திரன்)</option>
-                  <option value="Mars">♂️ Mars (செவ்வாய்)</option>
-                  <option value="Rahu">☊ Rahu (ராகு)</option>
-                  <option value="Jupiter">♃ Jupiter (குரு)</option>
-                  <option value="Saturn">♄ Saturn (சனி)</option>
-                  <option value="Mercury">☿ Mercury (புதன்)</option>
-                  <option value="Ketu">☋ Ketu (கேது)</option>
-                  <option value="Venus">♀️ Venus (சுக்கிரன்)</option>
+                  <option value="all" data-i18n="tl_all">🪐 All 9 Maha Dasas</option>
+                  <option value="Sun" data-i18n="tl_sun">☀️ Sun (சூரியன்)</option>
+                  <option value="Moon" data-i18n="tl_moon">🌙 Moon (சந்திரன்)</option>
+                  <option value="Mars" data-i18n="tl_mars">♂️ Mars (செவ்வாய்)</option>
+                  <option value="Rahu" data-i18n="tl_rahu">☊ Rahu (ராகு)</option>
+                  <option value="Jupiter" data-i18n="tl_jupiter">♃ Jupiter (குரு)</option>
+                  <option value="Saturn" data-i18n="tl_saturn">♄ Saturn (சனி)</option>
+                  <option value="Mercury" data-i18n="tl_mercury">☿ Mercury (புதன்)</option>
+                  <option value="Ketu" data-i18n="tl_ketu">☋ Ketu (கேது)</option>
+                  <option value="Venus" data-i18n="tl_venus">♀️ Venus (சுக்கிரன்)</option>
                 </select>
               </div>
 
               <div class="timeline-jump-group">
-                <input type="number" id="timeline-jump-year" placeholder="Jump Year (e.g. 2026)" min="1900" max="2120" aria-label="Jump to specific calendar year">
-                <button type="button" class="action-btn small-btn" id="timeline-jump-btn" title="Jump to year">
+                <input type="number" id="timeline-jump-year" placeholder="Jump Year (e.g. 2026)" data-i18n-placeholder="ph_jump_year" min="1900" max="2120" aria-label="Jump to specific calendar year">
+                <button type="button" class="action-btn small-btn" id="timeline-jump-btn" title="Jump to year" data-i18n-title="title_jump_year">
                   <span>🔍</span> <span data-i18n="jump">Go</span>
                 </button>
               </div>
@@ -696,7 +696,7 @@
                 <h2 data-i18n="annual_projections_title">10-Year Rolling Annual Projections</h2>
                 <p class="card-subtitle" data-i18n="annual_projections_sub">Milestones and astrological favorability score for current era</p>
               </div>
-              <span class="pill-badge">Year-by-Year Forecast</span>
+              <span class="pill-badge" data-i18n="year_by_year">Year-by-Year Forecast</span>
             </div>
             <div class="annual-grid" id="annual-projections-grid"></div>
           </div>
@@ -716,7 +716,7 @@
               <h2 id="hero-dasa-names">—</h2>
               <p id="hero-dasa-dates" class="muted">—</p>
             </div>
-            <button type="button" class="action-btn" id="jump-active-dasa"><span>⚡</span> Jump to Active Dasa</button>
+            <button type="button" class="action-btn" id="jump-active-dasa"><span>⚡</span> <span data-i18n="jump_active_dasa">Jump to Active Dasa</span></button>
           </div>
 
           <!-- 3-Tier Dasa Accordion -->
@@ -738,23 +738,23 @@
 
         <!-- Prediction Chapters Navigation Strip -->
         <div class="pred-tabs-strip">
-          <button class="pred-tab active" data-ptab="natal" id="ptab-natal">🌟 Natal & Personality</button>
-          <button class="pred-tab" data-ptab="bhavas" id="ptab-bhavas">🏛️ 12 Bhavas (Houses)</button>
-          <button class="pred-tab" data-ptab="planets" id="ptab-planets">🪐 Planets in Houses</button>
-          <button class="pred-tab" data-ptab="dasa" id="ptab-dasa">⏳ Dasa-Bhukti Forecast</button>
-          <button class="pred-tab" data-ptab="transits" id="ptab-transits">🌌 Transits (Gochara)</button>
-          <button class="pred-tab" data-ptab="remedies" id="ptab-remedies">💎 Lucky Gems & Remedies</button>
-          <button class="pred-tab" data-ptab="jaimini" id="ptab-jaimini">🪷 Jaimini Karakas</button>
-          <button class="pred-tab" data-ptab="timing" id="ptab-timing">⏱️ Double Transit (BVB)</button>
-          <button class="pred-tab" data-ptab="career" id="ptab-career">💼 D-10 Career & Vocation</button>
-          <button class="pred-tab" data-ptab="ayur" id="ptab-ayur">🌿 Ayur-Jyotish Wellness</button>
-          <button class="pred-tab" data-ptab="kakshya" id="ptab-kakshya">📐 Ashtakavarga Kakshyas</button>
-          <button class="pred-tab" data-ptab="shadbala" id="ptab-shadbala">⚖️ Shadbala Strengths</button>
-          <button class="pred-tab" data-ptab="kp" id="ptab-kp">🔍 KP System Sub-Lords</button>
-          <button class="pred-tab" data-ptab="bnn" id="ptab-bnn">📜 Bhrigu Nandi Nadi</button>
-          <button class="pred-tab" data-ptab="avasthas" id="ptab-avasthas">✨ Planetary Avasthas</button>
-          <button class="pred-tab" data-ptab="pada" id="ptab-pada">🎯 Nakshatra Pada Reading</button>
-          <button class="pred-tab" data-ptab="sahams" id="ptab-sahams">🔮 Sensitive Sahams</button>
+          <button class="pred-tab active" data-ptab="natal" id="ptab-natal" data-i18n="pt_natal">🌟 Natal & Personality</button>
+          <button class="pred-tab" data-ptab="bhavas" id="ptab-bhavas" data-i18n="pt_bhavas">🏛️ 12 Bhavas (Houses)</button>
+          <button class="pred-tab" data-ptab="planets" id="ptab-planets" data-i18n="pt_planets">🪐 Planets in Houses</button>
+          <button class="pred-tab" data-ptab="dasa" id="ptab-dasa" data-i18n="pt_dasa">⏳ Dasa-Bhukti Forecast</button>
+          <button class="pred-tab" data-ptab="transits" id="ptab-transits" data-i18n="pt_transits">🌌 Transits (Gochara)</button>
+          <button class="pred-tab" data-ptab="remedies" id="ptab-remedies" data-i18n="pt_remedies">💎 Lucky Gems & Remedies</button>
+          <button class="pred-tab" data-ptab="jaimini" id="ptab-jaimini" data-i18n="pt_jaimini">🪷 Jaimini Karakas</button>
+          <button class="pred-tab" data-ptab="timing" id="ptab-timing" data-i18n="pt_timing">⏱️ Double Transit (BVB)</button>
+          <button class="pred-tab" data-ptab="career" id="ptab-career" data-i18n="pt_career">💼 D-10 Career & Vocation</button>
+          <button class="pred-tab" data-ptab="ayur" id="ptab-ayur" data-i18n="pt_ayur">🌿 Ayur-Jyotish Wellness</button>
+          <button class="pred-tab" data-ptab="kakshya" id="ptab-kakshya" data-i18n="pt_kakshya">📐 Ashtakavarga Kakshyas</button>
+          <button class="pred-tab" data-ptab="shadbala" id="ptab-shadbala" data-i18n="pt_shadbala">⚖️ Shadbala Strengths</button>
+          <button class="pred-tab" data-ptab="kp" id="ptab-kp" data-i18n="pt_kp">🔍 KP System Sub-Lords</button>
+          <button class="pred-tab" data-ptab="bnn" id="ptab-bnn" data-i18n="pt_bnn">📜 Bhrigu Nandi Nadi</button>
+          <button class="pred-tab" data-ptab="avasthas" id="ptab-avasthas" data-i18n="pt_avasthas">✨ Planetary Avasthas</button>
+          <button class="pred-tab" data-ptab="pada" id="ptab-pada" data-i18n="pt_pada">🎯 Nakshatra Pada Reading</button>
+          <button class="pred-tab" data-ptab="sahams" id="ptab-sahams" data-i18n="pt_sahams">🔮 Sensitive Sahams</button>
         </div>
 
         <!-- Chapter 1: Natal Elements & Personality -->
@@ -810,10 +810,10 @@
         <div class="pred-panel" id="ppanel-bhavas" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>12 Bhavas Comprehensive Life Path</h2>
-              <span class="pill-badge">All 12 Houses</span>
+              <h2 data-i18n="h_bhavas">12 Bhavas Comprehensive Life Path</h2>
+              <span class="pill-badge" data-i18n="pill_all_houses">All 12 Houses</span>
             </div>
-            <p class="muted">Detailed astrological life readings for each house based on house lord placement, occupants, aspects, and Sarvashtakavarga strength.</p>
+            <p class="muted" data-i18n="p_bhavas">Detailed astrological life readings for each house based on house lord placement, occupants, aspects, and Sarvashtakavarga strength.</p>
           </div>
           <div class="bhavas-cards-container" id="bhavas-cards-container"></div>
         </div>
@@ -822,10 +822,10 @@
         <div class="pred-panel" id="ppanel-planets" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Planetary Positions & Influence</h2>
-              <span class="pill-badge">9 Grahas</span>
+              <h2 data-i18n="h_planet_positions">Planetary Positions & Influence</h2>
+              <span class="pill-badge" data-i18n="pill_9_grahas">9 Grahas</span>
             </div>
-            <p class="muted">Specific effects of Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu in their respective natal houses.</p>
+            <p class="muted" data-i18n="p_planets">Specific effects of Sun, Moon, Mars, Mercury, Jupiter, Venus, Saturn, Rahu, and Ketu in their respective natal houses.</p>
           </div>
           <div class="planets-cards-container" id="planets-cards-container"></div>
         </div>
@@ -834,7 +834,7 @@
         <div class="pred-panel" id="ppanel-dasa" hidden>
           <div class="cosmic-card active-dasa-hero" style="margin-bottom:20px">
             <div class="dasa-hero-content">
-              <small>ACTIVE DASA-BHUKTI FORECAST</small>
+              <small data-i18n="active_dasa_forecast">ACTIVE DASA-BHUKTI FORECAST</small>
               <h2 id="pred-dasa-active-title">—</h2>
               <p id="pred-dasa-active-desc" class="reading-body" style="margin-top:10px"></p>
             </div>
@@ -844,8 +844,8 @@
           </div>
           <div class="cosmic-card">
             <div class="card-header">
-              <h2>9 Maha Dasas Life Cycles</h2>
-              <span class="pill-badge">120 Years</span>
+              <h2 data-i18n="h_maha_dasas">9 Maha Dasas Life Cycles</h2>
+              <span class="pill-badge" data-i18n="pill_120_years">120 Years</span>
             </div>
             <div class="maha-dasas-list" id="maha-dasas-list"></div>
           </div>
@@ -855,10 +855,10 @@
         <div class="pred-panel" id="ppanel-transits" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Planetary Transits (Gochara)</h2>
-              <span class="pill-badge">Current Astrological Weather</span>
+              <h2 data-i18n="h_transits">Planetary Transits (Gochara)</h2>
+              <span class="pill-badge" data-i18n="pill_current_weather">Current Astrological Weather</span>
             </div>
-            <p class="muted">Transit analysis calculated from your Janma Rasi (Moon Sign).</p>
+            <p class="muted" data-i18n="p_transits">Transit analysis calculated from your Janma Rasi (Moon Sign).</p>
           </div>
           <div class="doshas-row">
             <div class="cosmic-card dosha-card" id="saturn-transit-card">
@@ -938,10 +938,10 @@
         <div class="pred-panel" id="ppanel-remedies" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Auspicious Factors, Gemstones & Remedies</h2>
-              <span class="pill-badge">Astrological Guidance</span>
+              <h2 data-i18n="h_remedies">Auspicious Factors, Gemstones & Remedies</h2>
+              <span class="pill-badge" data-i18n="pill_guidance">Astrological Guidance</span>
             </div>
-            <p class="muted">Prescribed gemstones, auspicious numbers, days, colors, and protective deities calculated for your Lagna.</p>
+            <p class="muted" data-i18n="p_remedies">Prescribed gemstones, auspicious numbers, days, colors, and protective deities calculated for your Lagna.</p>
           </div>
 
           <div class="readings-grid">
@@ -949,16 +949,16 @@
               <div class="reading-header">
                 <span class="reading-icon">💎</span>
                 <div>
-                  <h3>Recommended Gemstones</h3>
-                  <small class="muted">Life & Fortune Stones</small>
+                  <h3 data-i18n="h_gems">Recommended Gemstones</h3>
+                  <small class="muted" data-i18n="sub_gems">Life & Fortune Stones</small>
                 </div>
               </div>
               <div class="gem-details-list">
-                <p><strong>Primary Life Stone (Lagna Lord):</strong> <span id="gem-primary">—</span></p>
-                <p><strong>Fortune Stone (9th Lord):</strong> <span id="gem-fortune">—</span></p>
-                <p><strong>Recommended Metal:</strong> <span id="gem-metal">—</span></p>
-                <p><strong>Finger to Wear:</strong> <span id="gem-finger">—</span></p>
-                <p><strong>Auspicious Day:</strong> <span id="gem-day">—</span></p>
+                <p><strong data-i18n="gem_primary_label">Primary Life Stone (Lagna Lord):</strong> <span id="gem-primary">—</span></p>
+                <p><strong data-i18n="gem_fortune_label">Fortune Stone (9th Lord):</strong> <span id="gem-fortune">—</span></p>
+                <p><strong data-i18n="gem_metal_label">Recommended Metal:</strong> <span id="gem-metal">—</span></p>
+                <p><strong data-i18n="gem_finger_label">Finger to Wear:</strong> <span id="gem-finger">—</span></p>
+                <p><strong data-i18n="gem_day_label">Auspicious Day:</strong> <span id="gem-day">—</span></p>
               </div>
             </div>
 
@@ -966,15 +966,15 @@
               <div class="reading-header">
                 <span class="reading-icon">✨</span>
                 <div>
-                  <h3>Lucky Numbers, Days & Colors</h3>
-                  <small class="muted">Favorable Cosmic Alignments</small>
+                  <h3 data-i18n="h_lucky">Lucky Numbers, Days & Colors</h3>
+                  <small class="muted" data-i18n="sub_lucky">Favorable Cosmic Alignments</small>
                 </div>
               </div>
               <div class="gem-details-list">
-                <p><strong>Lucky Numbers:</strong> <span id="luck-numbers">—</span></p>
-                <p><strong>Lucky Days:</strong> <span id="luck-days">—</span></p>
-                <p><strong>Favorable Colors:</strong> <span id="luck-colors">—</span></p>
-                <p><strong>Auspicious Deities:</strong> <span id="luck-deities">—</span></p>
+                <p><strong data-i18n="luck_numbers_label">Lucky Numbers:</strong> <span id="luck-numbers">—</span></p>
+                <p><strong data-i18n="luck_days_label">Lucky Days:</strong> <span id="luck-days">—</span></p>
+                <p><strong data-i18n="luck_colors_label">Favorable Colors:</strong> <span id="luck-colors">—</span></p>
+                <p><strong data-i18n="luck_deities_label">Auspicious Deities:</strong> <span id="luck-deities">—</span></p>
               </div>
             </div>
           </div>
@@ -984,16 +984,16 @@
         <div class="pred-panel" id="ppanel-jaimini" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Maharshi Jaimini’s 7 Chara Karakas & Karakamsha</h2>
-              <span class="pill-badge">Upadesha Sutras</span>
+              <h2 data-i18n="h_jaimini">Maharshi Jaimini’s 7 Chara Karakas & Karakamsha</h2>
+              <span class="pill-badge" data-i18n="pill_upadesha">Upadesha Sutras</span>
             </div>
-            <p class="muted">Degree-based variable significators revealing the soul's karmic evolution (Atmakaraka), career path (Amatyakaraka), mentors, mother, progeny, challenges, and life partner (Darakaraka).</p>
+            <p class="muted" data-i18n="p_jaimini">Degree-based variable significators revealing the soul's karmic evolution (Atmakaraka), career path (Amatyakaraka), mentors, mother, progeny, challenges, and life partner (Darakaraka).</p>
           </div>
 
           <!-- Karakamsha Highlight Card -->
           <div class="cosmic-card active-dasa-hero" style="margin-bottom:20px">
             <div class="dasa-hero-content">
-              <small>SOUL'S SUPREME PURPOSE (KARAKAMSHA IN NAVAMSA D-9)</small>
+              <small data-i18n="soul_purpose">SOUL'S SUPREME PURPOSE (KARAKAMSHA IN NAVAMSA D-9)</small>
               <h2 id="jaimini-karakamsha-title">—</h2>
               <p id="jaimini-karakamsha-desc" class="reading-body" style="margin-top:10px"></p>
             </div>
@@ -1006,20 +1006,20 @@
         <div class="pred-panel" id="ppanel-timing" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>K.N. Rao & BVB Double Transit (Dwi-Gochara) Timing Engine</h2>
+              <h2 data-i18n="h_double_transit">K.N. Rao & BVB Double Transit (Dwi-Gochara) Timing Engine</h2>
               <span class="pill-badge" id="timing-calc-date">Live Swiss Ephemeris</span>
             </div>
-            <p class="muted">Empirically validated law: Major milestones eventuate only when Saturn (Discipline & Karma) and Jupiter (Grace & Expansion) simultaneously cast their aspects on designated natal houses.</p>
+            <p class="muted" data-i18n="p_double_transit">Empirically validated law: Major milestones eventuate only when Saturn (Discipline & Karma) and Jupiter (Grace & Expansion) simultaneously cast their aspects on designated natal houses.</p>
           </div>
 
           <!-- Live Planetary Transits Status Bar -->
           <div class="doshas-row" style="margin-bottom:20px">
             <div class="cosmic-card" style="padding:16px">
-              <small class="muted">TRANSIT SATURN TODAY</small>
+              <small class="muted" data-i18n="transit_saturn_today">TRANSIT SATURN TODAY</small>
               <h3 id="timing-saturn-pos" style="color:var(--gold); margin-top:4px">—</h3>
             </div>
             <div class="cosmic-card" style="padding:16px">
-              <small class="muted">TRANSIT JUPITER TODAY</small>
+              <small class="muted" data-i18n="transit_jupiter_today">TRANSIT JUPITER TODAY</small>
               <h3 id="timing-jupiter-pos" style="color:var(--gold); margin-top:4px">—</h3>
             </div>
           </div>
@@ -1031,10 +1031,10 @@
         <div class="pred-panel" id="ppanel-career" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>D-10 Dasamsa & Vocation Aptitude Analysis</h2>
-              <span class="pill-badge">BVB Tested Framework</span>
+              <h2 data-i18n="h_career">D-10 Dasamsa & Vocation Aptitude Analysis</h2>
+              <span class="pill-badge" data-i18n="pill_bvb">BVB Tested Framework</span>
             </div>
-            <p class="muted">Cross-analysis of Rasi (D-1), Dasamsa (D-10), and Amatyakaraka (AmK) calculating objective aptitude scores across 5 proven career archetypes.</p>
+            <p class="muted" data-i18n="p_career">Cross-analysis of Rasi (D-1), Dasamsa (D-10), and Amatyakaraka (AmK) calculating objective aptitude scores across 5 proven career archetypes.</p>
           </div>
 
           <!-- Top Calling Card -->
@@ -1053,31 +1053,31 @@
         <div class="pred-panel" id="ppanel-ayur" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Ayur-Jyotish & Tridosha Wellness Framework</h2>
-              <span class="pill-badge">Charaka & Prashna Marga</span>
+              <h2 data-i18n="h_ayur">Ayur-Jyotish & Tridosha Wellness Framework</h2>
+              <span class="pill-badge" data-i18n="pill_charaka">Charaka & Prashna Marga</span>
             </div>
-            <p class="muted">Classical Ayurvedic constitutional analysis evaluating Vata, Pitta, and Kapha balances, metabolic tendencies, and organ system resilience.</p>
+            <p class="muted" data-i18n="p_ayur">Classical Ayurvedic constitutional analysis evaluating Vata, Pitta, and Kapha balances, metabolic tendencies, and organ system resilience.</p>
           </div>
 
           <!-- Tridosha Balance Bars -->
           <div class="cosmic-card" style="margin-bottom:20px">
             <div class="card-header">
               <div>
-                <small class="muted">NATAL PRAKRITI CONSTITUTION</small>
+                <small class="muted" data-i18n="prakriti">NATAL PRAKRITI CONSTITUTION</small>
                 <h3 id="ayur-prakriti-title" style="color:var(--gold); margin-top:4px">—</h3>
               </div>
             </div>
             <div class="dosha-bars-strip" style="margin-top:14px">
               <div class="dosha-metric">
-                <div class="dosha-metric-header"><span>Vata (வாதம் - Air/Ether)</span><strong id="vata-pct">0%</strong></div>
+                <div class="dosha-metric-header"><span data-i18n="vata_label">Vata (வாதம் - Air/Ether)</span><strong id="vata-pct">0%</strong></div>
                 <div class="dosha-track"><div class="dosha-fill vata-fill" id="vata-fill" style="width:0%"></div></div>
               </div>
               <div class="dosha-metric">
-                <div class="dosha-metric-header"><span>Pitta (பித்தம் - Fire)</span><strong id="pitta-pct">0%</strong></div>
+                <div class="dosha-metric-header"><span data-i18n="pitta_label">Pitta (பித்தம் - Fire)</span><strong id="pitta-pct">0%</strong></div>
                 <div class="dosha-track"><div class="dosha-fill pitta-fill" id="pitta-fill" style="width:0%"></div></div>
               </div>
               <div class="dosha-metric">
-                <div class="dosha-metric-header"><span>Kapha (கபம் - Water/Earth)</span><strong id="kapha-pct">0%</strong></div>
+                <div class="dosha-metric-header"><span data-i18n="kapha_label">Kapha (கபம் - Water/Earth)</span><strong id="kapha-pct">0%</strong></div>
                 <div class="dosha-track"><div class="dosha-fill kapha-fill" id="kapha-fill" style="width:0%"></div></div>
               </div>
             </div>
@@ -1088,8 +1088,8 @@
               <div class="reading-header">
                 <span class="reading-icon">🛡️</span>
                 <div>
-                  <h3>Anatomical Vulnerabilities</h3>
-                  <small class="muted" id="ayur-6th-sub">6th House (Roga Bhava) & 6th Lord</small>
+                  <h3 data-i18n="h_vulnerabilities">Anatomical Vulnerabilities</h3>
+                  <small class="muted" id="ayur-6th-sub" data-i18n="sub_6th">6th House (Roga Bhava) & 6th Lord</small>
                 </div>
               </div>
               <p id="ayur-vulnerabilities-text" class="reading-body"></p>
@@ -1099,8 +1099,8 @@
               <div class="reading-header">
                 <span class="reading-icon">🌿</span>
                 <div>
-                  <h3>Ayurvedic Preventative Lifestyle</h3>
-                  <small class="muted">Dietary & Yogic Recommendations</small>
+                  <h3 data-i18n="h_lifestyle">Ayurvedic Preventative Lifestyle</h3>
+                  <small class="muted" data-i18n="sub_lifestyle">Dietary & Yogic Recommendations</small>
                 </div>
               </div>
               <p id="ayur-lifestyle-text" class="reading-body"></p>
@@ -1112,23 +1112,23 @@
         <div class="pred-panel" id="ppanel-kakshya" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Ashtakavarga Kakshya Micro-Transit System</h2>
-              <span class="pill-badge">Dr. B.V. Raman & C.S. Patel</span>
+              <h2 data-i18n="h_kakshya">Ashtakavarga Kakshya Micro-Transit System</h2>
+              <span class="pill-badge" data-i18n="pill_raman_patel">Dr. B.V. Raman & C.S. Patel</span>
             </div>
-            <p class="muted">Precision timing dividing each zodiac sign into 8 Kakshyas (3°45' each). A transit planet yields fruitful results (Phala-Prada) only when passing through Kakshyas where it contributed a bindu in its BAV.</p>
+            <p class="muted" data-i18n="p_kakshya">Precision timing dividing each zodiac sign into 8 Kakshyas (3°45' each). A transit planet yields fruitful results (Phala-Prada) only when passing through Kakshyas where it contributed a bindu in its BAV.</p>
           </div>
 
           <div class="doshas-row">
             <div class="cosmic-card">
               <div class="card-header">
-                <h3>Saturn Transit Kakshyas</h3>
+                <h3 data-i18n="h_sat_kakshya">Saturn Transit Kakshyas</h3>
                 <span class="status-pill" id="kakshya-sat-badge">Analyzing...</span>
               </div>
               <p id="kakshya-sat-summary" class="muted" style="margin-bottom:12px"></p>
               <div class="table-responsive">
                 <table class="luxury-table" style="font-size:11.5px">
                   <thead>
-                    <tr><th>#</th><th>Degree Range</th><th>Lord</th><th>BAV Bindu</th><th>Result</th></tr>
+                    <tr><th>#</th><th data-i18n="th_degree_range">Degree Range</th><th data-i18n="th_lord">Lord</th><th data-i18n="th_bav_bindu">BAV Bindu</th><th data-i18n="th_result">Result</th></tr>
                   </thead>
                   <tbody id="kakshya-sat-tbody"></tbody>
                 </table>
@@ -1137,14 +1137,14 @@
 
             <div class="cosmic-card">
               <div class="card-header">
-                <h3>Jupiter Transit Kakshyas</h3>
+                <h3 data-i18n="h_jup_kakshya">Jupiter Transit Kakshyas</h3>
                 <span class="status-pill" id="kakshya-jup-badge">Analyzing...</span>
               </div>
               <p id="kakshya-jup-summary" class="muted" style="margin-bottom:12px"></p>
               <div class="table-responsive">
                 <table class="luxury-table" style="font-size:11.5px">
                   <thead>
-                    <tr><th>#</th><th>Degree Range</th><th>Lord</th><th>BAV Bindu</th><th>Result</th></tr>
+                    <tr><th>#</th><th data-i18n="th_degree_range">Degree Range</th><th data-i18n="th_lord">Lord</th><th data-i18n="th_bav_bindu">BAV Bindu</th><th data-i18n="th_result">Result</th></tr>
                   </thead>
                   <tbody id="kakshya-jup-tbody"></tbody>
                 </table>
@@ -1157,18 +1157,18 @@
         <div class="pred-panel" id="ppanel-shadbala" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Shadbala Six-Fold Planetary Potency Engine</h2>
-              <span class="pill-badge">Classical Vedic Mathematical Strength</span>
+              <h2 data-i18n="h_shadbala">Shadbala Six-Fold Planetary Potency Engine</h2>
+              <span class="pill-badge" data-i18n="pill_shadbala">Classical Vedic Mathematical Strength</span>
             </div>
             <p id="shadbala-master-summary" class="muted" style="margin-bottom:16px"></p>
             <div class="timing-meta-row">
               <div class="timing-meta-item">
-                <small>DOMINANT GUIDING PLANET (ATMA BALA)</small>
+                <small data-i18n="dominant_planet">DOMINANT GUIDING PLANET (ATMA BALA)</small>
                 <strong id="shadbala-dom-planet" style="color:var(--gold)">—</strong>
                 <span class="subtext" id="shadbala-dom-sub">—</span>
               </div>
               <div class="timing-meta-item">
-                <small>KARMIC VULNERABILITY (GROWTH FOCUS)</small>
+                <small data-i18n="karmic_vulnerability">KARMIC VULNERABILITY (GROWTH FOCUS)</small>
                 <strong id="shadbala-vuln-planet" style="color:#e63946">—</strong>
                 <span class="subtext" id="shadbala-vuln-sub">—</span>
               </div>
@@ -1181,26 +1181,26 @@
         <div class="pred-panel" id="ppanel-kp" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Krishnamurti Paddhati (KP System) Sub-Lord Analysis</h2>
-              <span class="pill-badge">Prof. K.S. Krishnamurti 249 Divisions</span>
+              <h2 data-i18n="h_kp">Krishnamurti Paddhati (KP System) Sub-Lord Analysis</h2>
+              <span class="pill-badge" data-i18n="pill_kp">Prof. K.S. Krishnamurti 249 Divisions</span>
             </div>
-            <p class="muted">The KP System subdivides each of the 27 nakshatras into 9 unequal sub-divisions based on Vimshottari Dasa proportions, pin-pointing life results with extraordinary mathematical precision.</p>
+            <p class="muted" data-i18n="p_kp">The KP System subdivides each of the 27 nakshatras into 9 unequal sub-divisions based on Vimshottari Dasa proportions, pin-pointing life results with extraordinary mathematical precision.</p>
           </div>
 
           <div class="card-header" style="margin: 16px 0 10px;">
-            <h3 style="font-family:var(--font-serif); color:var(--gold); font-size:16px;">Core Cuspal Sub-Lord Predictions</h3>
+            <h3 style="font-family:var(--font-serif); color:var(--gold); font-size:16px;" data-i18n="h_kp_cuspal">Core Cuspal Sub-Lord Predictions</h3>
           </div>
           <div class="readings-grid" id="kp-cusp-preds-grid"></div>
 
           <div class="doshas-row" style="margin-top:20px;">
             <div class="cosmic-card">
               <div class="card-header">
-                <h3>12 KP Placidus Cusps (Bhava Sandhis)</h3>
+                <h3 data-i18n="h_kp_cusps">12 KP Placidus Cusps (Bhava Sandhis)</h3>
               </div>
               <div class="table-responsive">
                 <table class="luxury-table" style="font-size:11px">
                   <thead>
-                    <tr><th>Cusp</th><th>Degree</th><th>Sign</th><th>Sign Lord</th><th>Star Lord</th><th>Sub-Lord</th></tr>
+                    <tr><th data-i18n="th_cusp">Cusp</th><th data-i18n="th_degree">Degree</th><th data-i18n="th_sign">Sign</th><th data-i18n="th_sign_lord">Sign Lord</th><th data-i18n="th_star_lord">Star Lord</th><th data-i18n="th_sub_lord">Sub-Lord</th></tr>
                   </thead>
                   <tbody id="kp-cusps-tbody"></tbody>
                 </table>
@@ -1209,12 +1209,12 @@
 
             <div class="cosmic-card">
               <div class="card-header">
-                <h3>9 Planets KP Coordinates</h3>
+                <h3 data-i18n="h_kp_planets">9 Planets KP Coordinates</h3>
               </div>
               <div class="table-responsive">
                 <table class="luxury-table" style="font-size:11px">
                   <thead>
-                    <tr><th>Planet</th><th>Degree</th><th>Sign</th><th>Sign Lord</th><th>Star Lord</th><th>Sub-Lord</th></tr>
+                    <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_degree">Degree</th><th data-i18n="th_sign">Sign</th><th data-i18n="th_sign_lord">Sign Lord</th><th data-i18n="th_star_lord">Star Lord</th><th data-i18n="th_sub_lord">Sub-Lord</th></tr>
                   </thead>
                   <tbody id="kp-planets-tbody"></tbody>
                 </table>
@@ -1227,15 +1227,15 @@
         <div class="pred-panel" id="ppanel-bnn" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Bhrigu Nandi Nadi (BNN) Karmic Planetary Sutras</h2>
-              <span class="pill-badge">Classical Sage Bhrigu Tradition</span>
+              <h2 data-i18n="h_bnn">Bhrigu Nandi Nadi (BNN) Karmic Planetary Sutras</h2>
+              <span class="pill-badge" data-i18n="pill_bnn">Classical Sage Bhrigu Tradition</span>
             </div>
             <p id="bnn-summary-text" class="muted" style="margin-bottom:16px"></p>
             <div class="timing-meta-row" id="bnn-trines-row"></div>
           </div>
 
           <div class="card-header" style="margin: 16px 0 10px;">
-            <h3 style="font-family:var(--font-serif); color:var(--gold); font-size:16px;">Detected Nadi Karmic Combinations & Life Lessons</h3>
+            <h3 style="font-family:var(--font-serif); color:var(--gold); font-size:16px;" data-i18n="h_bnn_combos">Detected Nadi Karmic Combinations & Life Lessons</h3>
           </div>
           <div class="readings-grid" id="bnn-sutras-grid"></div>
         </div>
@@ -1244,10 +1244,10 @@
         <div class="pred-panel" id="ppanel-avasthas" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Planetary Avasthas & Consciousness States</h2>
-              <span class="pill-badge">Baladi & Jagradadi Avasthas</span>
+              <h2 data-i18n="h_avasthas">Planetary Avasthas & Consciousness States</h2>
+              <span class="pill-badge" data-i18n="pill_avasthas">Baladi & Jagradadi Avasthas</span>
             </div>
-            <p class="muted">Planets deliver results depending on their age state (Bala, Kumara, Yuva, Vriddha, Mrita) and state of consciousness (Jagrat/Awake, Swapna/Dreaming, Sushupti/Sleeping). This reveals the actual percentage of promised results that materialize in physical reality.</p>
+            <p class="muted" data-i18n="p_avasthas">Planets deliver results depending on their age state (Bala, Kumara, Yuva, Vriddha, Mrita) and state of consciousness (Jagrat/Awake, Swapna/Dreaming, Sushupti/Sleeping). This reveals the actual percentage of promised results that materialize in physical reality.</p>
           </div>
           <div class="readings-grid" id="avasthas-cards-grid"></div>
         </div>
@@ -1256,17 +1256,17 @@
         <div class="pred-panel" id="ppanel-pada" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Birth Star Quarter (Nakshatra Pada) Destiny Reading</h2>
+              <h2 data-i18n="h_pada">Birth Star Quarter (Nakshatra Pada) Destiny Reading</h2>
               <span class="pill-badge" id="pada-element-badge">Element</span>
             </div>
             <div class="timing-meta-row" style="margin-bottom:16px">
               <div class="timing-meta-item">
-                <small>BIRTH STAR & PADA</small>
+                <small data-i18n="birth_star_pada">BIRTH STAR & PADA</small>
                 <strong id="pada-star-name" style="color:var(--gold)">—</strong>
                 <span class="subtext" id="pada-num-display">—</span>
               </div>
               <div class="timing-meta-item">
-                <small>NAVAMSA SIGN & LORD</small>
+                <small data-i18n="navamsa_sign_lord">NAVAMSA SIGN & LORD</small>
                 <strong id="pada-nav-sign">—</strong>
                 <span class="subtext" id="pada-nav-lord">—</span>
               </div>
@@ -1288,10 +1288,10 @@
         <div class="pred-panel" id="ppanel-sahams" hidden>
           <div class="cosmic-card" style="margin-bottom:18px">
             <div class="card-header">
-              <h2>Sensitive Sahams (Tajika Cosmic Lots)</h2>
+              <h2 data-i18n="h_sahams">Sensitive Sahams (Tajika Cosmic Lots)</h2>
               <span class="pill-badge" id="sahams-birth-type-badge">Day Birth</span>
             </div>
-            <p class="muted">Mathematical sensitive points synthesized from Ascendant, Sun, Moon, and planetary distances, revealing focal vortexes of fortune, wisdom, marriage, career, and physical resilience.</p>
+            <p class="muted" data-i18n="p_sahams">Mathematical sensitive points synthesized from Ascendant, Sun, Moon, and planetary distances, revealing focal vortexes of fortune, wisdom, marriage, career, and physical resilience.</p>
           </div>
           <div class="readings-grid" id="sahams-cards-grid"></div>
         </div>
@@ -1310,52 +1310,52 @@
         <div class="matching-workspace">
           <div class="matching-inputs-card cosmic-card">
             <div class="card-header">
-              <h2>Select Match Candidates</h2>
+              <h2 data-i18n="h_match_candidates">Select Match Candidates</h2>
               <span class="card-badge">💑</span>
             </div>
 
             <div class="match-selectors-row">
               <!-- Girl's side -->
               <div class="match-candidate-box">
-                <h3>Bride (Girl's Star & Sign)</h3>
+                <h3 data-i18n="h_bride">Bride (Girl's Star & Sign)</h3>
                 <div class="form-group">
-                  <label>Saved Profile (Optional)</label>
+                  <label data-i18n="label_saved_profile">Saved Profile (Optional)</label>
                   <select id="match-girl-profile">
                     <option value="">-- Choose Profile or Manual --</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Nakshatra (Birth Star)</label>
+                  <label data-i18n="label_nakshatra">Nakshatra (Birth Star)</label>
                   <select id="match-girl-star"></select>
                 </div>
                 <div class="form-group">
-                  <label>Rasi (Moon Sign)</label>
+                  <label data-i18n="label_rasi">Rasi (Moon Sign)</label>
                   <select id="match-girl-sign"></select>
                 </div>
               </div>
 
               <!-- Boy's side -->
               <div class="match-candidate-box">
-                <h3>Groom (Boy's Star & Sign)</h3>
+                <h3 data-i18n="h_groom">Groom (Boy's Star & Sign)</h3>
                 <div class="form-group">
-                  <label>Saved Profile (Optional)</label>
+                  <label data-i18n="label_saved_profile">Saved Profile (Optional)</label>
                   <select id="match-boy-profile">
                     <option value="">-- Choose Profile or Manual --</option>
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Nakshatra (Birth Star)</label>
+                  <label data-i18n="label_nakshatra">Nakshatra (Birth Star)</label>
                   <select id="match-boy-star"></select>
                 </div>
                 <div class="form-group">
-                  <label>Rasi (Moon Sign)</label>
+                  <label data-i18n="label_rasi">Rasi (Moon Sign)</label>
                   <select id="match-boy-sign"></select>
                 </div>
               </div>
             </div>
 
             <button class="primary-btn glow-btn" id="run-match-btn" type="button">
-              <span class="btn-text">Calculate Compatibility Match</span>
+              <span class="btn-text" data-i18n="btn_calc_match">Calculate Compatibility Match</span>
               <span class="btn-arrow">➔</span>
             </button>
           </div>
@@ -1366,10 +1366,10 @@
             <div class="cosmic-card match-verdict-card">
               <div class="verdict-score-circle">
                 <span id="match-score-num">28</span>
-                <small>/ 36 Gunas</small>
+                <small data-i18n="of_36_gunas">/ 36 Gunas</small>
               </div>
               <div class="verdict-text-box">
-                <span class="eyebrow">FINAL VERDICT</span>
+                <span class="eyebrow" data-i18n="final_verdict">FINAL VERDICT</span>
                 <h2 id="match-verdict-title">Auspicious Match</h2>
                 <p id="match-verdict-desc" class="muted">All core poruthams pass with harmonious Rajju agreement.</p>
               </div>
@@ -1381,17 +1381,17 @@
             <!-- 10 Poruthams Table -->
             <div class="cosmic-card lower-space">
               <div class="card-header">
-                <h2>10 South Indian Poruthams</h2>
+                <h2 data-i18n="h_10_poruthams">10 South Indian Poruthams</h2>
                 <span class="pill-badge" id="match-porutham-count">0 of 10 Passed</span>
               </div>
               <div class="table-responsive">
                 <table class="luxury-table" id="poruthams-table">
                   <thead>
                     <tr>
-                      <th>Porutham</th>
-                      <th>Significance</th>
-                      <th>Status</th>
-                      <th>Points</th>
+                      <th data-i18n="th_porutham">Porutham</th>
+                      <th data-i18n="th_significance">Significance</th>
+                      <th data-i18n="th_status">Status</th>
+                      <th data-i18n="th_points">Points</th>
                     </tr>
                   </thead>
                   <tbody id="poruthams-tbody"></tbody>
@@ -1427,7 +1427,7 @@
             <!-- 8 Kutas Guna Milan Grid -->
             <div class="cosmic-card lower-space">
               <div class="card-header">
-                <h2>North Indian Ashta Koota (36 Gunas)</h2>
+                <h2 data-i18n="h_ashta_koota">North Indian Ashta Koota (36 Gunas)</h2>
               </div>
               <div class="gunas-grid" id="gunas-grid"></div>
             </div>
@@ -1630,20 +1630,20 @@
 
         <div class="profiles-toolbar">
           <div class="search-input-wrap">
-            <input id="profile-search" placeholder="Search profiles by name, city, rasi, or star..." autocomplete="off">
+            <input id="profile-search" placeholder="Search profiles by name, city, rasi, or star..." data-i18n-placeholder="ph_profile_search" autocomplete="off">
           </div>
           <div class="actions-group">
-            <button class="action-btn" id="profiles-add-new-btn" title="Enter a new person on the birth chart form">
+            <button class="action-btn" id="profiles-add-new-btn" title="Enter a new person on the birth chart form" data-i18n-title="title_profiles_new">
               <span>➕</span> <span data-i18n="new_person">New Person</span>
             </button>
-            <button class="action-btn" id="export-profiles-btn" title="Export all profiles as JSON file">
+            <button class="action-btn" id="export-profiles-btn" title="Export all profiles as JSON file" data-i18n-title="title_export_json">
               <span>📤</span> <span data-i18n="export_json">Export JSON</span>
             </button>
-            <label class="action-btn file-input-label" title="Import profiles from a JSON backup file">
+            <label class="action-btn file-input-label" title="Import profiles from a JSON backup file" data-i18n-title="title_import_json">
               <span>📥</span> <span data-i18n="import_json">Import JSON</span>
               <input type="file" id="import-profiles-input" accept="application/json" hidden>
             </label>
-            <button class="action-btn" id="profiles-clear-all-btn" style="color:var(--ruby)" title="Clear all saved profiles">
+            <button class="action-btn" id="profiles-clear-all-btn" style="color:var(--ruby)" title="Clear all saved profiles" data-i18n-title="title_clear_all">
               <span>🗑️</span> <span data-i18n="clear_all">Clear All</span>
             </button>
           </div>
@@ -1656,12 +1656,12 @@
       <!-- Application Footer -->
       <footer class="app-footer">
         <div class="footer-left">
-          <strong>JoRoScope</strong> — Modern Precision Vedic Astrology
+          <strong>JoRoScope</strong> — <span data-i18n="footer_tagline">Modern Precision Vedic Astrology</span>
           <span class="footer-sep">·</span>
-          <span>Calculated with Swiss Ephemeris AGPL</span>
+          <span data-i18n="footer_calc">Calculated with Swiss Ephemeris AGPL</span>
         </div>
         <div class="footer-right">
-          <span>Private & Offline Capable · Your charts remain on your machine</span>
+          <span data-i18n="footer_private">Private & Offline Capable · Your charts remain on your machine</span>
         </div>
       </footer>
     </main>

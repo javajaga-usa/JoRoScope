@@ -9,6 +9,14 @@
 - Daily Panchangam page now shows today's (or any date's) panchangam for the form location instead of the birth moment.
 - Hora (Orai) table with the current hora, upcoming Chandrashtamam periods, and the next Nakshatra birthday.
 
+### Detailed Predictions
+- 12 Bhava readings are chart-specific: lord dignity and placement (with Vipareeta for dusthana lords), benefic and malefic occupants, Jupiter/Saturn/Mars aspects and Ashtakavarga bindus produce a strength verdict and a list of contributing factors.
+- Planet readings weigh dignity, functional lordship from the Lagna (Yogakaraka, functional benefic or malefic), Dig Bala, combustion, retrogression and Jupiter's aspect.
+- The active Dasa-Bhukti reading explains what each lord rules and occupies and how the two lords relate.
+
+### Tamil & English
+- Every static label, tooltip, placeholder, chart, table, reading, yoga, dosha, porutham, toast and error message switches language; engine output carries Tamil for all generated text; the language choice persists.
+
 ### Gochara (Transits)
 - Transits are computed live from Swiss Ephemeris in the chart's ayanamsa (`gochara` in the chart API), with Ashtakavarga bindus and Phaladeepika house results for all nine grahas.
 - Upcoming Peyarchi (sign change) dates for Saturn, Jupiter and Rahu-Ketu, and a Rahu-Ketu transit reading.

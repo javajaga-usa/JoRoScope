@@ -191,6 +191,70 @@ LAGNA_PREDICTIONS = {
     }
 }
 
+# Shared vocabulary for the chart-specific readings below
+NATURAL_BENEFICS = ('Jupiter', 'Venus', 'Mercury', 'Moon')
+KENDRAS, TRIKONAS, DUSTHANAS, UPACHAYAS = (1, 4, 7, 10), (1, 5, 9), (6, 8, 12), (3, 6, 10, 11)
+DIG_BALA_HOUSE = {'Sun': 10, 'Mars': 10, 'Jupiter': 1, 'Mercury': 1, 'Moon': 4, 'Venus': 4, 'Saturn': 7}
+DIGNITY_SCORE = {'Exalted': 2, 'Own Sign': 2, 'Moolatrikona': 2, 'Great Friend': 1, 'Friend': 1,
+                 'Neutral': 0, 'Enemy': -1, 'Great Enemy': -1, 'Debilitated': -2}
+DIGNITY_PHRASE = {
+    'Exalted': ('exaltation', 'உச்ச நிலையில்'), 'Own Sign': ('its own sign', 'ஆட்சி வீட்டில்'),
+    'Moolatrikona': ('its moolatrikona sign', 'மூலத்திரிகோண வீட்டில்'),
+    'Great Friend': ("a great friend's sign", 'அதி நட்பு வீட்டில்'), 'Friend': ("a friend's sign", 'நட்பு வீட்டில்'),
+    'Neutral': ('a neutral sign', 'சம வீட்டில்'), 'Enemy': ("an enemy's sign", 'பகை வீட்டில்'),
+    'Great Enemy': ("a great enemy's sign", 'அதி பகை வீட்டில்'), 'Debilitated': ('debilitation', 'நீச நிலையில்')
+}
+HOUSE_THEMES = {
+    1: ('health, personality and life direction', 'உடல்நலம், ஆளுமை, வாழ்க்கைப் பாதை'),
+    2: ('wealth, family and speech', 'செல்வம், குடும்பம், வாக்கு'),
+    3: ('courage, siblings and initiative', 'தைரியம், உடன்பிறப்புகள், முயற்சி'),
+    4: ('mother, home, property and peace of mind', 'தாய், வீடு, சொத்து, மன நிம்மதி'),
+    5: ('children, intelligence and past merit', 'குழந்தைகள், அறிவு, பூர்வ புண்ணியம்'),
+    6: ('health battles, debts, rivals and service', 'நோய், கடன், எதிரிகள், சேவை'),
+    7: ('marriage, partnerships and public dealings', 'திருமணம், கூட்டாண்மை, பொது உறவுகள்'),
+    8: ('longevity, sudden events and hidden matters', 'ஆயுள், திடீர் நிகழ்வுகள், மறைவான விஷயங்கள்'),
+    9: ('fortune, father, dharma and higher learning', 'பாக்கியம், தந்தை, தர்மம், உயர்கல்வி'),
+    10: ('career, status and authority', 'தொழில், அந்தஸ்து, அதிகாரம்'),
+    11: ('gains, income and fulfilled wishes', 'லாபம், வருமானம், ஆசைகள் நிறைவேறுதல்'),
+    12: ('expenses, foreign lands, sleep and liberation', 'செலவுகள், வெளிநாடு, உறக்கம், மோட்சம்')
+}
+VERDICT_TAMIL = {'strong': 'பலம் வாய்ந்தது', 'moderate': 'மத்திமம்', 'weak': 'கவனம் தேவை'}
+
+
+def _ordinal(n):
+    return f"{n}{'th' if 10 <= n % 100 <= 20 else {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')}"
+
+
+def _house_list(houses, lang):
+    if lang == 'ta':
+        return ', '.join(f'{h}-ம்' for h in houses) + ' பாவங்கள்' if len(houses) > 1 else f'{houses[0]}-ம் பாவம்'
+    words = [_ordinal(h) for h in houses]
+    return (' and '.join(words) if len(words) < 3 else ', '.join(words[:-1]) + ' and ' + words[-1]) + (' houses' if len(words) > 1 else ' house')
+
+
+def _verdict(score, strong_at=3):
+    return 'strong' if score >= strong_at else ('weak' if score <= -1 else 'moderate')
+
+
+def _owned_houses(planet, asc_sign):
+    """Houses (from the Lagna) whose sign this planet rules; none for the nodes."""
+    return [h for h in range(1, 13) if SIGN_LORDS[(asc_sign + h - 1) % 12] == planet]
+
+
+def _functional_role(planet, asc_sign):
+    """Functional nature from lordship: Yogakaraka, benefic, malefic or mixed."""
+    owned = _owned_houses(planet, asc_sign)
+    if not owned:
+        return None, owned
+    if any(h in (4, 7, 10) for h in owned) and any(h in (5, 9) for h in owned):
+        return 'yogakaraka', owned
+    if 1 in owned or any(h in (5, 9) for h in owned):
+        return 'benefic', owned
+    if any(h in DUSTHANAS for h in owned):
+        return 'malefic', owned
+    return 'neutral', owned
+
+
 # 3. 12 Bhavas (House-by-House) Detailed Predictions Engine
 def generate_bhava_predictions(house_details, planets, lang='en'):
     predictions = []
@@ -211,53 +275,109 @@ def generate_bhava_predictions(house_details, planets, lang='en'):
 
     for h_info in house_details:
         h_num = h_info['house']
-        title_en, title_ta, significations = bhava_titles[h_num - 1]
+        title_en, title_ta, _ = bhava_titles[h_num - 1]
         lord = h_info['lord']
-        sign = h_info['sign']
-        tamil_sign = h_info['tamil']
-        occupants = h_info['occupants']
+        lord_data = planets.get(lord, {})
+        lord_house = lord_data.get('house', h_num)
+        lord_dignity = lord_data.get('dignity', 'Neutral')
+        occupants = [o for o in h_info['occupants'] if o in PLANET_TAMIL and o != 'Ascendant']
         aspected_by = h_info['aspected_by']
         sav = h_info['sav_points']
+        themes_en, themes_ta = HOUSE_THEMES[h_num]
+        lord_themes_en, lord_themes_ta = HOUSE_THEMES[lord_house]
+        lord_ta = PLANET_TAMIL.get(lord, lord)
 
-        # Determine lord placement
-        lord_house = planets.get(lord, {}).get('house', h_num)
-        lord_dignity = planets.get(lord, {}).get('dignity', 'Neutral')
+        # Each factor: (English, Tamil, effect on the house)
+        factors = []
+        dig_en, dig_ta = DIGNITY_PHRASE.get(lord_dignity, DIGNITY_PHRASE['Neutral'])
+        dig_score = DIGNITY_SCORE.get(lord_dignity, 0)
+        factors.append((f"Lord {lord} is in {dig_en}", f"அதிபதி {lord_ta} {dig_ta} உள்ளார்", dig_score))
+        if lord_house in DUSTHANAS:
+            if h_num in DUSTHANAS:
+                factors.append((f"A dusthana lord hidden in the {_ordinal(lord_house)} house weakens this house's troubles (Vipareeta)",
+                                f"மறைவு ஸ்தான அதிபதி {lord_house}-ம் பாவத்தில் மறைந்ததால் இப்பாவத்தின் தீமைகள் குறையும் (விபரீதம்)", 1))
+            else:
+                factors.append((f"Lord placed in the {_ordinal(lord_house)} house, a dusthana",
+                                f"அதிபதி {lord_house}-ம் பாவம் எனும் மறைவு ஸ்தானத்தில்", -1))
+        elif lord_house in KENDRAS + TRIKONAS:
+            factors.append((f"Lord well placed in the {_ordinal(lord_house)} house (kendra/trikona)",
+                            f"அதிபதி {lord_house}-ம் பாவம் எனும் கேந்திர/திரிகோண ஸ்தானத்தில்", 1))
+        if lord_data.get('combust'):
+            factors.append((f"Lord {lord} is combust", f"அதிபதி {lord_ta} அஸ்தங்கம்", -1))
+        for occ in occupants:
+            occ_ta = PLANET_TAMIL[occ]
+            if occ in NATURAL_BENEFICS:
+                if h_num in DUSTHANAS:
+                    factors.append((f"Benefic {occ} here spends its goodness on {themes_en}",
+                                    f"சுபர் {occ_ta} இங்கு இருப்பதால் நற்பலன் குறைவாகவே கிடைக்கும்", 0))
+                else:
+                    factors.append((f"Benefic {occ} occupies the house", f"சுபர் {occ_ta} இப்பாவத்தில் உள்ளார்", 1))
+            elif h_num in UPACHAYAS:
+                factors.append((f"Malefic {occ} thrives in this upachaya house", f"பாவர் {occ_ta} உபசய ஸ்தானத்தில் வலுப்பெறுகிறார்", 1))
+            else:
+                factors.append((f"Malefic {occ} occupies the house", f"பாவர் {occ_ta} இப்பாவத்தில் உள்ளார்", -1))
+        if 'Jupiter' in aspected_by:
+            factors.append(("Jupiter's aspect protects the house", 'குருவின் பார்வை இப்பாவத்தைக் காக்கிறது', 1))
+        for mal in ('Saturn', 'Mars'):
+            if mal in aspected_by and h_num not in UPACHAYAS:
+                factors.append((f"{mal}'s aspect brings pressure and delays", f"{PLANET_TAMIL[mal]} பார்வை தடைகளையும் அழுத்தத்தையும் தரும்", -1))
+        if sav >= 30:
+            factors.append((f"{sav} Ashtakavarga bindus, above the average of 28", f"{sav} அஷ்டகவர்க்கப் பரல்கள் (சராசரி 28-க்கு மேல்)", 1))
+        elif sav < 25:
+            factors.append((f"Only {sav} Ashtakavarga bindus, below the average of 28", f"{sav} அஷ்டகவர்க்கப் பரல்கள் மட்டுமே (சராசரி 28-க்குக் கீழ்)", -1))
 
-        occ_str_en = ', '.join(occupants) if occupants else 'None'
-        occ_str_ta = ', '.join(occupants) if occupants else 'கிரகங்கள் இல்லை'
+        score = sum(f[2] for f in factors)
+        verdict = _verdict(score)
+        occ_en = ', '.join(occupants) if occupants else ''
+        occ_ta = ', '.join(PLANET_TAMIL[o] for o in occupants)
 
-        asp_str_en = ', '.join(aspected_by) if aspected_by else 'None'
-        asp_str_ta = ', '.join(aspected_by) if aspected_by else 'நேரடி பார்வைகள் இல்லை'
-
-        strength_desc_en = f"with strong positive vitality ({sav} SAV bindus)" if sav >= 28 else f"with moderate resilience ({sav} SAV bindus)"
-        strength_desc_ta = f"அதிக சுப பலத்துடன் ({sav} அஷ்டகவர்க்கப் பரல்கள்)" if sav >= 28 else f"மிதமான பலத்துடன் ({sav} அஷ்டகவர்க்கப் பரல்கள்)"
+        if verdict == 'strong':
+            close_en = f"Overall this is a strong house: {themes_en} flourish with steady support."
+            close_ta = f"மொத்தத்தில் இது பலம் வாய்ந்த பாவம்: {themes_ta} ஆகியவை சிறப்பாக அமையும்."
+        elif verdict == 'weak':
+            close_en = f"Overall this house needs care: {themes_en} may meet delays, and strengthening {lord} through its remedies helps."
+            close_ta = f"மொத்தத்தில் இப்பாவம் கவனம் தேவைப்படுவது: {themes_ta} ஆகியவற்றில் தாமதங்கள் வரலாம்; {lord_ta} கிரகத்திற்கான பரிகாரங்கள் நலம் தரும்."
+        else:
+            close_en = f"Overall a moderate house: {themes_en} give mixed results that improve with effort."
+            close_ta = f"மொத்தத்தில் மத்திமமான பாவம்: {themes_ta} ஆகியவை முயற்சிக்கேற்ப மேம்படும்."
 
         pred_en = (
-            f"The {h_num}th house falls in {sign} ({tamil_sign}), governed by Lord {lord} placed in House {lord_house} in {lord_dignity} dignity. "
-            f"This house operates {strength_desc_en}. Occupied by {occ_str_en} and aspected by {asp_str_en}. "
-            f"Key influence: {significations} The placement of lord {lord} in house {lord_house} channels this house's primary destiny toward "
-            f"the significations of house {lord_house}, granting enduring progress and purposeful focus throughout life."
+            f"The {_ordinal(h_num)} house of {themes_en} rises in {h_info['sign']}. Its lord {lord} sits in the "
+            f"{_ordinal(lord_house)} house in {dig_en}"
+            + (', combust' if lord_data.get('combust') else '')
+            + (', retrograde' if lord_data.get('retrograde') and lord not in ('Rahu', 'Ketu') else '')
+            + (f", so these matters are tied to {lord_themes_en}. " if lord_house != h_num else ', guarding its own house. ')
+            + (f"{occ_en} {'occupies' if len(occupants) == 1 else 'occupy'} the house. " if occupants
+               else "No planet occupies it, so the lord's condition decides the results. ")
+            + f"It holds {sav} Ashtakavarga bindus. {close_en}"
         )
-
+        lord_state_ta = ('அஸ்தங்கம் பெற்று ' if lord_data.get('combust') else '') + \
+            ('வக்ரம் பெற்று ' if lord_data.get('retrograde') and lord not in ('Rahu', 'Ketu') else '')
         pred_ta = (
-            f"{h_num}-ஆம் பாவம் {tamil_sign} ராசியில் அமைந்து, அதன் அதிபதியான {lord} {lord_house}-ஆம் பாவத்தில் {lord_dignity} நிலையில் உள்ளார். "
-            f"இப்பாவகம் {strength_desc_ta} இயங்குகிறது. இதில் அமைந்துள்ள கிரகங்கள்: {occ_str_ta}; பார்வை தரும் கிரகங்கள்: {asp_str_ta}. "
-            f"முக்கிய பலன்: {significations} பாவாதிபதி {lord} {lord_house}-ஆம் இடத்தில் அமர்ந்துள்ளதால், "
-            f"இப்பாவகத்தின் பலன்கள் {lord_house}-ஆம் பாவகத்துடன் இணைந்து வாழ்க்கையில் நிலையான முன்னேற்றத்தையும் நன்மைகளையும் தரும்."
+            f"{themes_ta} ஆகியவற்றைக் குறிக்கும் {h_num}-ம் பாவம் {h_info['tamil']} ராசியில் அமைகிறது. இதன் அதிபதி {lord_ta} "
+            f"{lord_state_ta}{lord_house}-ம் பாவத்தில் {dig_ta} உள்ளார்"
+            + (f"; எனவே இப்பலன்கள் {lord_themes_ta} ஆகியவற்றுடன் இணைகின்றன. " if lord_house != h_num else '; தன் பாவத்தையே காக்கிறார். ')
+            + (f"இப்பாவத்தில் {occ_ta} உள்ளனர். " if len(occupants) > 1 else (f"இப்பாவத்தில் {occ_ta} உள்ளார். " if occupants
+               else 'இப்பாவத்தில் கிரகங்கள் இல்லை; அதிபதியின் நிலையே பலனைத் தீர்மானிக்கும். '))
+            + f"இதற்கு {sav} அஷ்டகவர்க்கப் பரல்கள் உள்ளன. {close_ta}"
         )
 
         predictions.append({
             'house': h_num,
             'title_en': title_en,
             'title_ta': title_ta,
-            'sign': sign,
-            'tamil_sign': tamil_sign,
+            'sign': h_info['sign'],
+            'tamil_sign': h_info['tamil'],
             'lord': lord,
             'lord_house': lord_house,
             'lord_dignity': lord_dignity,
             'sav_points': sav,
             'occupants': occupants,
             'aspected_by': aspected_by,
+            'strength': verdict,
+            'strength_ta': VERDICT_TAMIL[verdict],
+            'score': score,
+            'factors': [{'en': en, 'ta': ta, 'effect': effect} for en, ta, effect in factors],
             'prediction_en': pred_en,
             'prediction_ta': pred_ta
         })
@@ -279,6 +399,15 @@ def generate_planet_house_predictions(planets):
         'Ketu': ('Intuition, Liberation, Spiritual Wisdom', 'மோட்ச காரகன், ஞானம், ஆன்மீகம்')
     }
 
+    asc_sign = planets['Ascendant']['sign_index']
+    role_phrases = {
+        'yogakaraka': ('a Yogakaraka for this Lagna, ruling both a kendra and a trikona, so it is one of the most beneficial planets in the chart',
+                       'இந்த லக்னத்திற்கு யோககாரகன்; கேந்திரமும் திரிகோணமும் ஆள்வதால் ஜாதகத்தின் மிகச் சிறந்த கிரகங்களில் ஒன்று'),
+        'benefic': ('a functional benefic for this Lagna', 'இந்த லக்னத்திற்குச் சுப பலன் தரும் கிரகம்'),
+        'malefic': ('a functional malefic for this Lagna, as it rules a dusthana', 'மறைவு ஸ்தானம் ஆள்வதால் இந்த லக்னத்திற்குப் பாவ பலன் தரும் கிரகம்'),
+        'neutral': ('functionally neutral for this Lagna', 'இந்த லக்னத்திற்குச் சம பலன் தரும் கிரகம்')
+    }
+
     for p_name, (role_en, role_ta) in p_roles.items():
         p_data = planets.get(p_name)
         if not p_data: continue
@@ -286,23 +415,82 @@ def generate_planet_house_predictions(planets):
         sign = p_data['sign']
         tamil_sign = p_data['tamil']
         dignity = p_data.get('dignity', 'Neutral')
-        retro = p_data.get('retrograde', False)
+        retro = p_data.get('retrograde', False) and p_name not in ('Rahu', 'Ketu')
         combust = p_data.get('combust', False)
+        name_ta = PLANET_TAMIL[p_name]
+        themes_en, themes_ta = HOUSE_THEMES[h]
+        dig_en, dig_ta = DIGNITY_PHRASE.get(dignity, DIGNITY_PHRASE['Neutral'])
+        is_benefic = p_name in NATURAL_BENEFICS
 
-        retro_str = " (Retrograde Rx - internalizing power)" if retro else ""
-        combust_str = " (Combust with Sun - refined fiery focus)" if combust else ""
+        score = DIGNITY_SCORE.get(dignity, 0)
+        notes_en, notes_ta = [], []
+        if is_benefic:
+            if h in DUSTHANAS:
+                score -= 1
+                notes_en.append(f"As a natural benefic in the {_ordinal(h)} house, a dusthana, its kindness is spent on struggles and expenses.")
+                notes_ta.append(f"இயற்கைச் சுபர் {h}-ம் பாவம் எனும் மறைவு ஸ்தானத்தில் இருப்பதால் அதன் நற்பலன் போராட்டங்களிலும் செலவுகளிலும் கரைகிறது.")
+            elif h in KENDRAS + TRIKONAS:
+                score += 1
+                notes_en.append(f"A natural benefic in a kendra or trikona is one of the best placements, uplifting {themes_en}.")
+                notes_ta.append(f"இயற்கைச் சுபர் கேந்திர/திரிகோணத்தில் இருப்பது சிறந்த அமைப்பு; {themes_ta} மேன்மை பெறும்.")
+        elif h in UPACHAYAS:
+            score += 1
+            notes_en.append(f"Natural malefics do well in upachaya houses; it builds strength and wins over {themes_en} with time.")
+            notes_ta.append(f"பாவ கிரகங்கள் உபசய ஸ்தானத்தில் வலுப்பெறும்; காலப்போக்கில் {themes_ta} ஆகியவற்றில் வெற்றி தரும்.")
+        elif h in (1, 4, 5, 7, 9) and DIGNITY_SCORE.get(dignity, 0) < 2:
+            score -= 1
+            notes_en.append(f"As a natural malefic here it can strain {themes_en}, calling for patience.")
+            notes_ta.append(f"இங்குள்ள பாவ கிரகம் {themes_ta} ஆகியவற்றில் சிரமம் தரலாம்; பொறுமை தேவை.")
+        if DIG_BALA_HOUSE.get(p_name) == h:
+            score += 1
+            notes_en.append("It enjoys directional strength (Dig Bala) in this house.")
+            notes_ta.append("இப்பாவத்தில் திக் பலம் பெறுகிறது.")
+        if combust:
+            score -= 1
+            notes_en.append("Being combust, close to the Sun, its independent results are weakened.")
+            notes_ta.append("சூரியனுக்கு அருகில் அஸ்தங்கம் பெற்றதால் தனித்த பலன்கள் குறையும்.")
+        if retro:
+            notes_en.append("Retrograde motion turns its energy inward: results come after reflection and second attempts.")
+            notes_ta.append("வக்ர கதியால் அதன் சக்தி உள்நோக்கித் திரும்பும்; மறுமுயற்சிக்குப் பின் பலன் கிடைக்கும்.")
+        if 'Jupiter' in p_data.get('aspects_received', []) and p_name != 'Jupiter':
+            score += 1
+            notes_en.append("Jupiter's aspect adds protection and wisdom.")
+            notes_ta.append("குருவின் பார்வை பாதுகாப்பையும் ஞானத்தையும் சேர்க்கிறது.")
+
+        role, owned = _functional_role(p_name, asc_sign)
+        if owned:
+            owned_themes_en = '; '.join(HOUSE_THEMES[o][0] for o in owned)
+            owned_themes_ta = '; '.join(HOUSE_THEMES[o][1] for o in owned)
+            rp_en, rp_ta = role_phrases[role]
+            lord_en = (f"As lord of the {_house_list(owned, 'en')} ({owned_themes_en}), it is {rp_en}; "
+                       f"it carries those matters into {themes_en}.")
+            lord_ta = (f"{_house_list(owned, 'ta')} ({owned_themes_ta}) அதிபதியாக இது {rp_ta}; "
+                       f"அவ்விஷயங்களை {themes_ta} ஆகியவற்றுடன் இணைக்கிறது.")
+            score += {'yogakaraka': 1, 'benefic': 1, 'malefic': 0, 'neutral': 0}[role]
+        else:
+            dispositor = SIGN_LORDS[p_data['sign_index']]
+            lord_en = f"As a shadow planet it acts through its sign lord {dispositor}, amplifying {themes_en}."
+            lord_ta = f"சாயா கிரகமான இது தன் ராசி அதிபதி {PLANET_TAMIL[dispositor]} மூலம் செயல்பட்டு {themes_ta} ஆகியவற்றைத் தீவிரப்படுத்தும்."
+
+        verdict = _verdict(score)
+        if verdict == 'strong':
+            close_en = "Expect its significations to deliver well, especially during its dasa and bhukti."
+            close_ta = "இதன் காரகத்துவங்கள் சிறப்பாகப் பலன் தரும்; குறிப்பாக இதன் தசை, புக்தி காலங்களில்."
+        elif verdict == 'weak':
+            close_en = "Its results come through effort; its dasa or bhukti calls for patience and its remedies."
+            close_ta = "இதன் பலன்கள் முயற்சியால் கிடைக்கும்; இதன் தசை அல்லது புக்தியில் பொறுமையும் பரிகாரமும் தேவை."
+        else:
+            close_en = "Its results are mixed and grow steadily with conscious effort."
+            close_ta = "இதன் பலன்கள் கலவையானவை; முயற்சியுடன் படிப்படியாக வளரும்."
 
         pred_en = (
-            f"{p_name} resides in House {h} in {sign} ({tamil_sign}) in {dignity} status{retro_str}{combust_str}. "
-            f"Representing {role_en}, its presence in house {h} stimulates active karmic growth in the matters of that house. "
-            f"Its dignity as {dignity} ensures strong and balanced results throughout life."
-        )
-
+            f"{p_name}, significator of {role_en.lower()}, occupies the {_ordinal(h)} house of {themes_en} in {sign}, in {dig_en}. "
+            f"{lord_en} {' '.join(notes_en)} {close_en}"
+        ).replace('  ', ' ')
         pred_ta = (
-            f"{p_name} பகவான் {h}-ஆம் பாவத்தில் {tamil_sign} ராசியில் {dignity} நிலையில் அமர்ந்துள்ளார். "
-            f"{role_ta} ஆகியவற்றிற்கு காரகனான இவர் {h}-ஆம் இடத்தில் அமர்ந்துள்ளதால், "
-            f"அப்பாவகத்தின் பலன்களைத் திறம்பட இயக்கி சுப பலன்களையும் நல்வழிகளையும் அருளுவார்."
-        )
+            f"{role_ta} ஆகியவற்றின் காரகனான {name_ta}, {themes_ta} ஆகியவற்றைக் குறிக்கும் {h}-ம் பாவத்தில் {tamil_sign} ராசியில் {dig_ta} அமர்ந்துள்ளார். "
+            f"{lord_ta} {' '.join(notes_ta)} {close_ta}"
+        ).replace('  ', ' ')
 
         planet_insights.append({
             'planet': p_name,
@@ -312,6 +500,11 @@ def generate_planet_house_predictions(planets):
             'dignity': dignity,
             'retrograde': retro,
             'combust': combust,
+            'owned_houses': owned,
+            'functional_role': role,
+            'strength': verdict,
+            'strength_ta': VERDICT_TAMIL[verdict],
+            'score': score,
             'prediction_en': pred_en,
             'prediction_ta': pred_ta
         })
@@ -319,7 +512,7 @@ def generate_planet_house_predictions(planets):
     return planet_insights
 
 # 5. Dasa-Bhukti Comprehensive Forecast
-def generate_dasa_forecast(active_dasa, dasha_rows):
+def generate_dasa_forecast(active_dasa, dasha_rows, planets):
     maha_general = {
         'Sun': {
             'en': 'Sun (Surya) Maha Dasa (6 Years): Fosters government recognition, leadership promotion, fatherly connections, and inner vitality. Maintain ego balance.',
@@ -366,17 +559,57 @@ def generate_dasa_forecast(active_dasa, dasha_rows):
         d = active_dasa['dasa']
         b = active_dasa['bhukti']
         p = active_dasa['pratyantar']
+        asc_sign = planets['Ascendant']['sign_index']
+
+        def lord_profile(name):
+            data = planets[name]
+            owned = _owned_houses(name, asc_sign)
+            dig_en, dig_ta = DIGNITY_PHRASE.get(data.get('dignity', 'Neutral'), DIGNITY_PHRASE['Neutral'])
+            themes = sorted(set(owned + [data['house']]))
+            en = (f"{name} rules the {_house_list(owned, 'en')} and sits in the {_ordinal(data['house'])} house in {dig_en}"
+                  if owned else f"{name} sits in the {_ordinal(data['house'])} house in {dig_en}")
+            ta = (f"{PLANET_TAMIL[name]} {_house_list(owned, 'ta')} அதிபதியாக {data['house']}-ம் பாவத்தில் {dig_ta} உள்ளார்"
+                  if owned else f"{PLANET_TAMIL[name]} {data['house']}-ம் பாவத்தில் {dig_ta} உள்ளார்")
+            return en, ta, '; '.join(HOUSE_THEMES[h][0] for h in themes), '; '.join(HOUSE_THEMES[h][1] for h in themes), DIGNITY_SCORE.get(data.get('dignity', 'Neutral'), 0)
+
+        d_en, d_ta, d_themes_en, d_themes_ta, d_score = lord_profile(d)
+        b_en, b_ta, b_themes_en, b_themes_ta, b_score = lord_profile(b)
+        # Position of the Bhukti lord counted from the Dasa lord
+        rel = (planets[b]['sign_index'] - planets[d]['sign_index']) % 12 + 1
+        if rel == 1:
+            rel_en, rel_ta = 'conjoined in the same sign, blending their results closely', 'ஒரே ராசியில் இணைந்திருப்பதால் இருவரின் பலன்களும் நெருக்கமாகக் கலக்கும்'
+        elif rel in (5, 9):
+            rel_en, rel_ta = 'in trine to each other, so the period flows harmoniously', 'ஒருவருக்கொருவர் திரிகோணத்தில் இருப்பதால் இக்காலம் இணக்கமாக நகரும்'
+        elif rel in (4, 7, 10):
+            rel_en, rel_ta = 'in kendra to each other, bringing activity and visible change', 'ஒருவருக்கொருவர் கேந்திரத்தில் இருப்பதால் செயல்பாடும் வெளிப்படையான மாற்றங்களும் வரும்'
+        elif rel in (3, 11):
+            rel_en, rel_ta = 'in the 3-11 relationship, which favours effort and gains', '3-11 நிலையில் இருப்பதால் முயற்சிக்கு ஏற்ற லாபம் கிடைக்கும்'
+        else:
+            rel_en, rel_ta = ('in the 2-12 or 6-8 relationship, which can bring friction; steady, careful decisions help',
+                              '2-12 அல்லது 6-8 நிலையில் இருப்பதால் சில உரசல்கள் வரலாம்; நிதானமான முடிவுகள் நலம் தரும்')
+        tone = d_score + b_score
+        if tone >= 2:
+            tone_en, tone_ta = 'Both lords are well placed, so this is a productive period.', 'இரு அதிபதிகளும் நல்ல நிலையில் உள்ளதால் இது பலன் தரும் காலம்.'
+        elif tone <= -2:
+            tone_en, tone_ta = 'The lords are under strain, so progress needs patience and remedies.', 'அதிபதிகள் பலவீனமாக உள்ளதால் முன்னேற்றத்திற்குப் பொறுமையும் பரிகாரமும் தேவை.'
+        else:
+            tone_en, tone_ta = 'The period gives mixed results that respond well to effort.', 'இக்காலம் கலவையான பலன்களைத் தரும்; முயற்சிக்கு நல்ல பலன் உண்டு.'
+        until = active_dasa['bhukti_end'][:10]
+
+        if d == b:  # the Maha Dasa's own bhukti
+            bhukti_en = f"In its own bhukti {d} gives these results in their purest form."
+            bhukti_ta = f"சுய புக்தியில் {PLANET_TAMIL[d]} இப்பலன்களை முழுமையாக வழங்குவார்."
+        else:
+            bhukti_en = f"{b_en}, bringing {b_themes_en} to the foreground now. The two lords are {rel_en}."
+            bhukti_ta = f"{b_ta}; இப்போது {b_themes_ta} முன்னிலை பெறும். இரு அதிபதிகளும் {rel_ta}."
+
         active_reading_en = (
-            f"You are currently navigating the powerful {d} Maha Dasa, {b} Bhukti (Antardasa), and {p} Pratyantardasa. "
-            f"This period emphasizes the mutual harmony between {d} and {b}. "
-            f"The primary focus centers around {maha_general.get(d, {}).get('en', '')} "
-            f"Antardasa Lord {b} channels this energy into immediate tangible manifestations in daily affairs through {active_dasa['bhukti_end'][:10]}."
+            f"You are running {d} Maha Dasa, {b} Bhukti and {p} Pratyantardasa; this bhukti lasts until {until}. "
+            f"{d_en}, so the Maha Dasa centres on {d_themes_en}. {bhukti_en} {tone_en} {maha_general.get(d, {}).get('en', '')}"
         )
         active_reading_ta = (
-            f"தற்போது நீங்கள் {d} மகா தசையில் {b} புக்தி மற்றும் {p} அந்தரத்தை அனுபவித்து வருகிறீர்கள். "
-            f"இக்காலகட்டம் {d} மற்றும் {b} கிரகங்களின் இணைந்த பலனைத் தரும். "
-            f"{maha_general.get(d, {}).get('ta', '')} "
-            f"புக்தி நாதரான {b} தனது காரகத்துவங்களின் மூலம் {active_dasa['bhukti_end'][:10]} வரை நற்பலன்களை தீவிரமாக வழங்குவார்."
+            f"தற்போது {PLANET_TAMIL[d]} மகா தசையில் {PLANET_TAMIL[b]} புக்தி, {PLANET_TAMIL[p]} அந்தரம் நடைபெறுகிறது; இப்புக்தி {until} வரை நீடிக்கும். "
+            f"{d_ta}; எனவே இந்த மகா தசை {d_themes_ta} ஆகியவற்றை மையமாகக் கொண்டது. {bhukti_ta} {tone_ta} {maha_general.get(d, {}).get('ta', '')}"
         )
 
     return {
@@ -480,7 +713,28 @@ def generate_transit_forecast(moon_sign_idx, gochara):
     }
 
 # 7. Lucky Factors & Gemstones
-def generate_lucky_factors(asc_sign_idx, moon_star_idx):
+LUCKY_TAMIL = {
+    'Sunday': 'ஞாயிறு', 'Monday': 'திங்கள்', 'Tuesday': 'செவ்வாய்', 'Wednesday': 'புதன்',
+    'Thursday': 'வியாழன்', 'Friday': 'வெள்ளி', 'Saturday': 'சனி',
+    'Gold': 'தங்கம்', 'Copper': 'செம்பு', 'Platinum': 'பிளாட்டினம்', 'Silver': 'வெள்ளி', 'Iron': 'இரும்பு',
+    'Bright Red': 'பிரகாசமான சிவப்பு', 'Crimson': 'அடர் சிவப்பு', 'Golden Yellow': 'பொன் மஞ்சள்',
+    'Diamond White': 'வைர வெண்மை', 'Pale Pink': 'வெளிர் இளஞ்சிவப்பு', 'Cream': 'இளம் மஞ்சள்',
+    'Emerald Green': 'மரகதப் பச்சை', 'Pastel Shades': 'மென்மையான வண்ணங்கள்', 'Pearl White': 'முத்து வெண்மை',
+    'Deep Gold': 'அடர் பொன்னிறம்', 'Orange': 'ஆரஞ்சு', 'Ruby Red': 'மாணிக்கச் சிவப்பு',
+    'Parrot Green': 'கிளிப் பச்சை', 'Turquoise': 'நீலப் பச்சை', 'Pure White': 'தூய வெண்மை',
+    'Rose Pink': 'ரோஜா நிறம்', 'Silk Blue': 'பட்டு நீலம்', 'Scarlet Red': 'செஞ்சிவப்பு', 'Rust': 'துரு நிறம்',
+    'Amber': 'அம்பர் மஞ்சள்', 'Bright Yellow': 'பிரகாசமான மஞ்சள்', 'Saffron': 'காவி',
+    'Royal Blue': 'அரச நீலம்', 'Navy': 'கடற்படை நீலம்', 'Steel Grey': 'எஃகு சாம்பல்',
+    'Electric Blue': 'மின் நீலம்', 'Violet': 'ஊதா', 'Indigo': 'கருநீலம்', 'Pale Yellow': 'வெளிர் மஞ்சள்',
+    'Golden Amber': 'பொன் அம்பர்', 'Sea Green': 'கடல் பச்சை'
+}
+FINGER_TAMIL = {
+    'Ring Finger': 'மோதிர விரல்', 'Middle Finger': 'நடு விரல்', 'Little Finger': 'சுண்டு விரல்',
+    'Index Finger': 'ஆள்காட்டி விரல்', 'Middle / Little Finger': 'நடு / சுண்டு விரல்',
+    'Little / Ring Finger': 'சுண்டு / மோதிர விரல்'
+}
+
+def generate_lucky_factors(asc_sign_idx):
     gem_map = {
         0: ('Red Coral (சிவப்பு பவளம்)', 'Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Tuesday / Thursday', 'Gold / Copper', 'Ring Finger'),
         1: ('Diamond (வைரம்)', 'Blue Sapphire (நீலக்கல்)', 'Friday / Saturday', 'Platinum / Silver', 'Middle / Little Finger'),
@@ -533,16 +787,27 @@ def generate_lucky_factors(asc_sign_idx, moon_star_idx):
     }
 
     primary_gem, fortune_gem, best_day, metal, finger = gem_map[asc_sign_idx]
+    # Gem names carry their Tamil name in brackets: "Ruby (மாணிக்கம்)"
+    gem_en = lambda g: g.split(' (')[0]
+    gem_ta = lambda g: g.split(' (')[1].rstrip(')')
+    in_tamil = lambda text: ' / '.join(LUCKY_TAMIL[part] for part in text.split(' / '))
 
     return {
-        'primary_gem': primary_gem,
-        'fortune_gem': fortune_gem,
+        'primary_gem': gem_en(primary_gem),
+        'primary_gem_ta': gem_ta(primary_gem),
+        'fortune_gem': gem_en(fortune_gem),
+        'fortune_gem_ta': gem_ta(fortune_gem),
         'wearing_day': best_day,
+        'wearing_day_ta': in_tamil(best_day),
         'metal': metal,
+        'metal_ta': in_tamil(metal),
         'finger': finger,
+        'finger_ta': FINGER_TAMIL[finger],
         'lucky_days': lucky_days_map[asc_sign_idx],
+        'lucky_days_ta': [LUCKY_TAMIL[d] for d in lucky_days_map[asc_sign_idx]],
         'lucky_numbers': lucky_numbers_map[asc_sign_idx],
         'lucky_colors': lucky_colors_map[asc_sign_idx],
+        'lucky_colors_ta': [LUCKY_TAMIL[c] for c in lucky_colors_map[asc_sign_idx]],
         'deity_worship_en': 'Lord Ganesha, Lord Shiva, and Goddess Mahalakshmi',
         'deity_worship_ta': 'விநாயகர், சிவபெருமான் மற்றும் மஹாலக்ஷ்மி தாயார்'
     }
@@ -971,7 +1236,7 @@ def calculate_career_vocation_d10(chart):
     )
     narrative_ta = (
         f"உங்கள் ராசி (D-1) மற்றும் தசாம்சம் (D-10) அமைப்பின்படி, {top_arch['title_ta']} ({top_arch['score']}% பொருத்தம்) முதன்மை யோகமாக அமைகிறது. "
-        f"10-ஆம் அதிபதியான {h10_lord} மற்றும் சாதகமான கிரக இணைவுகள் உங்களை இத்துறையில் உயர்த்தும். "
+        f"10-ஆம் அதிபதியான {PLANET_TAMIL[h10_lord]} மற்றும் சாதகமான கிரக இணைவுகள் உங்களை இத்துறையில் உயர்த்தும். "
         f"பரிந்துரைக்கப்படும் முக்கிய துறைகள்: {top_arch['key_sectors_ta']}."
     )
 
@@ -1865,9 +2130,9 @@ def generate_comprehensive_predictions(chart):
     lagna_pred = LAGNA_PREDICTIONS.get(asc['sign'], LAGNA_PREDICTIONS['Aries'])
     bhavas = generate_bhava_predictions(house_details, planets)
     planets_in_houses = generate_planet_house_predictions(planets)
-    dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows)
+    dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows, planets)
     transits = generate_transit_forecast(moon['sign_index'], chart['gochara'])
-    luck = generate_lucky_factors(asc['sign_index'], moon['nakshatra'])
+    luck = generate_lucky_factors(asc['sign_index'])
 
     # 5 Advanced Approved Astrological Research Modules
     jaimini_karakas = calculate_jaimini_karakas(planets, vargas)
