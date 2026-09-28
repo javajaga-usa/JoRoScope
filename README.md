@@ -2,9 +2,9 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![Tests: 133 Passed](https://img.shields.io/badge/tests-133%20passed-success)](tests/)
+[![Tests: 147 Passed](https://img.shields.io/badge/tests-147%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
-[![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
+[![Languages](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D%20%7C%20%E0%B4%AE%E0%B4%B2%E0%B4%AF%E0%B4%BE%E0%B4%B3%E0%B4%82-gold)](#bilingual-support)
 
 JoRoScope is an authoritative, high-precision Vedic astrology application built with the Swiss Ephemeris AGPL. It seamlessly combines classical Parashara and Jaimini Jyotish, Bhrigu Nandi Nadi (BNN), Krishnamurti Paddhati (KP), and Shadbala into a modern luxury web interface and desktop application.
 
@@ -162,6 +162,8 @@ When running locally, JoRoScope provides secure JSON API endpoints:
 - `POST /api/timeline`: The detailed readings of all 81 Dasa-Bhukti periods (the chart response carries only the running one).
 - `POST /api/calendar`: A month of the Tamil calendar with observance days.
 - `POST /api/muhurtham`: Auspicious windows for an event over the coming days.
+- `POST /api/prasna`: A Prasna (horary) judgement for a question asked now or at a given time.
+- `POST /api/rectify`: Candidate birth times ranked against dated life events.
 
 Responses are gzip-compressed when the client accepts it.
 
