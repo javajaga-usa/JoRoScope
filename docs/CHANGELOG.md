@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+### Printing checked on paper (WebKit PDF)
+- The report title printed near-white when the app was in the dark theme; it now prints black.
+- The Lagna corner mark in South Indian charts printed as a solid black square hiding the sign name (a gradient with transparent stops); it is now a thin line.
+- Shodasavarga charts could be cut in half at a page break; they are now laid out so each chart stays whole, with a gap between them.
+- North Indian and Sri Lankan charts use larger text on paper.
+- `scripts/print_pdf.swift` prints any report and chart style to PDF through WebKit on macOS for checking layouts.
+
 ### Code structure
 - `core/predictions.py` (2,600 lines) is split into `core/readings/`: `common`, `life`, `jaimini`, `timing`, `career_health`, `strength_kp` and `classical`. `predictions.py` now only assembles the report and re-exports the old names, so existing imports keep working; the report output is byte-identical.
 - `web/app.js` (4,500 lines) is split into `i18n.js`, the core `app.js`, and one script per page: `chart-views.js`, `dasa.js`, `readings.js`, `panchangam.js`, `matching.js` and `profiles-ui.js`. CI syntax-checks every script in `web/`.

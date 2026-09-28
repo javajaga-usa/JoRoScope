@@ -3324,6 +3324,7 @@ input:focus, select:focus {
     line-height: 1;
   }
   .print-jathagam h1 {
+    color: #000000;
     font-size: 18pt;
     margin: 2px 0 0;
     letter-spacing: 0.04em;
@@ -3444,10 +3445,18 @@ input:focus, select:focus {
     font-weight: 700;
     margin-top: 2px;
   }
+  /* Inline blocks, not a grid: WebKit splits grid items across pages despite break-inside */
   .print-jathagam .pj-varga-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    display: block;
+  }
+  .print-jathagam .pj-varga-grid > .pj-figure {
+    display: inline-block;
+    width: 32%;
+    margin: 0 2% 8px 0;
+    vertical-align: top;
+  }
+  .print-jathagam .pj-varga-grid > .pj-figure:nth-child(3n) {
+    margin-right: 0;
   }
   .print-jathagam .pj-varga-grid .south-chart-grid {
     aspect-ratio: 1;
@@ -3518,10 +3527,14 @@ input:focus, select:focus {
   .print-jathagam .house-cell {
     border: 0.75px solid #444444 !important;
   }
+  /* A thin rotated line: WebKit's PDF output prints the screen gradient's transparent stops black */
   .print-jathagam .house-cell.lagna-cell::after {
-    background: linear-gradient(to top right,
-      transparent calc(50% - 1px), #7a5c1e calc(50% - 1px),
-      #7a5c1e calc(50% + 1px), transparent calc(50% + 1px));
+    background: #7a5c1e;
+    width: 26px;
+    height: 1.5px;
+    top: 12px;
+    left: -5px;
+    transform: rotate(-45deg);
   }
   .print-jathagam .planet-badge {
     background: #ffffff !important;

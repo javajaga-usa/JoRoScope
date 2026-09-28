@@ -226,11 +226,13 @@ function renderDiamondChart(svg, varga, { mirror = false, print = false } = {}) 
     path.setAttribute('stroke-width', '1.2');
     g.append(path);
     // Sign number (1 = Aries ... 12 = Pisces), as North Indian and Sinhala charts write it
-    g.append(text(house.num[0], house.num[1], signIdx + 1, 14, pal.accent));
+    g.append(text(house.num[0], house.num[1], signIdx + 1, print ? 20 : 14, pal.accent));
     const names = svgGrahaLabels(varga, signIdx);
     const lines = [];
     for (let k = 0; k < names.length; k += house.per) lines.push(names.slice(k, k + house.per).join(' '));
-    lines.forEach((line, k) => g.append(text(house.text[0], house.text[1] + (k - (lines.length - 1) / 2) * 17, line, 14, pal.text)));
+    // Paper charts are small, so their text is drawn larger
+    const size = print ? 22 : 14;
+    lines.forEach((line, k) => g.append(text(house.text[0], house.text[1] + (k - (lines.length - 1) / 2) * (size + 3), line, size, pal.text)));
     svg.append(g);
   });
 }

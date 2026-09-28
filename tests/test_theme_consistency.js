@@ -77,10 +77,10 @@ console.log('[PASS] localStorage initialization implemented');
 assert(/function chartPalette[\s\S]*?getAttribute\('data-theme'\) === 'light'/.test(jsContent), 'SVG dynamic theme detection missing in app.js');
 console.log('[PASS] Dynamic SVG theme detection verified in chartPalette');
 
-assert(jsContent.includes("signIdx + 1, 14, pal.accent"), 'Dynamic sign text color missing in SVG renderer');
+assert(jsContent.includes("signIdx + 1, print ? 20 : 14, pal.accent"), 'Dynamic sign text color missing in SVG renderer');
 console.log('[PASS] Dynamic sign text color applied to SVG');
 
-assert(jsContent.includes("line, 14, pal.text"), 'Dynamic planet text color missing in SVG renderer');
+assert(jsContent.includes("line, size, pal.text"), 'Dynamic planet text color missing in SVG renderer');
 console.log('[PASS] Dynamic planet text color applied to SVG');
 
 console.log('\nALL THEME CONSISTENCY CHECKS PASSED SUCCESSFULLY!');
