@@ -1,5 +1,21 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+### South Indian (Tamil) Jathagam
+- New `joroscope.core.south_indian` module: Tamil calendar (60-year cycle, month and date by the sunset rule), Vaaram, Udayadi Nazhigai, Dasa Irruppu, Mandi, Chevvai and Rahu-Ketu Doshams, Papa Samyam, and a Tamil daily panchangam.
+- Chart API adds `south_indian` (Jathaga Kurippu) and `doshas.chevvai` / `doshas.rahu_ketu`; `/api/match` adds `dosha_samyam` when full birth details are sent.
+- South Indian chart: Tamil abbreviations, Lagna diagonal, Mandi, degrees, Dasa balance in the centre, and a Rasi + Navamsa view.
+- Daily Panchangam page now shows today's (or any date's) panchangam for the form location instead of the birth moment.
+
+### Fixes
+- Charts crashed with the PyPI `pyswisseph` build, which returns 12 house cusps instead of 13.
+- Panchangam used the UTC weekday and an approximate sunrise; it now uses the local date and Swiss Ephemeris rise/set, and reports local times.
+- Vedha Porutham pairs (8 of 13 were wrong), Dina Porutham counts and same-star rules, Nadi and Varna tables in Guna Milan.
+- Divisional charts numbered houses from the Rasi Lagna instead of their own Lagna.
+- The South Indian grid stayed visible after switching chart styles.
+- Seed profiles carried incorrect stars and signs.
+
 ## [2.0.0] - 2026-09-12
 
 ### Architecture & Reorganization

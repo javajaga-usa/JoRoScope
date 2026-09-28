@@ -27,17 +27,34 @@ const STARS_TA = [
   'பூரட்டாதி', 'உத்திரட்டாதி', 'ரேவதி'
 ];
 
+// ta_short: the abbreviations written inside a traditional Tamil jathaga kattam
 const PLANET_NAMES = {
-  Sun: { en: 'Sun', ta: 'சூரியன்', short: 'Su', color: '#f39c12' },
-  Moon: { en: 'Moon', ta: 'சந்திரன்', short: 'Mo', color: '#ecf0f1' },
-  Mars: { en: 'Mars', ta: 'செவ்வாய்', short: 'Ma', color: '#e74c3c' },
-  Mercury: { en: 'Mercury', ta: 'புதன்', short: 'Me', color: '#2ecc71' },
-  Jupiter: { en: 'Jupiter', ta: 'குரு', short: 'Ju', color: '#f1c40f' },
-  Venus: { en: 'Venus', ta: 'சுக்கிரன்', short: 'Ve', color: '#e056fd' },
-  Saturn: { en: 'Saturn', ta: 'சனி', short: 'Sa', color: '#3498db' },
-  Rahu: { en: 'Rahu', ta: 'ராகு', short: 'Ra', color: '#95a5a6' },
-  Ketu: { en: 'Ketu', ta: 'கேது', short: 'Ke', color: '#bdc3c7' },
-  Ascendant: { en: 'Ascendant', ta: 'லக்னம்', short: 'Asc', color: '#e5c378' }
+  Sun: { en: 'Sun', ta: 'சூரியன்', short: 'Su', ta_short: 'சூ', color: '#f39c12' },
+  Moon: { en: 'Moon', ta: 'சந்திரன்', short: 'Mo', ta_short: 'சந்', color: '#ecf0f1' },
+  Mars: { en: 'Mars', ta: 'செவ்வாய்', short: 'Ma', ta_short: 'செ', color: '#e74c3c' },
+  Mercury: { en: 'Mercury', ta: 'புதன்', short: 'Me', ta_short: 'பு', color: '#2ecc71' },
+  Jupiter: { en: 'Jupiter', ta: 'குரு', short: 'Ju', ta_short: 'கு', color: '#f1c40f' },
+  Venus: { en: 'Venus', ta: 'சுக்கிரன்', short: 'Ve', ta_short: 'சு', color: '#e056fd' },
+  Saturn: { en: 'Saturn', ta: 'சனி', short: 'Sa', ta_short: 'ச', color: '#3498db' },
+  Rahu: { en: 'Rahu', ta: 'ராகு', short: 'Ra', ta_short: 'ரா', color: '#95a5a6' },
+  Ketu: { en: 'Ketu', ta: 'கேது', short: 'Ke', ta_short: 'கே', color: '#bdc3c7' },
+  Ascendant: { en: 'Ascendant', ta: 'லக்னம்', short: 'Asc', ta_short: 'ல', color: '#e5c378' },
+  Mandi: { en: 'Mandi', ta: 'மாந்தி', short: 'Md', ta_short: 'மா', color: '#7f8c8d' }
+};
+
+const VARGA_NAMES = {
+  D1: ['Rasi', 'இராசி'], D2: ['Hora', 'ஹோரை'], D3: ['Drekkana', 'திரேக்காணம்'],
+  D4: ['Chaturthamsa', 'சதுர்த்தாம்சம்'], D7: ['Saptamsa', 'சப்தாம்சம்'], D9: ['Navamsa', 'நவாம்சம்'],
+  D10: ['Dasamsa', 'தசாம்சம்'], D12: ['Dwadasamsa', 'துவாதசாம்சம்'], D16: ['Shodasamsa', 'ஷோடசாம்சம்'],
+  D20: ['Vimsamsa', 'விம்சாம்சம்'], D24: ['Chaturvimsamsa', 'சதுர்விம்சாம்சம்'],
+  D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்']
+};
+
+const TITHI_TA = {
+  Prathama: 'பிரதமை', Dwitiya: 'துவிதியை', Tritiya: 'திருதியை', Chaturthi: 'சதுர்த்தி', Panchami: 'பஞ்சமி',
+  Shashthi: 'சஷ்டி', Saptami: 'சப்தமி', Ashtami: 'அஷ்டமி', Navami: 'நவமி', Dashami: 'தசமி',
+  Ekadashi: 'ஏகாதசி', Dwadashi: 'துவாதசி', Trayodashi: 'திரயோதசி', Chaturdashi: 'சதுர்த்தசி',
+  Purnima: 'பௌர்ணமி', Amavasya: 'அமாவாசை'
 };
 
 const HOUSE_BHAVAS = {
@@ -68,6 +85,8 @@ let currentDasaMode = 'timeline';
 let currentTimelineFilter = 'active';
 let currentTimelinePlanet = 'all';
 let timelineSearchYear = null;
+let lastDailyPanchangam = null;
+let lastMatch = null;
 const STORAGE_KEY = 'joroscope_profiles_v2';
 const LEGACY_STORAGE_KEY = 'astrology-reborn-profiles-v1';
 
@@ -88,11 +107,11 @@ const DEFAULT_SEED_PROFILES = [
     lagna_ta: 'மீனம்',
     moon_sign: 'Aquarius',
     moon_sign_ta: 'கும்பம்',
-    nakshatra: 'Shatabhisha',
-    nakshatra_ta: 'சதயம்',
-    nakshatra_idx: 23,
+    nakshatra: 'Dhanishtha',
+    nakshatra_ta: 'அவிட்டம்',
+    nakshatra_idx: 22,
     sign_idx: 10,
-    pada: 1,
+    pada: 4,
     created_at: '2026-01-01T12:00:00.000Z'
   },
   {
@@ -108,13 +127,13 @@ const DEFAULT_SEED_PROFILES = [
     fold: '',
     lagna: 'Gemini',
     lagna_ta: 'மிதுனம்',
-    moon_sign: 'Leo',
-    moon_sign_ta: 'சிம்மம்',
-    nakshatra: 'Magha',
-    nakshatra_ta: 'மகம்',
-    nakshatra_idx: 9,
-    sign_idx: 4,
-    pada: 2,
+    moon_sign: 'Cancer',
+    moon_sign_ta: 'கடகம்',
+    nakshatra: 'Ashlesha',
+    nakshatra_ta: 'ஆயில்யம்',
+    nakshatra_idx: 8,
+    sign_idx: 3,
+    pada: 4,
     created_at: '2026-01-02T08:30:00.000Z'
   },
   {
@@ -136,7 +155,7 @@ const DEFAULT_SEED_PROFILES = [
     nakshatra_ta: 'பரணி',
     nakshatra_idx: 1,
     sign_idx: 0,
-    pada: 4,
+    pada: 3,
     created_at: '2026-01-03T18:45:00.000Z'
   }
 ];
@@ -238,7 +257,39 @@ const I18N = {
     jump: 'Go',
     annual_projections_title: '10-Year Rolling Annual Projections',
     annual_projections_sub: 'Milestones and astrological favorability score for current era',
-    open_timeline_studio: 'Open Interactive 81-Period Timeline Studio →'
+    open_timeline_studio: 'Open Interactive 81-Period Timeline Studio →',
+    rasi_navamsa: 'Rasi + Navamsa',
+    jathaga_kurippu: 'Tamil Jathaga Kurippu',
+    jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
+    chevvai_dosham: 'Chevvai Dosham (Kuja / Manglik)',
+    rahu_ketu_dosham: 'Rahu-Ketu Dosham',
+    dosha_samyam: 'Dosha Samyam (Chevvai & Papa Balance)',
+    dosha: 'Dosha',
+    bride: 'Bride',
+    groom: 'Groom',
+    samyam: 'Samyam',
+    panch_date: 'Date',
+    panch_now: 'Now',
+    panch_location: 'LOCATION',
+    panch_location_hint: 'From the birth form. Use 📍 My Location to switch.',
+    tamil_calendar: 'TAMIL CALENDAR',
+    soolam: 'SOOLAM (AVOID TRAVEL)',
+    chandrashtamam: 'CHANDRASHTAMAM',
+    personal_balam: 'Your Day: Tara & Chandra Balam',
+    tara_balam: 'TARA BALAM',
+    chandra_balam: 'CHANDRA BALAM',
+    five_limbs: 'Five Limbs of Time (Pancha-Anga)',
+    vaaram: 'VAARAM (WEEKDAY)',
+    muhurtha_local: 'Muhurtha Windows (Local Time)',
+    sunrise_sunset: 'Sunrise & Sunset',
+    abhijit: 'Abhijit Muhurtham',
+    abhijit_sub: 'Most auspicious daytime window',
+    rahu_kalam: 'Rahu Kalam',
+    rahu_kalam_sub: 'Inauspicious period ruled by Rahu',
+    yamagandam: 'Yamagandam',
+    yamagandam_sub: 'Inauspicious period ruled by Yama',
+    kuligai: 'Kuligai (Gulika Kalam)',
+    kuligai_sub: "Saturn's segment: avoid beginnings that should not repeat"
   },
   ta: {
     workspace: 'பணிப் பகுதி',
@@ -335,7 +386,39 @@ const I18N = {
     jump: 'செல்க',
     annual_projections_title: '10 ஆண்டுக்கான வருடாந்திர மைல்கல் பலன்கள்',
     annual_projections_sub: 'ஒவ்வொரு ஆண்டின் வயது, இயங்கும் தசை மற்றும் சாதக சுட்டெண்',
-    open_timeline_studio: '81 தசா-புக்தி காலவரிசை ஸ்டுடியோவைக் காண்க →'
+    open_timeline_studio: '81 தசா-புக்தி காலவரிசை ஸ்டுடியோவைக் காண்க →',
+    rasi_navamsa: 'இராசி + அம்சம்',
+    jathaga_kurippu: 'ஜாதகக் குறிப்பு',
+    jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
+    chevvai_dosham: 'செவ்வாய் தோஷம்',
+    rahu_ketu_dosham: 'ராகு-கேது தோஷம்',
+    dosha_samyam: 'தோஷ சாம்யம் (செவ்வாய் & பாப சாம்யம்)',
+    dosha: 'தோஷம்',
+    bride: 'பெண்',
+    groom: 'ஆண்',
+    samyam: 'சாம்யம்',
+    panch_date: 'தேதி',
+    panch_now: 'இப்போது',
+    panch_location: 'இடம்',
+    panch_location_hint: 'பிறப்பு படிவத்திலிருந்து. மாற்ற 📍 என் இருப்பிடம் பயன்படுத்தவும்.',
+    tamil_calendar: 'தமிழ் நாட்காட்டி',
+    soolam: 'சூலம்',
+    chandrashtamam: 'சந்திராஷ்டமம்',
+    personal_balam: 'உங்கள் நாள்: தாரா & சந்திர பலம்',
+    tara_balam: 'தாரா பலம்',
+    chandra_balam: 'சந்திர பலம்',
+    five_limbs: 'பஞ்ச அங்கங்கள்',
+    vaaram: 'வாரம் (கிழமை)',
+    muhurtha_local: 'முகூர்த்த நேரங்கள் (உள்ளூர் நேரம்)',
+    sunrise_sunset: 'சூரிய உதயம் & அஸ்தமனம்',
+    abhijit: 'அபிஜித் முகூர்த்தம்',
+    abhijit_sub: 'பகலின் மிகச் சிறந்த நேரம்',
+    rahu_kalam: 'இராகு காலம்',
+    rahu_kalam_sub: 'ராகுவின் அசுப நேரம்',
+    yamagandam: 'எமகண்டம்',
+    yamagandam_sub: 'எமனின் அசுப நேரம்',
+    kuligai: 'குளிகை',
+    kuligai_sub: 'மீண்டும் நிகழக் கூடாத காரியங்களைத் தவிர்க்கவும்'
   }
 };
 
@@ -367,7 +450,7 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
-  if (pageName === 'panchangam' && currentChart) populatePanchangamView(currentChart.panchanga);
+  if (pageName === 'panchangam') loadDailyPanchangam();
 
   // Close mobile sidebar if open
   $('.sidebar').classList.remove('open');
@@ -413,6 +496,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#btn-south-style').addEventListener('click', () => setChartStyle('south'));
   $('#btn-north-style').addEventListener('click', () => setChartStyle('north'));
   $('#btn-east-style').addEventListener('click', () => setChartStyle('east'));
+  $('#btn-dual-style').addEventListener('click', () => setChartStyle('dual'));
 
   // Varga selector pills
   $$('.varga-pill').forEach(btn => {
@@ -485,6 +569,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Match Button
   $('#run-match-btn').addEventListener('click', runHoroscopeMatch);
 
+  // Daily Panchangam: a picked date shows that day at sunrise; "Now" shows this moment
+  $('#panch-date')?.addEventListener('change', loadDailyPanchangam);
+  $('#panch-today-btn')?.addEventListener('click', () => {
+    $('#panch-date').value = '';
+    loadDailyPanchangam();
+  });
+
   // Initialize theme from persistence or system preference
   let initialTheme = 'dark';
   try {
@@ -546,9 +637,13 @@ function toggleLanguage() {
     renderPlanetsTable();
     renderQuickStats();
     renderAshtakavarga();
+    renderYogasAndDoshas();
+    renderJathagaKurippu();
     renderLifeReadings();
     renderDasaTimelineView();
   }
+  if (lastDailyPanchangam) populatePanchangamView(lastDailyPanchangam);
+  if (lastMatch) renderDoshaSamyam(lastMatch);
   populateQuickProfileDropdown();
   renderProfilesList();
   populateMatchDropdowns();
@@ -702,7 +797,8 @@ async function handleFormSubmit(e) {
     renderDashaAccordion();
     renderDasaTimelineView();
     renderLifeReadings();
-    populatePanchangamView(result.panchanga);
+    renderJathagaKurippu();
+    if (!$('#page-panchangam').hidden) loadDailyPanchangam();
 
     // Sync calculated astrological attributes with saved profiles if already stored
     syncCalculatedProfileWithStorage(result);
@@ -752,16 +848,72 @@ function renderQuickStats() {
   $('#calc-ayanamsa-val').textContent = formatDegrees(currentChart.ayanamsa_degrees);
 }
 
+// "HH:MM" from an ISO timestamp that carries its own UTC offset
+const clockTime = iso => (iso || '').slice(11, 16);
+
+function tithiLabel(name) {
+  return currentLang === 'ta' ? (TITHI_TA[name] || name) : name;
+}
+
+function pakshaLabel(paksha) {
+  if (currentLang !== 'ta') return paksha;
+  return paksha.startsWith('Shukla') ? 'வளர்பிறை' : 'தேய்பிறை';
+}
+
+// Tamil Jathaga Kurippu: the birth notes block of a Tamil horoscope
+function renderJathagaKurippu() {
+  const si = currentChart?.south_indian;
+  const grid = $('#kurippu-grid');
+  if (!grid) return;
+  $('#jathaga-kurippu-card').hidden = !si;
+  if (!si) return;
+
+  const isTa = currentLang === 'ta';
+  const p = currentChart.planets;
+  const panch = currentChart.panchanga;
+  const tc = si.tamil_calendar;
+  const nz = si.nazhigai;
+  const star = si.birth_star;
+  const mandi = si.mandi;
+  const pick = (en, ta) => isTa ? ta : en;
+  const starIdx = STARS_EN.indexOf(p.Moon.nakshatra);
+
+  const rows = [
+    [pick('Tamil Year', 'வருடம்'), pick(`${tc.year} (${tc.year_ta})`, `${tc.year_ta} வருடம்`)],
+    [pick('Tamil Month & Date', 'மாதம் & தேதி'), pick(`${tc.month} ${tc.day} (${tc.month_ta})`, `${tc.month_ta} ${tc.day}`)],
+    [pick('Vaaram (Vedic day)', 'கிழமை'), pick(`${si.vaaram.en} (${si.vaaram.ta})`, si.vaaram.ta)],
+    [pick('Sunrise', 'சூரிய உதயம்'), clockTime(si.sunrise_local)],
+    [pick('Udayadi Nazhigai', 'உதயாதி நாழிகை'), pick(`${nz.nazhigai} nazhigai ${nz.vinadi} vinadi`, `${nz.nazhigai} நாழிகை ${nz.vinadi} விநாடி`)],
+    [pick('Dinamanam (day length)', 'தினமானம்'), pick(`${nz.dinamanam} nazhigai`, `${nz.dinamanam} நாழிகை`)],
+    [pick('Tithi', 'திதி'), `${tithiLabel(panch.tithi_name)} · ${pakshaLabel(panch.paksha)}`],
+    [pick('Nakshatra & Pada', 'நட்சத்திரம் & பாதம்'), `${isTa ? STARS_TA[starIdx] : p.Moon.nakshatra} · ${pick('Pada', 'பாதம்')} ${p.Moon.pada}`],
+    [pick('Nitya Yoga · Karana', 'யோகம் · கரணம்'), `${panch.yoga_name} · ${panch.karana_name}`],
+    [pick('Lagna', 'லக்னம்'), pick(p.Ascendant.sign, p.Ascendant.tamil)],
+    [pick('Rasi', 'ராசி'), pick(p.Moon.sign, p.Moon.tamil)],
+    [pick('Gana · Yoni', 'கணம் · யோனி'), pick(`${star.gana} · ${star.yoni}`, `${star.gana_ta} · ${star.yoni_ta}`)],
+    [pick('Rajju · Nadi', 'ரஜ்ஜு · நாடி'), pick(`${star.rajju} · ${star.nadi}`, `${star.rajju_ta} · ${star.nadi_ta}`)],
+    [pick('Dasa Irruppu (balance at birth)', 'தசா இருப்பு'),
+      `${pick(si.dasa_irruppu.lord, si.dasa_irruppu.lord_ta)} · ${irruppuSpan(si.dasa_irruppu)}`],
+    [pick('Mandi (Maandhi)', 'மாந்தி'), `${pick(mandi.sign, mandi.tamil)} ${formatDegrees(mandi.degree)} · ${pick(`H${mandi.house}`, `${mandi.house}-ம் வீடு`)}`],
+    [pick('Papa Points (L / C / S)', 'பாப புள்ளிகள் (ல / ச / சு)'),
+      `${si.papa_points.total} (${si.papa_points.breakdown.map(b => b.points).join(' / ')})`]
+  ];
+
+  grid.innerHTML = rows.map(([label, value]) => `
+    <div class="kurippu-item">
+      <small>${esc(label)}</small>
+      <strong>${esc(value)}</strong>
+    </div>
+  `).join('');
+}
+
 // Chart Style & Varga Switching
 function setChartStyle(style) {
   currentStyle = style;
-  $('#btn-south-style').classList.toggle('active', style === 'south');
-  $('#btn-north-style').classList.toggle('active', style === 'north');
-  $('#btn-east-style').classList.toggle('active', style === 'east');
-
-  $('#south-chart-container').hidden = (style !== 'south');
-  $('#north-chart-container').hidden = (style !== 'north');
-  $('#east-chart-container').hidden = (style !== 'east');
+  ['south', 'north', 'east', 'dual'].forEach(st => {
+    $(`#btn-${st}-style`).classList.toggle('active', style === st);
+    $(`#${st}-chart-container`).hidden = (style !== st);
+  });
 
   renderCurrentChart();
 }
@@ -769,14 +921,29 @@ function setChartStyle(style) {
 function setVarga(varga) {
   currentVarga = varga;
   $$('.varga-pill').forEach(b => b.classList.toggle('active', b.dataset.varga === varga));
-  $('#current-varga-display').textContent = `${varga} Chart`;
   renderCurrentChart();
+}
+
+function vargaTitle(varga) {
+  const [en, ta] = VARGA_NAMES[varga] || [varga, varga];
+  return currentLang === 'ta' ? ta : `${en} (${varga})`;
 }
 
 function renderCurrentChart() {
   if (!currentChart) return;
+  // Rasi + Navamsa always shows D1 on the left; the right panel follows the varga pills (D9 by default).
+  const amsa = currentVarga === 'D1' ? 'D9' : currentVarga;
+  $('#current-varga-display').textContent = currentStyle === 'dual'
+    ? `${vargaTitle('D1')} + ${vargaTitle(amsa)}`
+    : vargaTitle(currentVarga);
+  $('#legend-retro').textContent = currentLang === 'ta' ? '(வ) வக்ரம்' : 'Rx Retro';
+  $('#legend-lagna').textContent = currentLang === 'ta' ? '╱ லக்னம்' : '╱ Lagna';
+
   if (currentStyle === 'south') {
-    renderSouthChart();
+    renderSouthChart($('#south-chart-container'), currentVarga);
+  } else if (currentStyle === 'dual') {
+    renderSouthChart($('#dual-rasi-grid'), 'D1', true);
+    renderSouthChart($('#dual-amsa-grid'), amsa, true);
   } else if (currentStyle === 'north') {
     renderNorthChart();
   } else if (currentStyle === 'east') {
@@ -784,10 +951,37 @@ function renderCurrentChart() {
   }
 }
 
+// Grahas plus Mandi (Maandhi), which Tamil and Kerala charts always show
+function chartBodies() {
+  const bodies = Object.entries(currentChart.planets);
+  const mandi = currentChart.south_indian?.mandi;
+  if (mandi) bodies.push(['Mandi', mandi]);
+  return bodies;
+}
+
+function grahaAbbrev(pName) {
+  const meta = PLANET_NAMES[pName];
+  return currentLang === 'ta' ? meta.ta_short : meta.short;
+}
+
+// Balance of the birth Maha Dasa as years / months / days (வருடம் / மாதம் / நாள்)
+function irruppuSpan(irr) {
+  return currentLang === 'ta'
+    ? `${irr.years} வ ${irr.months} மா ${irr.days} நா`
+    : `${irr.years}y ${irr.months}m ${irr.days}d`;
+}
+
+function dasaIrruppuText(irr) {
+  if (!irr) return '';
+  return currentLang === 'ta'
+    ? `${irr.lord_ta} தசை இருப்பு: ${irruppuSpan(irr)}`
+    : `${irr.lord} Dasa balance: ${irruppuSpan(irr)}`;
+}
+
 // 1. South Indian Layout (Traditional 4x4 Grid with Fixed Signs)
-function renderSouthChart() {
-  const container = $('#south-chart-container');
+function renderSouthChart(container, varga, compact = false) {
   container.replaceChildren();
+  const isTa = currentLang === 'ta';
 
   // South Indian Sign positions [row, col] (1-indexed)
   // 0: Aries (1,2), 1: Taurus (1,3), 2: Gemini (1,4), 3: Cancer (2,4), 4: Leo (3,4), 5: Virgo (4,4),
@@ -798,62 +992,67 @@ function renderSouthChart() {
     [4, 1], [3, 1], [2, 1], [1, 1]
   ];
 
-  const ascSign = currentChart.planets.Ascendant.sign_index;
+  // Houses count from this varga's own Lagna; the inspector describes the Rasi (D1) house.
+  const vargaAsc = currentChart.planets.Ascendant.vargas[varga];
+  const rasiAsc = currentChart.planets.Ascendant.sign_index;
+  const bodies = chartBodies();
 
-  // Render 12 houses
   for (let s = 0; s < 12; s++) {
     const cell = document.createElement('div');
-    cell.className = 'house-cell';
+    cell.className = `house-cell${s === vargaAsc ? ' lagna-cell' : ''}`;
     cell.style.gridArea = `${pos[s][0]} / ${pos[s][1]}`;
 
-    // Relative house number from Lagna
-    const houseNum = (s - ascSign + 12) % 12 + 1;
+    const houseNum = (s - vargaAsc + 12) % 12 + 1;
 
-    // Header
     const header = document.createElement('div');
     header.className = 'house-header';
     header.innerHTML = `
       <div>
-        <span class="sign-label">${currentLang === 'ta' ? SIGNS_TA[s] : SIGNS_EN[s]}</span>
-        <span class="tamil-sign-label">${currentLang === 'ta' ? SIGNS_EN[s] : SIGNS_TA[s]}</span>
+        <span class="sign-label">${isTa ? SIGNS_TA[s] : SIGNS_EN[s]}</span>
+        ${compact ? '' : `<span class="tamil-sign-label">${isTa ? SIGNS_EN[s] : SIGNS_TA[s]}</span>`}
       </div>
-      <span class="house-num-badge">H${houseNum}</span>
+      <span class="house-num-badge">${isTa ? houseNum : `H${houseNum}`}</span>
     `;
     cell.append(header);
 
-    // Planets inside this sign for the current Varga
     const flow = document.createElement('div');
     flow.className = 'house-planets-flow';
 
-    Object.entries(currentChart.planets).forEach(([pName, pData]) => {
-      const vargaSign = pData.vargas[currentVarga];
-      if (vargaSign === s) {
-        const badge = document.createElement('span');
-        const isAsc = (pName === 'Ascendant');
-        const isBenefic = ['Jupiter', 'Venus', 'Moon', 'Mercury'].includes(pName);
-        badge.className = `planet-badge ${isAsc ? 'asc' : (isBenefic ? 'benefic' : 'malefic')} ${pData.retrograde ? 'retro' : ''} ${pData.combust ? 'combust' : ''}`;
-        badge.title = `${pName} (${formatDegrees(pData.degree)})`;
-        badge.textContent = PLANET_NAMES[pName].short;
-        flow.append(badge);
+    bodies.forEach(([pName, pData]) => {
+      if (pData.vargas[varga] !== s) return;
+      const badge = document.createElement('span');
+      const isAsc = pName === 'Ascendant';
+      const isBenefic = ['Jupiter', 'Venus', 'Moon', 'Mercury'].includes(pName);
+      const kind = isAsc ? 'asc' : (pName === 'Mandi' ? 'upagraha' : (isBenefic ? 'benefic' : 'malefic'));
+      badge.className = `planet-badge ${kind} ${pData.retrograde && !['Rahu', 'Ketu'].includes(pName) ? 'retro' : ''} ${pData.combust ? 'combust' : ''}`;
+      badge.dataset.retro = isTa ? '(வ)' : 'ᴿ';
+      badge.title = `${isTa ? PLANET_NAMES[pName].ta : PLANET_NAMES[pName].en} ${formatDegrees(pData.degree)}`;
+      badge.textContent = grahaAbbrev(pName);
+      if (varga === 'D1' && !compact) {
+        const deg = document.createElement('small');
+        deg.className = 'badge-deg';
+        deg.textContent = `${Math.floor(pData.degree)}°`;
+        badge.append(deg);
       }
+      flow.append(badge);
     });
 
     cell.append(flow);
-
-    // Click handler for house inspector
-    cell.onclick = () => openHouseInspector(houseNum, s);
-
+    cell.onclick = () => openHouseInspector((s - rasiAsc + 12) % 12 + 1, s);
     container.append(cell);
   }
 
-  // Center Box
+  // Center box: the birth details a Tamil jathagam writes between the houses
+  const prof = currentChart.profile;
   const center = document.createElement('div');
   center.className = 'chart-center-box';
+  const irruppu = varga === 'D1' ? dasaIrruppuText(currentChart.south_indian?.dasa_irruppu) : '';
   center.innerHTML = `
-    <span class="center-star">✦</span>
-    <h3 class="center-title">${currentVarga} ${currentVarga === 'D1' ? 'Rasi' : (currentVarga === 'D9' ? 'Navamsa' : 'Varga')}</h3>
-    <p class="center-sub">${esc(currentChart.profile.name || 'JoRoScope')}</p>
-    <span class="center-meta">${currentChart.profile.date} · ${currentChart.method.ayanamsa}</span>
+    ${compact ? '' : '<span class="center-star">✦</span>'}
+    <h3 class="center-title">${esc(isTa ? VARGA_NAMES[varga]?.[1] : VARGA_NAMES[varga]?.[0] || varga)}</h3>
+    <p class="center-sub">${esc(prof.name || 'JoRoScope')}</p>
+    <span class="center-meta">${esc(prof.date)} · ${esc(prof.time)}${prof.city ? ` · ${esc(prof.city)}` : ''}</span>
+    ${irruppu ? `<span class="center-irruppu">${esc(irruppu)}</span>` : ''}
   `;
   container.append(center);
 }
@@ -863,7 +1062,7 @@ function renderNorthChart() {
   const svg = $('#north-svg');
   svg.innerHTML = '';
 
-  const ascSign = currentChart.planets.Ascendant.sign_index;
+  const ascSign = currentChart.planets.Ascendant.vargas[currentVarga];
   const w = 600, h = 600;
 
   const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -894,7 +1093,8 @@ function renderNorthChart() {
 
     const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
     g.style.cursor = 'pointer';
-    g.onclick = () => openHouseInspector(hItem.num, signIdx);
+    // The inspector describes the Rasi (D1) house of this sign
+    g.onclick = () => openHouseInspector((signIdx - currentChart.planets.Ascendant.sign_index + 12) % 12 + 1, signIdx);
 
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttribute('d', hItem.path);
@@ -915,7 +1115,7 @@ function renderNorthChart() {
     g.append(signText);
 
     // Planet labels in this house
-    const planetsInHouse = Object.entries(currentChart.planets).filter(([pName, pData]) => {
+    const planetsInHouse = chartBodies().filter(([pName, pData]) => {
       return pData.vargas[currentVarga] === signIdx;
     });
 
@@ -928,7 +1128,7 @@ function renderNorthChart() {
       planText.setAttribute('font-weight', '700');
       planText.setAttribute('text-anchor', 'middle');
 
-      const names = planetsInHouse.map(([n, p]) => `${PLANET_NAMES[n].short}${p.retrograde ? 'ᴿ' : ''}`).join(' ');
+      const names = planetsInHouse.map(([n, p]) => `${grahaAbbrev(n)}${p.retrograde && !['Rahu', 'Ketu'].includes(n) ? 'ᴿ' : ''}`).join(' ');
       planText.textContent = names;
       g.append(planText);
     }
@@ -1071,28 +1271,63 @@ function renderYogasAndDoshas() {
   const yogas = currentChart.yogas || [];
   const doshas = currentChart.doshas || {};
 
-  // Kuja / Manglik
-  const m = doshas.manglik;
+  const isTa = currentLang === 'ta';
+  const houseWord = h => isTa ? `${h}-ம் வீடு` : `house ${h}`;
+
+  // Chevvai Dosham: Tamil rule from Lagna, Moon and Venus
+  const cv = doshas.chevvai;
   const mCard = $('#manglik-card');
-  if (m) {
-    if (m.present && !m.cancelled) {
+  if (cv) {
+    const status = $('#manglik-status');
+    if (cv.effective) {
       mCard.className = 'cosmic-card dosha-card active-dosha';
-      $('#manglik-status').className = 'status-pill danger';
-      $('#manglik-status').textContent = 'Present (Active)';
-      $('#manglik-desc').textContent = `Mars is placed in House ${m.house}. Encourages vigorous ambition and strong independence in relationships.`;
-    } else if (m.present && m.cancelled) {
+      status.className = 'status-pill danger';
+      status.textContent = isTa ? `உள்ளது (${cv.severity}/3)` : `Present (${cv.severity} of 3)`;
+    } else if (cv.present) {
       mCard.className = 'cosmic-card dosha-card cancelled-dosha';
-      $('#manglik-status').className = 'status-pill success';
-      $('#manglik-status').textContent = 'Present but Cancelled (Bhanga)';
-      $('#manglik-desc').textContent = `Mars resides in House ${m.house}, but Kuja Dosha is neutralized by protective astrological alignments.`;
-      $('#manglik-reasons').innerHTML = (m.reasons || []).map(r => `<div>✔ ${r}</div>`).join('');
+      status.className = 'status-pill success';
+      status.textContent = isTa ? 'உள்ளது, ஆனால் நிவர்த்தி' : 'Present but Cancelled';
     } else {
       mCard.className = 'cosmic-card dosha-card';
-      $('#manglik-status').className = 'status-pill neutral';
-      $('#manglik-status').textContent = 'Not Present';
-      $('#manglik-desc').textContent = 'Mars occupies an auspicious non-afflicting house position.';
-      $('#manglik-reasons').innerHTML = '';
+      status.className = 'status-pill neutral';
+      status.textContent = isTa ? 'இல்லை' : 'Not Present';
     }
+    $('#manglik-desc').textContent = isTa
+      ? `செவ்வாய் ${cv.mars_sign_ta} ராசியில் உள்ளது. லக்னம், சந்திரன், சுக்கிரனிலிருந்து 2, 4, 7, 8, 12-ம் வீடுகளில் செவ்வாய் இருந்தால் தோஷம்.`
+      : `Mars is in ${cv.mars_sign}. The dosha arises when Mars occupies houses 2, 4, 7, 8 or 12 counted from Lagna, Moon or Venus.`;
+    $('#chevvai-references').innerHTML = cv.references.map(r => {
+      const state = r.afflicting ? (isTa ? 'தோஷம்' : 'afflicts') : (r.exempt ? (isTa ? 'விதிவிலக்கு' : 'exempt by sign') : (isTa ? 'தோஷமில்லை' : 'clear'));
+      const cls = r.afflicting ? 'danger' : (r.exempt ? 'success' : 'neutral');
+      return `<div class="dosha-ref"><span>${esc(isTa ? r.reference_ta : r.reference)}</span><span>${houseWord(r.house)}</span><span class="status-pill ${cls}">${state}</span></div>`;
+    }).join('');
+    $('#manglik-reasons').innerHTML = cv.cancellations.map(c => `<div>✔ ${esc(isTa ? c.ta : c.en)}</div>`).join('');
+  }
+  const m = doshas.manglik;
+  if (m) {
+    const northState = !m.present ? (isTa ? 'இல்லை' : 'not present')
+      : (m.cancelled ? (isTa ? 'நிவர்த்தி' : 'cancelled') : (isTa ? 'உள்ளது' : 'present'));
+    $('#manglik-north-note').textContent = isTa
+      ? `வட இந்திய மாங்கலிக் விதி (லக்னத்திலிருந்து 1, 2, 4, 7, 8, 12): ${northState}.`
+      : `North Indian Manglik rule (1, 2, 4, 7, 8, 12 from Lagna only): ${northState}.`;
+  }
+
+  // Rahu-Ketu Dosham
+  const rk = doshas.rahu_ketu;
+  const rkCard = $('#rahuketu-card');
+  if (rk) {
+    const status = $('#rahuketu-status');
+    rkCard.className = `cosmic-card dosha-card${rk.present ? ' active-dosha' : ''}`;
+    status.className = `status-pill ${rk.present ? 'danger' : 'neutral'}`;
+    status.textContent = rk.present ? (isTa ? 'உள்ளது' : 'Present') : (isTa ? 'இல்லை' : 'Not Present');
+    $('#rahuketu-desc').textContent = isTa
+      ? 'லக்னம் அல்லது சந்திரனிலிருந்து 1, 2, 7, 8-ம் வீடுகளில் ராகு அல்லது கேது இருந்தால் தோஷம்; திருமணப் பொருத்தத்தில் இருவருக்கும் சமமாக இருப்பது நல்லது.'
+      : 'Arises when Rahu or Ketu occupies houses 1, 2, 7 or 8 from Lagna or Moon. In matching, it is best balanced by a similar dosha in the partner.';
+    $('#rahuketu-references').innerHTML = rk.references.map(r => {
+      const nodes = isTa ? `ராகு ${r.rahu_house} · கேது ${r.ketu_house}` : `Rahu ${r.rahu_house} · Ketu ${r.ketu_house}`;
+      const cls = r.afflicting ? 'danger' : 'neutral';
+      const state = r.afflicting ? (isTa ? 'தோஷம்' : 'afflicts') : (isTa ? 'தோஷமில்லை' : 'clear');
+      return `<div class="dosha-ref"><span>${esc(isTa ? r.reference_ta : r.reference)}</span><span>${nodes}</span><span class="status-pill ${cls}">${state}</span></div>`;
+    }).join('');
   }
 
   // Kaal Sarp
@@ -2102,26 +2337,141 @@ function renderLifeReadings() {
   }
 }
 
-// Panchangam View
+// Daily Panchangam: fetch the Tamil panchangam for the birth form's location
+async function loadDailyPanchangam() {
+  const form = $('#birth-form');
+  const errorEl = $('#panch-error');
+  errorEl.hidden = true;
+  const city = form.elements['city']?.value || '';
+  const lat = form.elements['latitude']?.value;
+  const lon = form.elements['longitude']?.value;
+  const tz = form.elements['timezone']?.value || 'Asia/Kolkata';
+  $('#panch-location').textContent = `${city || `${lat}, ${lon}`} · ${tz}`;
+
+  const payload = { latitude: lat, longitude: lon, timezone: tz };
+  const picked = $('#panch-date').value;
+  if (picked) payload.date = picked;
+  if (currentChart) {
+    payload.natal_nakshatra_index = STARS_EN.indexOf(currentChart.planets.Moon.nakshatra);
+    payload.natal_sign_index = currentChart.planets.Moon.sign_index;
+  }
+
+  try {
+    const resp = await fetch('/api/panchangam', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const panch = await resp.json();
+    if (!resp.ok) throw new Error(panch.error || 'Panchangam calculation failed.');
+    lastDailyPanchangam = panch;
+    populatePanchangamView(panch);
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.hidden = false;
+  }
+}
+
+// "until HH:MM", with the date when the anga runs past the panchangam's day
+function untilLabel(endIso, dayIso) {
+  if (!endIso) return '';
+  const time = clockTime(endIso);
+  const sameDay = endIso.slice(0, 10) === dayIso;
+  const date = new Date(`${endIso.slice(0, 10)}T00:00:00`);
+  const dayText = date.toLocaleDateString(currentLang === 'ta' ? 'ta-IN' : 'en-GB', { day: 'numeric', month: 'short' });
+  if (currentLang === 'ta') return sameDay ? `${time} வரை` : `${dayText} ${time} வரை`;
+  return sameDay ? `until ${time}` : `until ${time}, ${dayText}`;
+}
+
 function populatePanchangamView(panch) {
   if (!panch) return;
-  $('#panch-tithi').textContent = `${panch.tithi_name} (${panch.tithi})`;
-  $('#panch-paksha').textContent = `${panch.paksha} · ${panch.tithi_percent_remaining}% left`;
+  const isTa = currentLang === 'ta';
+  const ends = panch.ends_local || {};
+  const day = panch.local_date;
+  const tc = panch.tamil_calendar;
 
-  $('#panch-nakshatra').textContent = `${panch.nakshatra} (${panch.tamil_nakshatra})`;
-  $('#panch-pada').textContent = `Pada ${panch.pada} · Gana: ${panch.nakshatra_gana} · Yoni: ${panch.nakshatra_yoni}`;
+  if (tc) {
+    $('#panch-tamil-date').textContent = isTa
+      ? `${tc.month_ta} ${tc.day}, ${panch.vaaram.ta}`
+      : `${tc.month} ${tc.day} (${tc.month_ta} ${tc.day}), ${panch.vaaram.en}`;
+    $('#panch-tamil-year').textContent = isTa
+      ? `${tc.year_ta} வருடம் · ${day}`
+      : `${tc.year} year (${tc.year_ta}), #${tc.year_number} of the 60-year cycle · ${day}`;
+  }
+  if (panch.soolam) {
+    const sl = panch.soolam;
+    $('#panch-soolam').textContent = isTa ? sl.direction_ta : sl.direction;
+    $('#panch-parigaram').textContent = isTa ? `பரிகாரம்: ${sl.parigaram_ta}` : `Parigaram (remedy): ${sl.parigaram}`;
+  }
+  if (panch.chandrashtamam) {
+    const ch = panch.chandrashtamam;
+    $('#panch-chandrashtamam').textContent = isTa ? `${ch.sign_ta} ராசி` : `${ch.sign} (${ch.sign_ta}) Rasi`;
+    $('#panch-chandrashtamam-stars').textContent = ch.stars.map(st => isTa ? st.ta : st.en).join(', ');
+  }
 
-  $('#panch-yoga').textContent = `${panch.yoga_name} (Yoga ${panch.yoga_number})`;
-  $('#panch-yoga-nature').textContent = panch.yoga_auspiciousness;
+  const when = panch.moment_local ? `${panch.moment_local.slice(0, 10)} ${clockTime(panch.moment_local)}` : day;
+  $('#panch-moment').textContent = isTa
+    ? `${when} நிலவரப்படி அங்கங்களும் அவை முடியும் நேரமும்`
+    : `Angas prevailing at ${when}, with the local time each one ends`;
+
+  if (panch.vaaram) {
+    $('#panch-vaaram').textContent = isTa ? panch.vaaram.ta : panch.vaaram.en;
+    $('#panch-vaaram-sub').textContent = isTa ? panch.vaaram.en : panch.vaaram.ta;
+  }
+  $('#panch-tithi').textContent = `${tithiLabel(panch.tithi_name)} (${panch.tithi})`;
+  $('#panch-paksha').textContent = `${pakshaLabel(panch.paksha)} · ${untilLabel(ends.tithi, day)}`;
+
+  $('#panch-nakshatra').textContent = isTa ? panch.tamil_nakshatra : `${panch.nakshatra} (${panch.tamil_nakshatra})`;
+  $('#panch-pada').textContent = `${isTa ? 'பாதம்' : 'Pada'} ${panch.pada} · ${untilLabel(ends.nakshatra, day)}`;
+
+  $('#panch-yoga').textContent = `${panch.yoga_name} (${panch.yoga_number})`;
+  $('#panch-yoga-nature').textContent = `${panch.yoga_auspiciousness} · ${untilLabel(ends.yoga, day)}`;
 
   $('#panch-karana').textContent = panch.karana_name;
-  $('#panch-karana-type').textContent = `Half-tithi ${panch.karana_half_number}`;
+  $('#panch-karana-type').textContent = untilLabel(ends.karana, day);
 
-  $('#panch-abhijit').textContent = panch.abhijit_muhurtham_utc;
-  $('#panch-rahu').textContent = panch.rahu_kalam_utc;
-  $('#panch-yama').textContent = panch.yamagandam_utc;
-  $('#panch-gulika').textContent = panch.gulika_kalam_utc;
-  $('#panch-sun-times').textContent = `Rise: ${panch.sunrise_utc} | Set: ${panch.sunset_utc} (${panch.day_length_hours}h)`;
+  // Older payloads (a chart's birth panchanga) only carry UTC timings
+  const local = key => panch[`${key}_local`] || `${panch[`${key}_utc`]} UTC`;
+  $('#panch-abhijit').textContent = local('abhijit_muhurtham');
+  $('#panch-rahu').textContent = local('rahu_kalam');
+  $('#panch-yama').textContent = local('yamagandam');
+  $('#panch-gulika').textContent = local('gulika_kalam');
+  $('#panch-sun-times').textContent = `${local('sunrise')} – ${local('sunset')}`;
+  $('#panch-tz').textContent = isTa
+    ? `${panch.timezone} · பகல் ${panch.day_length_hours} மணி`
+    : `${panch.timezone} · day length ${panch.day_length_hours} h`;
+
+  renderPersonalBalam(panch.personal);
+}
+
+function renderPersonalBalam(personal) {
+  const card = $('#panch-personal-card');
+  card.hidden = !(personal && currentChart);
+  if (card.hidden) return;
+  const isTa = currentLang === 'ta';
+  const tara = personal.tara;
+  const cb = personal.chandra_balam;
+  const moon = currentChart.planets.Moon;
+  $('#panch-personal-for').textContent = isTa
+    ? `${currentChart.profile.name} · ${moon.tamil_nakshatra} · ${moon.tamil} ராசி`
+    : `${currentChart.profile.name} · ${moon.nakshatra} · ${moon.sign} Rasi`;
+
+  $('#panch-tara').textContent = isTa ? `${tara.name_ta} தாரை` : `${tara.name} Tara`;
+  $('#panch-tara-sub').textContent = isTa
+    ? `ஜன்ம நட்சத்திரத்திலிருந்து ${tara.count}-வது நட்சத்திரம்`
+    : `Today's star is ${tara.count} from the birth star · ${tara.quality === 'good' ? 'favourable' : (tara.quality === 'bad' ? 'unfavourable' : 'mixed')}`;
+
+  $('#panch-chandra').textContent = isTa ? `${cb.house}-ம் இடத்தில் சந்திரன்` : `Moon in house ${cb.house}`;
+  $('#panch-chandra-sub').textContent = personal.chandrashtamam
+    ? (isTa ? 'சந்திராஷ்டமம்: முக்கிய முடிவுகளைத் தவிர்க்கவும்' : 'Chandrashtamam: postpone important decisions')
+    : (cb.favourable ? (isTa ? 'சந்திர பலம் உண்டு' : 'Favourable Chandra Balam') : (isTa ? 'சந்திர பலம் குறைவு' : 'Weak Chandra Balam'));
+
+  const good = tara.quality === 'good' && cb.favourable;
+  const bad = personal.chandrashtamam || (tara.quality === 'bad' && !cb.favourable);
+  const status = $('#panch-personal-status');
+  status.className = `status-pill ${good ? 'success' : (bad ? 'danger' : 'neutral')}`;
+  status.textContent = good ? (isTa ? 'சாதகமான நாள்' : 'Favourable day')
+    : (bad ? (isTa ? 'கவனம் தேவை' : 'Take care') : (isTa ? 'கலப்பு' : 'Mixed'));
 }
 
 // Horoscope Matching Tool
@@ -2182,15 +2532,24 @@ function populateMatchDropdowns() {
   }
 }
 
-async function runHoroscopeMatch() {
-  const gStar = parseInt($('#match-girl-star').value, 10);
-  const gSign = parseInt($('#match-girl-sign').value, 10);
-  const bStar = parseInt($('#match-boy-star').value, 10);
-  const bSign = parseInt($('#match-boy-sign').value, 10);
+// Full birth details let the server compare Chevvai Dosham and Papa Samyam;
+// fall back to star and sign when no profile is chosen or the selects were changed by hand.
+function matchCandidate(side) {
+  const star = parseInt($(`#match-${side}-star`).value, 10);
+  const sign = parseInt($(`#match-${side}-sign`).value, 10);
+  const profIdx = $(`#match-${side}-profile`).value;
+  const prof = profIdx === '' ? null : getSavedProfiles()[profIdx];
+  if (prof && prof.date && prof.time && prof.nakshatra_idx === star && prof.sign_idx === sign) {
+    const { name, date, time, timezone, latitude, longitude, ayanamsa, fold, city } = prof;
+    return { name, date, time, timezone, latitude, longitude, ayanamsa, fold, city };
+  }
+  return { nakshatra_index: star, sign_index: sign };
+}
 
+async function runHoroscopeMatch() {
   const payload = {
-    girl: { nakshatra_index: gStar, sign_index: gSign },
-    boy: { nakshatra_index: bStar, sign_index: bSign }
+    girl: matchCandidate('girl'),
+    boy: matchCandidate('boy')
   };
 
   try {
@@ -2212,6 +2571,8 @@ async function runHoroscopeMatch() {
     rajjuBadge.className = `badge ${match.rajju_agreement ? 'status-pill success' : 'status-pill danger'}`;
 
     $('#match-porutham-count').textContent = `${match.passed_count} of 10 Passed`;
+    lastMatch = match;
+    renderDoshaSamyam(match);
 
     // 10 Poruthams table
     const tbody = $('#poruthams-tbody');
@@ -2255,6 +2616,41 @@ async function runHoroscopeMatch() {
   } catch (err) {
     notify('Matching error: ' + err.message);
   }
+}
+
+function renderDoshaSamyam(match) {
+  const card = $('#dosha-samyam-card');
+  const hint = $('#dosha-samyam-hint');
+  const ds = match.dosha_samyam;
+  const isTa = currentLang === 'ta';
+  card.hidden = !ds;
+  hint.hidden = !!ds;
+  if (!ds) {
+    hint.textContent = isTa
+      ? 'செவ்வாய் தோஷ சாம்யம் மற்றும் பாப சாம்யம் ஒப்பிட, முழு பிறப்பு விவரங்களுடன் சேமிக்கப்பட்ட ஜாதகங்களைத் தேர்வு செய்யவும்.'
+      : 'Choose saved profiles with full birth details to compare Chevvai Dosham and Papa Samyam as well.';
+    return;
+  }
+
+  const chevvaiText = c => !c.present ? (isTa ? 'இல்லை' : 'None')
+    : (c.cancelled ? (isTa ? 'நிவர்த்தி' : 'Cancelled') : (isTa ? `உள்ளது (${c.severity}/3)` : `Present (${c.severity}/3)`));
+  const rkText = r => r.present ? (isTa ? 'உள்ளது' : 'Present') : (isTa ? 'இல்லை' : 'None');
+  const papaText = pp => `${pp.total} (${pp.breakdown.map(b => b.points).join(' / ')})`;
+  const pill = ok => `<span class="status-pill ${ok ? 'success' : 'danger'}">${ok ? (isTa ? 'சமம் ✔' : 'Balanced ✔') : (isTa ? 'சமமில்லை ✖' : 'Unbalanced ✖')}</span>`;
+  const rkBalanced = ds.boy.rahu_ketu.present === ds.girl.rahu_ketu.present;
+
+  $('#dosha-samyam-tbody').innerHTML = [
+    [isTa ? 'செவ்வாய் தோஷம்' : 'Chevvai Dosham', chevvaiText(ds.girl.chevvai), chevvaiText(ds.boy.chevvai), pill(ds.chevvai_balanced)],
+    [isTa ? 'ராகு-கேது தோஷம்' : 'Rahu-Ketu Dosham', rkText(ds.girl.rahu_ketu), rkText(ds.boy.rahu_ketu), pill(rkBalanced)],
+    [isTa ? 'பாப புள்ளிகள் (ல / ச / சு)' : 'Papa Points (L / C / S)', papaText(ds.girl.papa), papaText(ds.boy.papa), pill(ds.papa_balanced)]
+  ].map(([label, girl, boy, state]) => `<tr><td><strong>${label}</strong></td><td>${girl}</td><td>${boy}</td><td>${state}</td></tr>`).join('');
+
+  const status = $('#dosha-samyam-status');
+  status.className = `status-pill ${ds.balanced ? 'success' : 'danger'}`;
+  status.textContent = ds.balanced ? (isTa ? 'தோஷ சாம்யம் உண்டு' : 'Doshas Balanced') : (isTa ? 'ஜோதிடரை அணுகவும்' : 'Needs Review');
+  $('#dosha-samyam-summary').textContent = isTa
+    ? 'செவ்வாய் தோஷம் இருவருக்கும் இருக்க வேண்டும் அல்லது இருவருக்கும் இல்லாமல் இருக்க வேண்டும்; பெண்ணின் பாப புள்ளிகள் ஆணின் புள்ளிகளை விட அதிகமாக இருக்கக் கூடாது.'
+    : "Chevvai Dosham should be present in both charts or neither, and the bride's Papa points should not exceed the groom's.";
 }
 
 // Saved Profiles Vault & Multi-Person Management

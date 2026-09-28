@@ -307,6 +307,7 @@
                 <div class="chart-controls-bar">
                   <div class="chart-type-selector">
                     <button class="style-toggle active" data-style="south" id="btn-south-style" data-i18n="south_indian">South Indian</button>
+                    <button class="style-toggle" data-style="dual" id="btn-dual-style" data-i18n="rasi_navamsa">Rasi + Navamsa</button>
                     <button class="style-toggle" data-style="north" id="btn-north-style" data-i18n="north_diamond">North Indian (Diamond)</button>
                     <button class="style-toggle" data-style="east" id="btn-east-style" data-i18n="east_indian">East Indian</button>
                   </div>
@@ -339,6 +340,12 @@
                   <!-- South Indian Grid -->
                   <div id="south-chart-container" class="south-chart-grid"></div>
 
+                  <!-- South Indian Rasi + Navamsa (Amsam), side by side as in a Tamil jathagam -->
+                  <div id="dual-chart-container" class="dual-chart-wrap" hidden>
+                    <div id="dual-rasi-grid" class="south-chart-grid compact"></div>
+                    <div id="dual-amsa-grid" class="south-chart-grid compact"></div>
+                  </div>
+
                   <!-- North Indian Diamond SVG -->
                   <div id="north-chart-container" class="north-chart-wrapper" hidden>
                     <svg id="north-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
@@ -355,8 +362,9 @@
                   <span class="legend-items">
                     <span class="legend-badge benefic">Benefic</span>
                     <span class="legend-badge malefic">Malefic</span>
-                    <span class="legend-badge retro">Rx Retro</span>
+                    <span class="legend-badge retro" id="legend-retro">Rx Retro</span>
                     <span class="legend-badge combust">🔥 Combust</span>
+                    <span class="legend-badge lagna-mark" id="legend-lagna">╱ Lagna</span>
                   </span>
                 </div>
               </div>
@@ -388,6 +396,18 @@
                   <label data-i18n="house_significations">House Significations (Bhavas)</label>
                   <p id="inspect-significations" class="bhava-text"></p>
                 </div>
+              </div>
+
+              <!-- Tamil Jathaga Kurippu (birth notes) -->
+              <div class="cosmic-card kurippu-card" id="jathaga-kurippu-card">
+                <div class="card-header">
+                  <div>
+                    <h2 data-i18n="jathaga_kurippu">Tamil Jathaga Kurippu</h2>
+                    <p class="card-subtitle" data-i18n="jathaga_kurippu_sub">Birth notes in the Tamil almanac tradition</p>
+                  </div>
+                  <span class="card-badge">ஜா</span>
+                </div>
+                <div class="kurippu-grid" id="kurippu-grid"></div>
               </div>
 
               <!-- Calculation Metadata Box -->
@@ -497,11 +517,22 @@
         <div class="doshas-row">
           <div class="cosmic-card dosha-card" id="manglik-card">
             <div class="card-header">
-              <h3>Manglik / Kuja Dosha</h3>
+              <h3 data-i18n="chevvai_dosham">Chevvai Dosham (Kuja / Manglik)</h3>
               <span class="status-pill" id="manglik-status">Analyzing...</span>
             </div>
             <p id="manglik-desc" class="muted"></p>
+            <div id="chevvai-references" class="dosha-references"></div>
             <div id="manglik-reasons" class="reasons-list"></div>
+            <p id="manglik-north-note" class="dosha-footnote"></p>
+          </div>
+
+          <div class="cosmic-card dosha-card" id="rahuketu-card">
+            <div class="card-header">
+              <h3 data-i18n="rahu_ketu_dosham">Rahu-Ketu Dosham</h3>
+              <span class="status-pill" id="rahuketu-status">Analyzing...</span>
+            </div>
+            <p id="rahuketu-desc" class="muted"></p>
+            <div id="rahuketu-references" class="dosha-references"></div>
           </div>
 
           <div class="cosmic-card dosha-card" id="kaalsarp-card">
@@ -1313,6 +1344,31 @@
               </div>
             </div>
 
+            <!-- South Indian Dosha Samyam (needs full birth details) -->
+            <div class="cosmic-card lower-space" id="dosha-samyam-card" hidden>
+              <div class="card-header">
+                <div>
+                  <h2 data-i18n="dosha_samyam">Dosha Samyam (Chevvai &amp; Papa Balance)</h2>
+                  <p class="card-subtitle" id="dosha-samyam-summary"></p>
+                </div>
+                <span class="status-pill" id="dosha-samyam-status">—</span>
+              </div>
+              <div class="table-responsive">
+                <table class="luxury-table">
+                  <thead>
+                    <tr>
+                      <th data-i18n="dosha">Dosha</th>
+                      <th data-i18n="bride">Bride</th>
+                      <th data-i18n="groom">Groom</th>
+                      <th data-i18n="samyam">Samyam</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dosha-samyam-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+            <p class="muted lower-space" id="dosha-samyam-hint" hidden></p>
+
             <!-- 8 Kutas Guna Milan Grid -->
             <div class="cosmic-card lower-space">
               <div class="card-header">
@@ -1334,14 +1390,85 @@
           </div>
         </div>
 
-        <div class="panchangam-grid">
+        <!-- Date & location controls -->
+        <div class="cosmic-card panch-controls">
+          <div class="panch-controls-row">
+            <div class="form-group">
+              <label for="panch-date" data-i18n="panch_date">Date</label>
+              <input id="panch-date" type="date" min="1800-01-01" max="2200-12-31">
+            </div>
+            <button class="action-btn" id="panch-today-btn" type="button">
+              <span>🌅</span> <span data-i18n="panch_now">Now</span>
+            </button>
+            <div class="panch-location">
+              <small data-i18n="panch_location">LOCATION</small>
+              <strong id="panch-location">—</strong>
+              <span class="subtext" data-i18n="panch_location_hint">From the birth form. Use 📍 My Location to switch.</span>
+            </div>
+          </div>
+          <div id="panch-error" class="error-banner" role="alert" hidden></div>
+        </div>
+
+        <!-- Tamil calendar day -->
+        <div class="cosmic-card tamil-day-card lower-space">
+          <div class="tamil-day-hero">
+            <div>
+              <span class="eyebrow" data-i18n="tamil_calendar">TAMIL CALENDAR</span>
+              <h2 id="panch-tamil-date">—</h2>
+              <p class="muted" id="panch-tamil-year">—</p>
+            </div>
+            <div class="tamil-day-facts">
+              <div class="fact">
+                <small data-i18n="soolam">SOOLAM</small>
+                <strong id="panch-soolam">—</strong>
+                <span class="subtext" id="panch-parigaram">—</span>
+              </div>
+              <div class="fact">
+                <small data-i18n="chandrashtamam">CHANDRASHTAMAM</small>
+                <strong id="panch-chandrashtamam">—</strong>
+                <span class="subtext" id="panch-chandrashtamam-stars">—</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal Tara / Chandra Balam for the loaded chart -->
+        <div class="cosmic-card lower-space personal-balam-card" id="panch-personal-card" hidden>
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="personal_balam">Your Day: Tara &amp; Chandra Balam</h2>
+              <p class="card-subtitle" id="panch-personal-for">—</p>
+            </div>
+            <span class="status-pill" id="panch-personal-status">—</span>
+          </div>
+          <div class="angas-row">
+            <div class="anga-item">
+              <small data-i18n="tara_balam">TARA BALAM</small>
+              <strong id="panch-tara">—</strong>
+              <span class="subtext" id="panch-tara-sub">—</span>
+            </div>
+            <div class="anga-item">
+              <small data-i18n="chandra_balam">CHANDRA BALAM</small>
+              <strong id="panch-chandra">—</strong>
+              <span class="subtext" id="panch-chandra-sub">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panchangam-grid lower-space">
           <!-- 5 Angas Cards -->
-          <div class="cosmic-card panchang-five-card">
+          <div class="cosmic-card panch-five-card">
             <div class="card-header">
-              <h2>Five Limbs of Time (Pancha-Anga)</h2>
+              <h2 data-i18n="five_limbs">Five Limbs of Time (Pancha-Anga)</h2>
               <span class="card-badge">🕉️</span>
             </div>
+            <p class="muted panch-moment" id="panch-moment">—</p>
             <div class="angas-row">
+              <div class="anga-item">
+                <small data-i18n="vaaram">VAARAM (WEEKDAY)</small>
+                <strong id="panch-vaaram">—</strong>
+                <span class="subtext" id="panch-vaaram-sub">—</span>
+              </div>
               <div class="anga-item">
                 <small data-i18n="tithi">TITHI (LUNAR DAY)</small>
                 <strong id="panch-tithi">—</strong>
@@ -1368,44 +1495,44 @@
           <!-- Solar & Muhurthas Card -->
           <div class="cosmic-card muhurtha-card">
             <div class="card-header">
-              <h2>Solar & Muhurtha Windows (UTC)</h2>
+              <h2 data-i18n="muhurtha_local">Muhurtha Windows (Local Time)</h2>
               <span class="card-badge">⏰</span>
             </div>
             <div class="muhurtha-list">
+              <div class="muhurtha-item neutral">
+                <div>
+                  <strong data-i18n="sunrise_sunset">Sunrise &amp; Sunset</strong>
+                  <small id="panch-tz">Local astronomical horizon</small>
+                </div>
+                <span class="time-badge" id="panch-sun-times">—</span>
+              </div>
               <div class="muhurtha-item auspicious">
                 <div>
-                  <strong>Abhijit Muhurtham</strong>
-                  <small>Most auspicious daytime window</small>
+                  <strong data-i18n="abhijit">Abhijit Muhurtham</strong>
+                  <small data-i18n="abhijit_sub">Most auspicious daytime window</small>
                 </div>
                 <span class="time-badge" id="panch-abhijit">—</span>
               </div>
               <div class="muhurtha-item inauspicious">
                 <div>
-                  <strong>Rahu Kalam</strong>
-                  <small>Inauspicious period ruled by Rahu</small>
+                  <strong data-i18n="rahu_kalam">Rahu Kalam</strong>
+                  <small data-i18n="rahu_kalam_sub">Inauspicious period ruled by Rahu</small>
                 </div>
                 <span class="time-badge" id="panch-rahu">—</span>
               </div>
               <div class="muhurtha-item inauspicious">
                 <div>
-                  <strong>Yamagandam</strong>
-                  <small>Inauspicious period ruled by Yama</small>
+                  <strong data-i18n="yamagandam">Yamagandam</strong>
+                  <small data-i18n="yamagandam_sub">Inauspicious period ruled by Yama</small>
                 </div>
                 <span class="time-badge" id="panch-yama">—</span>
               </div>
               <div class="muhurtha-item neutral">
                 <div>
-                  <strong>Gulika Kalam</strong>
-                  <small>Saturnian auspicious-neutral segment</small>
+                  <strong data-i18n="kuligai">Kuligai (Gulika Kalam)</strong>
+                  <small data-i18n="kuligai_sub">Saturn's segment: avoid beginnings that should not repeat</small>
                 </div>
                 <span class="time-badge" id="panch-gulika">—</span>
-              </div>
-              <div class="muhurtha-item neutral">
-                <div>
-                  <strong>Sunrise & Sunset</strong>
-                  <small>Local astronomical horizon</small>
-                </div>
-                <span class="time-badge" id="panch-sun-times">—</span>
               </div>
             </div>
           </div>

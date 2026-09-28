@@ -25,6 +25,15 @@ from .predictions import (
     calculate_sahams
 )
 from .timeline import calculate_timeline_predictions
+from .south_indian import (
+    build_south_indian_details,
+    tamil_calendar,
+    chevvai_dosham,
+    rahu_ketu_dosham,
+    papa_points,
+    compare_dosha_samyam,
+    daily_panchangam
+)
 
 __all__ = [
     'calculate',
@@ -47,5 +56,12 @@ __all__ = [
     'calculate_planetary_avasthas',
     'calculate_nakshatra_pada_reading',
     'calculate_sahams',
-    'calculate_timeline_predictions'
+    'calculate_timeline_predictions',
+    'build_south_indian_details',
+    'tamil_calendar',
+    'chevvai_dosham',
+    'rahu_ketu_dosham',
+    'papa_points',
+    'compare_dosha_samyam',
+    'daily_panchangam'
 ]

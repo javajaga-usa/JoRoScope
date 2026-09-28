@@ -1,0 +1,230 @@
+"""South Indian (Tamil) Jathagam Tests
+Verifies the Tamil calendar, Nazhigai, Dasa Irruppu, Mandi, Chevvai / Rahu-Ketu
+Doshams, Papa Samyam, daily panchangam and the corrected Porutham tables.
+"""
+import unittest, sys
+from pathlib import Path
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from joroscope.core.engine import (
+    calculate, calculate_match, swe, AYAN, STARS, STAR_NADIS, VEDHA_GROUPS, EKA_NAKSHATRA_GRADE, utc_to_jd
+)
+from joroscope.core.south_indian import (
+    tamil_calendar, dasa_irruppu, chevvai_dosham, rahu_ketu_dosham, papa_points,
+    compare_dosha_samyam, daily_panchangam
+)
+
+CHENNAI = dict(tz=ZoneInfo('Asia/Kolkata'), lat=13.0827, lon=80.2707)
+
+
+def synthetic_planets(**signs):
+    """Minimal planets dict: sign indices for the grahas, Aries by default."""
+    names = ['Ascendant', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
+    planets = {n: {'sign_index': signs.get(n, 0), 'dignity': 'Neutral'} for n in names}
+    if 'Ketu' not in signs:
+        planets['Ketu']['sign_index'] = (planets['Rahu']['sign_index'] + 6) % 12
+    return planets
+
+
+class TamilCalendarTests(unittest.TestCase):
+    def setUp(self):
+        swe.set_sid_mode(AYAN['Lahiri'])
+
+    def cal(self, d):
+        return tamil_calendar(d, CHENNAI['tz'], CHENNAI['lat'], CHENNAI['lon'])
+
+    def test_puthandu_after_sunset_sankranti(self):
+        # Mesha sankranti on 13 Apr 2024 fell after sunset, so Chithirai 1 was 14 Apr.
+        eve = self.cal(date(2024, 4, 13))
+        self.assertEqual((eve['month'], eve['day'], eve['year']), ('Panguni', 31, 'Sobhakrith'))
+        new_year = self.cal(date(2024, 4, 14))
+        self.assertEqual((new_year['month'], new_year['day'], new_year['year']), ('Chithirai', 1, 'Krodhi'))
+
+    def test_thai_pongal_and_year_rollover(self):
+        # Thai belongs to the Tamil year that began the previous April.
+        thai = self.cal(date(2025, 1, 14))
+        self.assertEqual((thai['month'], thai['day'], thai['year']), ('Thai', 1, 'Krodhi'))
+        self.assertEqual(self.cal(date(2025, 4, 14))['year'], 'Visuvavasu')
+        self.assertEqual(self.cal(date(2026, 9, 27))['year'], 'Parabhava')
+
+    def test_month_days_are_contiguous(self):
+        prev = self.cal(date(2026, 8, 1))
+        for offset in range(2, 60):
+            cur = self.cal(date(2026, 8, offset) if offset <= 31 else date(2026, 9, offset - 31))
+            if cur['month_index'] == prev['month_index']:
+                self.assertEqual(cur['day'], prev['day'] + 1)
+            else:
+                self.assertEqual(cur['day'], 1)
+                self.assertEqual(cur['month_index'], (prev['month_index'] + 1) % 12)
+            prev = cur
+
+
+class JathagaKurippuTests(unittest.TestCase):
+    def sample(self, **changes):
+        base = dict(name='Test', date='1990-01-01', time='12:00', timezone='Asia/Kolkata',
+                    latitude='13.0827', longitude='80.2707', ayanamsa='Lahiri')
+        base.update(changes)
+        return base
+
+    def test_day_birth_details(self):
+        si = calculate(self.sample())['south_indian']
+        self.assertEqual(si['vaaram']['en'], 'Monday')
+        self.assertEqual(si['vedic_date'], '1990-01-01')
+        self.assertTrue(si['nazhigai']['is_day_birth'])
+        # 12:00 is about 5.5 hours after a ~06:31 sunrise: ~13.7 nazhigai
+        self.assertEqual(si['nazhigai']['nazhigai'], 13)
+        self.assertIn(si['mandi']['house'], range(1, 13))
+
+    def test_pre_sunrise_birth_belongs_to_previous_vedic_day(self):
+        si = calculate(self.sample(date='1994-05-18', time='04:30'))['south_indian']
+        self.assertEqual(si['vedic_date'], '1994-05-17')
+        self.assertEqual(si['vaaram']['en'], 'Tuesday')
+        self.assertFalse(si['nazhigai']['is_day_birth'])
+        self.assertGreater(si['nazhigai']['nazhigai'], 50)
+
+    def test_mandi_is_ascendant_at_its_rising(self):
+        r = calculate(self.sample())
+        mandi = r['south_indian']['mandi']
+        rise = datetime.fromisoformat(mandi['rises_local'])
+        # Monday day birth: Mandi rises 22 of 30 day-ghatikas after sunrise
+        sunrise = datetime.fromisoformat(r['south_indian']['sunrise_local'])
+        sunset = datetime.fromisoformat(r['south_indian']['sunset_local'])
+        expected = sunrise + (sunset - sunrise) * 22 / 30
+        self.assertLess(abs((rise - expected).total_seconds()), 2)
+        swe.set_sid_mode(AYAN['Lahiri'])
+        asc = swe.houses_ex(utc_to_jd(rise.astimezone(ZoneInfo('UTC'))), 13.0827, 80.2707, b'P', swe.FLG_SIDEREAL)[1][0]
+        self.assertAlmostEqual(asc, mandi['longitude'], places=2)
+
+    def test_dasa_irruppu_matches_first_dasha(self):
+        r = calculate(self.sample())
+        irr = r['south_indian']['dasa_irruppu']
+        first = r['dasha'][0]
+        self.assertEqual(irr['lord'], first['lord'])
+        remaining = datetime.fromisoformat(first['end']) - datetime.fromisoformat(r['utc'])
+        self.assertAlmostEqual(irr['balance_years'], remaining.total_seconds() / 86400 / 365.25, places=4)
+
+    def test_dasa_irruppu_notation(self):
+        # Moon at the start of Ashwini: the full 7 years of Ketu remain.
+        full = dasa_irruppu(0.0)
+        self.assertEqual((full['lord'], full['years'], full['months'], full['days']), ('Ketu', 7, 0, 0))
+        # Halfway through Bharani: 10 of Venus's 20 years remain.
+        half = dasa_irruppu(40 / 3 * 1.5)
+        self.assertEqual((half['lord'], half['years'], half['months']), ('Venus', 10, 0))
+
+
+class DoshaTests(unittest.TestCase):
+    def test_chevvai_from_lagna_moon_venus(self):
+        # Lagna Aries, Moon Aries, Venus Aries; Mars in Cancer = 4th from all three.
+        p = synthetic_planets(Mars=3, Jupiter=6)
+        d = chevvai_dosham(p)
+        self.assertTrue(d['effective'])
+        self.assertEqual(d['severity'], 3)
+        self.assertEqual({r['house'] for r in d['references']}, {4})
+
+    def test_chevvai_sign_exemption(self):
+        # Mars in Gemini in the 2nd from a Taurus Lagna is exempt.
+        p = synthetic_planets(Ascendant=1, Moon=1, Venus=1, Mars=2, Jupiter=6)
+        d = chevvai_dosham(p)
+        self.assertFalse(d['present'])
+        self.assertTrue(all(r['exempt'] for r in d['references']))
+
+    def test_chevvai_jupiter_cancellation(self):
+        # Mars in 7th (Libra) from Aries; Jupiter in Aries aspects it with its 7th aspect.
+        p = synthetic_planets(Mars=6, Jupiter=0)
+        d = chevvai_dosham(p)
+        self.assertTrue(d['present'])
+        self.assertTrue(d['cancelled'])
+        self.assertFalse(d['effective'])
+
+    def test_rahu_ketu_dosham(self):
+        self.assertTrue(rahu_ketu_dosham(synthetic_planets(Rahu=7))['present'])  # Rahu 8th, Ketu 2nd
+        self.assertFalse(rahu_ketu_dosham(synthetic_planets(Rahu=3, Moon=0))['present'])  # 4th / 10th
+
+    def test_papa_points_and_samyam(self):
+        # Everything in Aries except Ketu (Libra): Sun, Mars, Saturn and Rahu fall in the
+        # 1st and Ketu in the 7th from each of the three references.
+        heavy = synthetic_planets(Rahu=0)
+        self.assertEqual(papa_points(heavy)['total'], 3 * 5)
+        light = synthetic_planets(Sun=2, Mars=2, Saturn=2, Rahu=4)
+        self.assertEqual(papa_points(light)['total'], 0)
+        self.assertTrue(compare_dosha_samyam(heavy, light)['papa_balanced'])
+        self.assertFalse(compare_dosha_samyam(light, heavy)['papa_balanced'])
+
+
+class PoruthamTableTests(unittest.TestCase):
+    def match(self, boy_star, girl_star, boy_sign=0, girl_sign=0):
+        return calculate_match({'nakshatra_index': boy_star, 'sign_index': boy_sign},
+                               {'nakshatra_index': girl_star, 'sign_index': girl_sign})
+
+    def porutham(self, m, name):
+        return next(p for p in m['poruthams'] if p['name'] == name)
+
+    def test_vedha_groups_cover_every_star_once(self):
+        covered = sorted(s for g in VEDHA_GROUPS for s in g)
+        self.assertEqual(covered, list(range(27)))
+
+    def test_vedha_pairs(self):
+        ashwini, jyeshtha, magha, revati = 0, 17, 9, 26
+        mrigashira, chitra, dhanishtha = 4, 13, 22
+        for a, b in [(ashwini, jyeshtha), (magha, revati), (mrigashira, dhanishtha), (chitra, dhanishtha)]:
+            self.assertFalse(self.porutham(self.match(a, b), 'Vedha Porutham')['passed'], (STARS[a], STARS[b]))
+        # Ardra and Hasta are not a Vedha pair
+        self.assertTrue(self.porutham(self.match(5, 12), 'Vedha Porutham')['passed'])
+
+    def test_dina_counts_and_eka_nakshatra(self):
+        self.assertTrue(self.porutham(self.match(1, 0), 'Dina Porutham')['passed'])     # count 2
+        self.assertFalse(self.porutham(self.match(16, 0), 'Dina Porutham')['passed'])   # count 17
+        self.assertFalse(self.porutham(self.match(26, 0), 'Dina Porutham')['passed'])   # count 27
+        rohini = self.porutham(self.match(3, 3, 1, 1), 'Dina Porutham')
+        bharani = self.porutham(self.match(1, 1), 'Dina Porutham')
+        self.assertTrue(rohini['passed'])
+        self.assertEqual(rohini['points'], 3)
+        self.assertFalse(bharani['passed'])
+        self.assertEqual(EKA_NAKSHATRA_GRADE.count('uthamam'), 8)
+        self.assertEqual(EKA_NAKSHATRA_GRADE.count('avoid'), 8)
+
+    def test_nadi_table(self):
+        self.assertEqual([STAR_NADIS.count(n) for n in ('Aadi', 'Madhya', 'Antya')], [9, 9, 9])
+        self.assertEqual(STAR_NADIS[3], 'Antya')  # Rohini
+        # Ashwini (Aadi) and Ardra (Aadi) share a Nadi
+        self.assertEqual(self.match(0, 5)['guna_milan']['nadi'], 0)
+
+    def test_dosha_samyam_with_full_charts(self):
+        boy = calculate(dict(name='B', date='1988-11-22', time='18:45', timezone='Asia/Kolkata',
+                             latitude='11.0168', longitude='76.9558', ayanamsa='Lahiri'))
+        girl = calculate(dict(name='G', date='1994-05-18', time='08:30', timezone='Asia/Kolkata',
+                              latitude='9.9252', longitude='78.1198', ayanamsa='Lahiri'))
+        m = calculate_match(boy, girl)
+        ds = m['dosha_samyam']
+        self.assertIsNotNone(ds)
+        self.assertEqual(ds['papa_balanced'], ds['boy']['papa']['total'] >= ds['girl']['papa']['total'])
+        self.assertIsNone(self.match(0, 1)['dosha_samyam'])
+
+
+class DailyPanchangamTests(unittest.TestCase):
+    def test_local_timings_and_end_times(self):
+        p = daily_panchangam('2026-09-27', '21:00:00', 'Asia/Kolkata', 13.0827, 80.2707,
+                             natal_star=23, natal_sign=10)
+        self.assertEqual(p['vaaram']['en'], 'Sunday')
+        self.assertEqual(p['weekday'], 'Sunday')
+        # Sunday Rahu Kalam is the last eighth of the day, ending at sunset
+        self.assertTrue(p['rahu_kalam_local'].endswith(p['sunset_local']))
+        self.assertEqual(p['soolam']['direction'], 'West')
+        moment = datetime.fromisoformat(p['moment_local'])
+        for anga, end in p['ends_local'].items():
+            self.assertGreater(datetime.fromisoformat(end), moment, anga)
+        self.assertEqual((p['moon_sign']['index'] - p['chandrashtamam']['sign_index']) % 12, 7)
+        self.assertIn(p['personal']['tara']['quality'], ('good', 'bad', 'mixed'))
+        self.assertEqual(p['tamil_calendar']['month'], 'Purattasi')
+
+    def test_rejects_polar_latitude(self):
+        with self.assertRaises(ValueError):
+            daily_panchangam('2026-06-21', '12:00:00', 'Europe/Oslo', 78.2, 15.6)
+
+
+if __name__ == '__main__':
+    unittest.main()

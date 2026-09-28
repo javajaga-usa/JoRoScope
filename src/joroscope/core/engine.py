@@ -66,6 +66,32 @@ STAR_RAJJUS = [
     'Pada','Ooru','Udara','Kantha','Siro','Kantha',
     'Udara','Ooru','Pada'
 ]
+# What a shared Rajju is said to threaten (Tamil marriage tradition)
+RAJJU_EFFECTS = {
+    'Siro': "the husband's longevity",
+    'Kantha': "the wife's longevity",
+    'Udara': 'progeny',
+    'Ooru': 'family wealth',
+    'Pada': 'stability (frequent travel or separation)'
+}
+STAR_NADIS = [
+    'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya',
+    'Antya','Madhya','Aadi','Aadi','Madhya','Antya','Antya','Madhya','Aadi',
+    'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya'
+]
+# Mutually obstructing (Vedha) stars; Mrigashira, Chitra and Dhanishtha form a triad.
+VEDHA_GROUPS = [
+    {0, 17}, {1, 16}, {2, 15}, {3, 14}, {5, 21}, {6, 20}, {7, 19},
+    {8, 18}, {9, 26}, {10, 25}, {11, 24}, {12, 23}, {4, 13, 22}
+]
+# Dina Porutham: favourable counts from the girl's star to the boy's star
+DINA_GOOD_COUNTS = (2, 4, 6, 8, 9, 11, 13, 15, 18, 20, 24, 26)
+# Eka Nakshatra (bride and groom share the birth star) grading
+EKA_NAKSHATRA_GRADE = [
+    'madhyamam','avoid','madhyamam','uthamam','madhyamam','uthamam','madhyamam','madhyamam','avoid',
+    'uthamam','madhyamam','madhyamam','uthamam','madhyamam','avoid','uthamam','madhyamam','avoid',
+    'avoid','madhyamam','madhyamam','uthamam','avoid','avoid','avoid','uthamam','uthamam'
+]
 
 NITYA_YOGAS = [
     ('Vishkambha','Auspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
@@ -205,6 +231,32 @@ def local_to_utc(date, time, zone, fold=None):
     if len(candidates) > 1 and fold not in (0, 1):
         raise ValueError('This time occurred twice during a clock change. Select the first or second occurrence.')
     return next((u for f, u in candidates if f == fold), candidates[0][1])
+
+def utc_to_jd(utc):
+    return swe.julday(utc.year, utc.month, utc.day,
+                      utc.hour + utc.minute / 60 + (utc.second + utc.microsecond / 1e6) / 3600)
+
+def jd_to_utc(jd):
+    y, m, d, h = swe.revjul(jd)
+    return datetime(y, m, d, tzinfo=timezone.utc) + timedelta(hours=h)
+
+def sun_events(civil_date, tz, lat, lon):
+    """Sunrise, sunset and next sunrise (Julian days, UT) for a local civil date.
+
+    Uses Swiss Ephemeris rise/set of the Sun's upper limb with standard refraction,
+    the convention followed by modern (Thirukanitha) Tamil panchangams.
+    """
+    midnight = datetime(civil_date.year, civil_date.month, civil_date.day, tzinfo=tz)
+    geopos = (lon, lat, 0)
+    events = []
+    jd = utc_to_jd(midnight.astimezone(timezone.utc))
+    for rsmi in (swe.CALC_RISE, swe.CALC_SET, swe.CALC_RISE):
+        res, tret = swe.rise_trans(jd, swe.SUN, rsmi, geopos, 0, 0, swe.FLG_MOSEPH)
+        if res != 0:
+            raise ValueError('The Sun does not rise or set at this latitude on this date.')
+        jd = tret[0]
+        events.append(jd)
+    return dict(sunrise=events[0], sunset=events[1], next_sunrise=events[2])
 
 def calculate_vargas(lon):
     """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
@@ -707,8 +759,12 @@ def get_active_dasha(dasha_rows):
     return None
 
 
-def calculate_panchangam(utc_dt, lat, lon, sun_lon, moon_lon):
-    """Compute complete Vedic Panchangam and Muhurtha windows."""
+def calculate_panchangam(utc_dt, lat, lon, sun_lon, moon_lon, tz_name='UTC'):
+    """Compute complete Vedic Panchangam and Muhurtha windows.
+
+    Muhurtha windows are for the local civil date of utc_dt in tz_name and are
+    returned both in UTC (``*_utc``) and in local clock time (``*_local``).
+    """
     elong = (moon_lon - sun_lon) % 360
     tithi_num = int(elong // 12) + 1
     tithi_rem = 1.0 - ((elong % 12) / 12.0)
@@ -728,47 +784,43 @@ def calculate_panchangam(utc_dt, lat, lon, sun_lon, moon_lon):
     else:
         karana_name = KARANAS[(karana_half - 2) % 7]
 
-    # Approximate Sunrise / Sunset for the location date
-    # Equation of time and solar hour angle
-    day_of_year = utc_dt.timetuple().tm_yday
-    # Solar declination approximation (degrees)
-    decl = 23.45 * math.sin(math.radians((360 / 365) * (day_of_year - 81)))
-    # Hour angle calculation
-    phi = math.radians(lat)
-    delta = math.radians(decl)
-    cos_h0 = (math.sin(math.radians(-0.8333)) - math.sin(phi) * math.sin(delta)) / (math.cos(phi) * math.cos(delta))
-    cos_h0 = max(-1.0, min(1.0, cos_h0))
-    h0 = math.degrees(math.acos(cos_h0))
+    # Sunrise / sunset of the local civil date (Swiss Ephemeris rise/set)
+    try:
+        tz = ZoneInfo(tz_name)
+    except ZoneInfoNotFoundError:
+        raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+    local_date = utc_dt.astimezone(tz).date()
+    sun = sun_events(local_date, tz, lat, lon)
+    sunrise_jd, sunset_jd = sun['sunrise'], sun['sunset']
+    day_len = sunset_jd - sunrise_jd
 
-    solar_noon_utc_hours = 12.0 - (lon / 15.0)
-    sunrise_utc_hours = (solar_noon_utc_hours - (h0 / 15.0)) % 24
-    sunset_utc_hours = (solar_noon_utc_hours + (h0 / 15.0)) % 24
-    day_len_hours = (h0 * 2) / 15.0
+    def fmt_time(jd, zone):
+        return jd_to_utc(jd).astimezone(zone).strftime('%H:%M')
 
-    def fmt_time(h_float):
-        h = int(h_float)
-        m = int((h_float % 1) * 60)
-        return f"{h:02d}:{m:02d}"
+    def window(start_jd, end_jd):
+        return {
+            'utc': f"{fmt_time(start_jd, timezone.utc)} - {fmt_time(end_jd, timezone.utc)}",
+            'local': f"{fmt_time(start_jd, tz)} - {fmt_time(end_jd, tz)}"
+        }
 
-    sunrise_str = fmt_time(sunrise_utc_hours)
-    sunset_str = fmt_time(sunset_utc_hours)
-
-    # Muhurtha 8-segment calculation based on weekday
-    weekday = utc_dt.weekday()  # 0=Monday, ..., 6=Sunday
-    seg_hours = day_len_hours / 8.0
+    # Muhurtha 8-segment calculation based on the local weekday
+    weekday = local_date.weekday()  # 0=Monday, ..., 6=Sunday
+    seg = day_len / 8.0
 
     rahu_segs = [2, 7, 5, 6, 4, 3, 8]       # Mon-Sun (1-based)
     yama_segs = [4, 3, 2, 1, 7, 6, 5]
     guli_segs = [6, 5, 4, 3, 2, 1, 7]
 
     def seg_window(seg_idx):
-        st = (sunrise_utc_hours + (seg_idx - 1) * seg_hours) % 24
-        en = (st + seg_hours) % 24
-        return f"{fmt_time(st)} - {fmt_time(en)}"
+        start = sunrise_jd + (seg_idx - 1) * seg
+        return window(start, start + seg)
 
     # Abhijit Muhurtham: 8th of 15 daytime muhurthas
-    abhijit_st = (sunrise_utc_hours + 7 * (day_len_hours / 15.0)) % 24
-    abhijit_en = (abhijit_st + (day_len_hours / 15.0)) % 24
+    abhijit_st = sunrise_jd + 7 * (day_len / 15.0)
+    abhijit = window(abhijit_st, abhijit_st + day_len / 15.0)
+    rahu = seg_window(rahu_segs[weekday])
+    yama = seg_window(yama_segs[weekday])
+    guli = seg_window(guli_segs[weekday])
 
     return dict(
         tithi=tithi_num,
@@ -787,13 +839,22 @@ def calculate_panchangam(utc_dt, lat, lon, sun_lon, moon_lon):
         yoga_auspiciousness=yoga_ausp,
         karana_half_number=karana_half,
         karana_name=karana_name,
-        sunrise_utc=sunrise_str,
-        sunset_utc=sunset_str,
-        day_length_hours=round(day_len_hours, 2),
-        rahu_kalam_utc=seg_window(rahu_segs[weekday]),
-        yamagandam_utc=seg_window(yama_segs[weekday]),
-        gulika_kalam_utc=seg_window(guli_segs[weekday]),
-        abhijit_muhurtham_utc=f"{fmt_time(abhijit_st)} - {fmt_time(abhijit_en)}"
+        timezone=tz_name,
+        local_date=local_date.isoformat(),
+        weekday=local_date.strftime('%A'),
+        sunrise_utc=fmt_time(sunrise_jd, timezone.utc),
+        sunset_utc=fmt_time(sunset_jd, timezone.utc),
+        sunrise_local=fmt_time(sunrise_jd, tz),
+        sunset_local=fmt_time(sunset_jd, tz),
+        day_length_hours=round(day_len * 24, 2),
+        rahu_kalam_utc=rahu['utc'],
+        yamagandam_utc=yama['utc'],
+        gulika_kalam_utc=guli['utc'],
+        abhijit_muhurtham_utc=abhijit['utc'],
+        rahu_kalam_local=rahu['local'],
+        yamagandam_local=yama['local'],
+        gulika_kalam_local=guli['local'],
+        abhijit_muhurtham_local=abhijit['local']
     )
 
 def calculate_match(boy, girl):
@@ -813,17 +874,25 @@ def calculate_match(boy, girl):
 
     poruthams = []
 
-    # 1. Dina Porutham (Health & Prosperity)
+    # 1. Dina Porutham (Health & Prosperity): count from the girl's star to the boy's.
+    # When both share one star, Tamil tradition grades the star itself (Eka Nakshatra).
     star_dist = (b_star - g_star) % 27 + 1
-    tara = star_dist % 9
-    dina_ok = (tara in (2, 4, 6, 8, 9, 0) or star_dist in (2, 4, 6, 8, 9, 11, 13, 15, 18, 20, 24, 26))
+    if star_dist == 1:
+        eka = EKA_NAKSHATRA_GRADE[g_star]
+        dina_ok = eka != 'avoid'
+        dina_pts = 3 if eka == 'uthamam' else (1.5 if eka == 'madhyamam' else 0)
+        dina_desc = f'Same birth star ({STARS[g_star]}): graded {eka} under Eka Nakshatra rules.'
+    else:
+        dina_ok = star_dist in DINA_GOOD_COUNTS
+        dina_pts = 3 if dina_ok else 0
+        dina_desc = f"Boy's star is {star_dist} from the girl's. Harmony in day-to-day vitality, health, and mutual longevity."
     poruthams.append({
         'name': 'Dina Porutham',
         'tamil': 'தினப் பொருத்தம்',
         'passed': dina_ok,
-        'points': 3 if dina_ok else 0,
+        'points': dina_pts,
         'max_points': 3,
-        'description': 'Harmony in day-to-day vitality, health, and mutual longevity.'
+        'description': dina_desc
     })
 
     # 2. Gana Porutham (Temperament)
@@ -934,18 +1003,12 @@ def calculate_match(boy, girl):
         'points': 8 if rajju_ok else 0,
         'max_points': 8,
         'critical': True,
-        'description': f'Essential marriage knot stability (Girl: {g_rajju}, Boy: {b_rajju}).'
+        'description': f'Essential marriage knot stability (Girl: {g_rajju}, Boy: {b_rajju}).' if rajju_ok else
+                       f'Both stars share {b_rajju} Rajju, traditionally said to threaten {RAJJU_EFFECTS[b_rajju]}.'
     })
 
     # 10. Vedha Porutham (Absence of Affliction)
-    vedha_pairs = [
-        (0, 17), (1, 16), (2, 15), (3, 14), (4, 13), (5, 12),
-        (6, 19), (7, 20), (8, 21), (9, 22), (10, 23), (11, 24)
-    ]
-    is_vedha = False
-    for p1, p2 in vedha_pairs:
-        if (b_star == p1 and g_star == p2) or (b_star == p2 and g_star == p1):
-            is_vedha = True; break
+    is_vedha = any({b_star, g_star} <= group and b_star != g_star for group in VEDHA_GROUPS)
     poruthams.append({
         'name': 'Vedha Porutham',
         'tamil': 'வேதைப் பொருத்தம்',
@@ -956,9 +1019,9 @@ def calculate_match(boy, girl):
     })
 
     # North Indian 36 Guna Milan
-    # 1. Varna (1)
-    varnas = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3]  # Brahmin, Kshatriya, Vaishya, Shudra
-    varna_pts = 1 if varnas[b_sign] >= varnas[g_sign] else 0
+    # 1. Varna (1): water signs Brahmin (4), fire Kshatriya (3), earth Vaishya (2), air Shudra (1)
+    varna_rank = [3, 2, 1, 4]  # indexed by sign % 4: fire, earth, air, water
+    varna_pts = 1 if varna_rank[b_sign % 4] >= varna_rank[g_sign % 4] else 0
     # 2. Vashya (2)
     vashya_pts = 2 if vasiya_ok else 1
     # 3. Tara (3)
@@ -972,14 +1035,20 @@ def calculate_match(boy, girl):
     # 7. Bhakoot (7)
     bhakoot_pts = 7 if sign_dist in (7, 11, 10, 9, 3, 4, 5) else 0
     # 8. Nadi (8)
-    nadis = ['Aadi', 'Madhya', 'Antya'] * 9
-    nadi_pts = 8 if nadis[b_star] != nadis[g_star] else 0
+    nadi_pts = 8 if STAR_NADIS[b_star] != STAR_NADIS[g_star] else 0
 
     guna_score = varna_pts + vashya_pts + tara_pts + yoni_milan_pts + graha_pts + gana_pts + bhakoot_pts + nadi_pts
     passed_poruthams = sum(1 for p in poruthams if p['passed'])
 
     verdict = 'Auspicious Match' if (passed_poruthams >= 6 and rajju_ok and guna_score >= 18) else \
               ('Moderate Match' if (passed_poruthams >= 5 and rajju_ok) else 'Inauspicious / Needs Remedies')
+
+    # Dosha Samyam needs the full birth charts, not just star and sign.
+    dosha_samyam = None
+    if 'planets' in boy and 'planets' in girl:
+        # Imported here: south_indian builds on this module's primitives.
+        from .south_indian import compare_dosha_samyam
+        dosha_samyam = compare_dosha_samyam(boy['planets'], girl['planets'])
 
     return {
         'poruthams': poruthams,
@@ -998,6 +1067,7 @@ def calculate_match(boy, girl):
             'total_score': round(guna_score, 1),
             'max_score': 36
         },
+        'dosha_samyam': dosha_samyam,
         'verdict': verdict
     }
 
@@ -1071,7 +1141,8 @@ def calculate(data):
     kp_cusps_tuple, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
     asc = ascmc[0]
     planets['Ascendant'] = placement(asc)
-    kp_cusps = [kp_cusps_tuple[i] for i in range(1, 13)]
+    # pyswisseph returns 12 cusps; the pysweph fork pads index 0 and returns 13.
+    kp_cusps = list(kp_cusps_tuple[-12:])
 
     # Calculate whole-sign houses from Ascendant
     asc_sign = planets['Ascendant']['sign_index']
@@ -1110,7 +1181,14 @@ def calculate(data):
     active_dasha = get_active_dasha(dasha_rows)
 
     # Panchangam
-    panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon)
+    panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon, data['timezone'])
+
+    # South Indian (Tamil) jathagam details and doshas. Imported here:
+    # south_indian builds on this module's primitives.
+    from .south_indian import build_south_indian_details, chevvai_dosham, rahu_ketu_dosham
+    doshas['chevvai'] = chevvai_dosham(planets)
+    doshas['rahu_ketu'] = rahu_ketu_dosham(planets)
+    south_indian = build_south_indian_details(planets, utc, data['timezone'], lat, lon)
 
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
@@ -1178,6 +1256,7 @@ def calculate(data):
         house_details=house_details,
         readings=readings,
         kp_cusps=kp_cusps,
+        south_indian=south_indian,
         predictions=predictions,
         method=dict(
             engine='Swiss Ephemeris ' + swe.version,

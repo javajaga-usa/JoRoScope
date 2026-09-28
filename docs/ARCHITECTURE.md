@@ -39,6 +39,17 @@ JoRoScope is a modern, high-precision Vedic astrology suite calculated using the
 │  - Parashara Ashtakavarga (BAV & SAV Matrices)         │
 │  - Classical Yoga & Dosha Pattern Matcher              │
 │  - 10 Poruthams & 36 Guna Milan Engine                 │
+│  - Swiss Ephemeris Sunrise/Sunset & Local Panchangam   │
+└───────────────────────────┬────────────────────────────┘
+                            │
+┌───────────────────────────▼────────────────────────────┐
+│          South Indian (Tamil) Jathagam Module          │
+│             (joroscope.core.south_indian)              │
+│                                                        │
+│  - Tamil Calendar, Vaaram & Udayadi Nazhigai           │
+│  - Dasa Irruppu & Mandi (Prasna Marga)                 │
+│  - Chevvai, Rahu-Ketu Doshams & Papa Samyam            │
+│  - Tamil Daily Panchangam (end times, Soolam, Balam)   │
 └───────────────────────────┬────────────────────────────┘
                             │
 ┌───────────────────────────▼────────────────────────────┐

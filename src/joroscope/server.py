@@ -8,14 +8,17 @@ import mimetypes
 import sys
 import webbrowser
 from pathlib import Path
-from datetime import datetime, timezone
+from datetime import datetime
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlsplit, unquote
 
 try:
-    from .core.engine import calculate, calculate_match, calculate_panchangam, local_to_utc, swe, AYAN
+    from .core.engine import calculate, calculate_match
+    from .core.south_indian import daily_panchangam
 except (ImportError, ValueError):
-    from core.engine import calculate, calculate_match, calculate_panchangam, local_to_utc, swe, AYAN
+    from core.engine import calculate, calculate_match
+    from core.south_indian import daily_panchangam
 
 MODULE_DIR = Path(__file__).resolve().parent
 # Locate web assets directory
@@ -86,18 +89,27 @@ class Handler(BaseHTTPRequestHandler):
                 match_result = calculate_match(boy_chart, girl_chart)
                 self.send(json.dumps(match_result, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/panchangam':
-                dt_str = data.get('date', datetime.now(timezone.utc).strftime('%Y-%m-%d'))
-                tm_str = data.get('time', datetime.now(timezone.utc).strftime('%H:%M:%S'))
                 tz_str = data.get('timezone', 'Asia/Kolkata')
-                lat = float(data.get('latitude', 13.0827))
-                lon = float(data.get('longitude', 80.2707))
-                utc = local_to_utc(dt_str, tm_str, tz_str)
-                jd = swe.julday(utc.year, utc.month, utc.day, utc.hour + utc.minute / 60 + utc.second / 3600)
-                swe.set_sid_mode(AYAN['Lahiri'])
-                flags = swe.FLG_MOSEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
-                sun_pos = swe.calc_ut(jd, swe.SUN, flags)[0][0]
-                moon_pos = swe.calc_ut(jd, swe.MOON, flags)[0][0]
-                panch = calculate_panchangam(utc, lat, lon, sun_pos, moon_pos)
+                try:
+                    now_local = datetime.now(ZoneInfo(tz_str))
+                except ZoneInfoNotFoundError:
+                    raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+                natal_star = data.get('natal_nakshatra_index')
+                natal_sign = data.get('natal_sign_index')
+                # No date: right now. A date without a time: at that day's sunrise.
+                if data.get('date'):
+                    date_str, time_str = data['date'], data.get('time')
+                else:
+                    date_str, time_str = now_local.strftime('%Y-%m-%d'), now_local.strftime('%H:%M:%S')
+                panch = daily_panchangam(
+                    date_str,
+                    time_str,
+                    tz_str,
+                    float(data.get('latitude', 13.0827)),
+                    float(data.get('longitude', 80.2707)),
+                    natal_star=None if natal_star in (None, '') else int(natal_star),
+                    natal_sign=None if natal_sign in (None, '') else int(natal_sign)
+                )
                 self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
         except Exception as err:
             self.send(json.dumps({'error': str(err)}).encode(), 400)
