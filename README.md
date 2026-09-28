@@ -1,7 +1,7 @@
 # JoRoScope (ராஜகணிதம்) — Modern Precision Vedic Astrology
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
 [![Tests: 133 Passed](https://img.shields.io/badge/tests-133%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
@@ -158,7 +158,12 @@ When running locally, JoRoScope provides secure JSON API endpoints:
 - `GET /api/health`: Health status and application version.
 - `POST /api/chart`: Computes full birth chart, divisional vargas, dasas, yogas, and all 17 prediction chapters.
 - `POST /api/match`: Computes 10 Poruthams, 36 Guna Milan, and Rajju agreement.
-- `POST /api/panchangam`: Computes 5 Panchanga Angas and daily Muhurthas.
+- `POST /api/panchangam`: Tamil daily panchangam for a date and place: the five angas with end times, Tamil yogam, horas, Gowri Panchangam, Soolam and Chandrashtamam.
+- `POST /api/timeline`: The detailed readings of all 81 Dasa-Bhukti periods (the chart response carries only the running one).
+- `POST /api/calendar`: A month of the Tamil calendar with observance days.
+- `POST /api/muhurtham`: Auspicious windows for an event over the coming days.
+
+Responses are gzip-compressed when the client accepts it.
 
 ---
 

@@ -1,6 +1,8 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.1.0] - 2026-09-28
+
+The South Indian (Tamil) jathagam release: Tamil calendar and panchangam, accurate Shadbala, about 75 classical yogas, KP, Jaimini (arudhas, Chara Dasa), Ashtottari Dasa, a Muhurtham finder with Tamil yogam and Lagna Shuddhi, chart-specific Dasa-Bhukti ratings, Sri Lankan charts, a restructured print report checked on paper, safer profile backups, one-click launchers for macOS and Windows, and a faster, smaller chart response.
 
 ### Printing checked on paper (WebKit PDF)
 - The report title printed near-white when the app was in the dark theme; it now prints black.

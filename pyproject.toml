@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "joroscope"
-version = "2.0.0"
+version = "2.1.0"
 description = "Modern Precision Vedic Astrology Application & Calculation Engine"
 readme = "README.md"
 authors = [
