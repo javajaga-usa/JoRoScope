@@ -114,5 +114,28 @@ class VarshaphalTests(unittest.TestCase):
         self.assertEqual(v['mudda'][0]['lord'], 'Rahu')
         self.assertIn(v['year_lord'], ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'))
 
+
+class LifeReportTests(unittest.TestCase):
+    def test_marriage_and_career(self):
+        from datetime import datetime, timezone
+        from joroscope.core.readings.life_reports import period_windows
+        c = calculate(dict(BIRTH, date='2001-11-23', time='04:05:00'))
+        m, k = c['predictions']['marriage'], c['predictions']['career_report']
+        check_chapter(self, m)
+        check_chapter(self, k)
+        # Libra Lagna: the 7th is Aries, lord Mars; Venus is always a significator
+        self.assertIn('Mars', m['significators'])
+        self.assertIn('Venus', m['significators'])
+        self.assertTrue(m['cards'][0]['title']['en'].endswith('Aries'))
+        # Mars in the 4th aspects the 7th by its 4th-house drishti
+        self.assertIn('Aspecting it: Mars', m['cards'][0]['body']['en'])
+        for w in m['windows'] + k['windows']:
+            self.assertLess(w['start'], w['end'])
+        rows = [{'lord': 'Venus', 'subperiods': [
+            {'lord': 'Venus', 'start': '2030-01-01T00:00:00+00:00', 'end': '2033-01-01T00:00:00+00:00'},
+            {'lord': 'Sun', 'start': '2033-01-01T00:00:00+00:00', 'end': '2034-01-01T00:00:00+00:00'}]}]
+        w = period_windows(rows, {'Venus'}, datetime(2026, 1, 1, tzinfo=timezone.utc))
+        self.assertEqual([(x['bhukti'], x['strength']) for x in w], [('Venus', 'strong')])
+
 if __name__ == '__main__':
     unittest.main()
