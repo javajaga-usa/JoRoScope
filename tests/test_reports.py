@@ -85,5 +85,34 @@ class MonthlyTransitTests(unittest.TestCase):
                     self.assertIn(g['house'], VEDHA[g['planet']])
         self.assertEqual(moon, 10)  # Aquarius Moon: Chandrashtamam is the Moon in Virgo
 
+
+class VarshaphalTests(unittest.TestCase):
+    def test_annual_chart_matches_pyjhora(self):
+        from datetime import datetime, timezone
+        from joroscope.core.engine import calculate as calc
+        from joroscope.core import varshaphal
+        captured = {}
+        orig = varshaphal.calculate_varshaphal
+
+        def at(chart, now=None):
+            captured['chart'] = chart
+            return orig(chart, now)
+        varshaphal.calculate_varshaphal = at
+        try:
+            calc(BIRTH)
+        finally:
+            varshaphal.calculate_varshaphal = orig
+        v = orig(captured['chart'], now=datetime(2026, 9, 28, tzinfo=timezone.utc))
+        check_chapter(self, v)
+        # PyJHora annual_chart (Lahiri, Chennai): 2026-01-01 17:35:19 IST, Gemini Lagna
+        self.assertEqual(v['pravesh'][:16], '2026-01-01T17:35')
+        self.assertEqual((v['lagna'], v['years_completed']), ('Gemini', 36))
+        # Muntha: Pisces Lagna + 36 years = Pisces, the 10th from Gemini
+        self.assertEqual((v['muntha'], v['muntha_house']), ('Pisces', 10))
+        self.assertTrue(v['day_year'])
+        # Mudda Dasa: 36 years on from the Mars star (Dhanishtha) is Mars again, nearly spent, then Rahu
+        self.assertEqual(v['mudda'][0]['lord'], 'Rahu')
+        self.assertIn(v['year_lord'], ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'))
+
 if __name__ == '__main__':
     unittest.main()
