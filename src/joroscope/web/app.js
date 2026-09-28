@@ -102,6 +102,7 @@ const ERROR_TA = {
 };
 
 const txt = (en, ta) => (currentLang === 'ta' ? ta : en);
+const VAARAM_SHORT = [['Sun', 'ஞா'], ['Mon', 'தி'], ['Tue', 'செ'], ['Wed', 'பு'], ['Thu', 'வி'], ['Fri', 'வெ'], ['Sat', 'ச']];
 const grahaName = name => PLANET_NAMES[name] ? txt(PLANET_NAMES[name].en, PLANET_NAMES[name].ta) : name;
 const grahaNames = (list, sep = ', ') => (list || []).map(grahaName).join(sep);
 const dignityLabel = d => txt(d || 'Neutral', DIGNITY_TA[d || 'Neutral'] || d);
@@ -157,6 +158,8 @@ let currentTimelinePlanet = 'all';
 let timelineSearchYear = null;
 let lastDailyPanchangam = null;
 let lastMatch = null;
+let calendarMonth = null;  // {year, month} shown in the monthly Tamil calendar
+let lastCalendar = null;
 const STORAGE_KEY = 'joroscope_profiles_v2';
 const LEGACY_STORAGE_KEY = 'astrology-reborn-profiles-v1';
 
@@ -348,6 +351,8 @@ const I18N = {
     yogini_mode: 'Yogini Dasa',
     yogini_title: 'Yogini Dasa (36-Year Cycle)',
     yogini_sub: 'Eight yoginis ruled by the Moon, Sun, Jupiter, Mars, Mercury, Saturn, Venus and Rahu; the birth star fixes the first.',
+    month_cal_title: 'Tamil Monthly Calendar',
+    month_cal_sub: 'Tithi and star at sunrise with Amavasai, Pournami, Ekadasi, Pradosham, Sashti, Sankatahara Chaturthi, Masa Shivaratri and Karthigai.',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -702,6 +707,8 @@ const I18N = {
     yogini_mode: 'யோகினி தசை',
     yogini_title: 'யோகினி தசை (36 ஆண்டு சுழற்சி)',
     yogini_sub: 'சந்திரன், சூரியன், குரு, செவ்வாய், புதன், சனி, சுக்கிரன், ராகு ஆளும் எட்டு யோகினிகள்; ஜென்ம நட்சத்திரமே முதல் யோகினியைத் தீர்மானிக்கிறது.',
+    month_cal_title: 'தமிழ் மாத நாட்காட்டி',
+    month_cal_sub: 'சூரிய உதய திதி, நட்சத்திரம் மற்றும் அமாவாசை, பௌர்ணமி, ஏகாதசி, பிரதோஷம், சஷ்டி, சங்கடஹர சதுர்த்தி, மாத சிவராத்திரி, கார்த்திகை.',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -970,7 +977,10 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
-  if (pageName === 'panchangam') loadDailyPanchangam();
+  if (pageName === 'panchangam') {
+    loadDailyPanchangam();
+    loadMonthCalendar();
+  }
 
   // Close mobile sidebar if open
   $('.sidebar').classList.remove('open');
@@ -1095,6 +1105,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Daily Panchangam: a picked date shows that day at sunrise; "Now" shows this moment
   $('#panch-date')?.addEventListener('change', loadDailyPanchangam);
+  $('#month-prev-btn')?.addEventListener('click', () => shiftCalendarMonth(-1));
+  $('#month-next-btn')?.addEventListener('click', () => shiftCalendarMonth(1));
   $('#panch-today-btn')?.addEventListener('click', () => {
     $('#panch-date').value = '';
     loadDailyPanchangam();
@@ -1180,6 +1192,7 @@ function toggleLanguage() {
     renderDasaTimelineView();
   }
   if (lastDailyPanchangam) populatePanchangamView(lastDailyPanchangam);
+  if (lastCalendar) renderMonthCalendar(lastCalendar);
   if (lastMatch) renderMatchResult(lastMatch);
   populateQuickProfileDropdown();
   renderProfilesList();
@@ -3263,6 +3276,71 @@ async function loadDailyPanchangam() {
     errorEl.textContent = errorText(err.message);
     errorEl.hidden = false;
   }
+}
+
+// Monthly Tamil calendar for the birth form's location
+function shiftCalendarMonth(step) {
+  const m = calendarMonth.month - 1 + step;
+  calendarMonth = { year: calendarMonth.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 + 1 };
+  loadMonthCalendar();
+}
+
+async function loadMonthCalendar() {
+  const form = $('#birth-form');
+  if (!calendarMonth) {
+    const picked = $('#panch-date').value;
+    const base = picked ? new Date(`${picked}T12:00:00`) : new Date();
+    calendarMonth = { year: base.getFullYear(), month: base.getMonth() + 1 };
+  }
+  try {
+    const resp = await fetch('/api/calendar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...calendarMonth,
+        latitude: form.elements['latitude']?.value,
+        longitude: form.elements['longitude']?.value,
+        timezone: form.elements['timezone']?.value || 'Asia/Kolkata'
+      })
+    });
+    const cal = await resp.json();
+    if (!resp.ok) throw new Error(cal.error || 'Calendar calculation failed.');
+    lastCalendar = cal;
+    renderMonthCalendar(cal);
+  } catch (err) {
+    notify(errorText(err.message));
+  }
+}
+
+const OBSERVANCE_ICONS = {
+  amavasai: '🌑', pournami: '🌕', ekadasi: '🙏', pradosham: '🔱', sashti: '🦚',
+  sankatahara: '🐘', shivaratri: '🕉', karthigai: '🪔', month_start: '🗓'
+};
+
+function renderMonthCalendar(cal) {
+  const isTa = currentLang === 'ta';
+  const first = new Date(`${cal.days[0].date}T12:00:00`);
+  $('#month-cal-label').textContent = first.toLocaleDateString(isTa ? 'ta-IN' : 'en-GB', { month: 'long', year: 'numeric' });
+  const headers = VAARAM_SHORT.map(([en, ta]) => `<div class="month-head">${txt(en, ta)}</div>`).join('');
+  const blanks = '<div class="month-cell empty"></div>'.repeat(first.getDay());
+  const today = new Date().toLocaleDateString('en-CA');
+  const cells = cal.days.map(d => `
+    <div class="month-cell${d.date === today ? ' today' : ''}${d.observances.length ? ' has-obs' : ''}">
+      <div class="month-cell-top">
+        <strong>${Number(d.date.slice(8))}</strong>
+        <small>${esc(txt(`${d.tamil_month.slice(0, 3)} ${d.tamil_day}`, `${d.tamil_month_ta} ${d.tamil_day}`))}</small>
+      </div>
+      <small class="month-cell-anga">${esc(txt(d.tithi_name, d.tithi_ta))} · ${esc(txt(d.nakshatra, d.nakshatra_ta))}</small>
+      <div class="month-cell-obs">${d.observances.map(o => `<span title="${esc(txt(o.en, o.ta))}">${OBSERVANCE_ICONS[o.key]}</span>`).join('')}</div>
+    </div>`).join('');
+  $('#month-grid').innerHTML = headers + blanks + cells;
+
+  const listed = cal.days.flatMap(d => d.observances.map(o => ({ d, o })));
+  $('#month-observances').innerHTML = listed.map(({ d, o }) => `
+    <div class="month-obs-row">
+      <span>${OBSERVANCE_ICONS[o.key]} ${esc(txt(o.en, o.ta))}</span>
+      <span>${new Date(`${d.date}T12:00:00`).toLocaleDateString(isTa ? 'ta-IN' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
+    </div>`).join('') || `<p class="muted">${txt('No observances this month.', 'இம்மாதம் விரத நாட்கள் இல்லை.')}</p>`;
 }
 
 // "until HH:MM", with the date when the anga runs past the panchangam's day

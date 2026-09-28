@@ -8,13 +8,14 @@ Tamil-tradition calculations layered on the core engine:
 - Rahu-Ketu Dosham, Papa Samyam points and Dosha Samyam for matching
 - Daily Tamil Panchangam: anga end times, Hora, Soolam, Chandrashtamam, Tara/Chandra Balam
 - Personal almanac: upcoming Chandrashtamam periods and the Nakshatra birthday
+- Monthly Tamil calendar with observance days, rules matched to Drik Panchang
 """
 import math
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .engine import (
-    swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS,
+    swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS, TITHIS,
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
@@ -114,6 +115,18 @@ TIME_UPAGRAHAS = [
 # Sun-based upagrahas (BPHS): Dhuma = Sun + 133°20', then each derived from the previous
 SOLAR_UPAGRAHAS = [('Dhuma', 'தூமம்'), ('Vyatipata', 'வியதீபாதம்'), ('Parivesha', 'பரிவேடம்'),
                    ('Indrachapa', 'இந்திரசாபம்'), ('Upaketu', 'உபகேது')]
+
+# Monthly observances. Each rule reproduces Drik Panchang's published dates for Chennai
+# across 2025 and 2026 (see tests/test_tamil_calendar.py).
+OBSERVANCES = {
+    'amavasai': ('Amavasai', 'அமாவாசை'), 'pournami': ('Pournami', 'பௌர்ணமி'),
+    'ekadasi': ('Ekadasi', 'ஏகாதசி'), 'pradosham': ('Pradosham', 'பிரதோஷம்'),
+    'sashti': ('Sashti', 'சஷ்டி'), 'sankatahara': ('Sankatahara Chaturthi', 'சங்கடஹர சதுர்த்தி'),
+    'shivaratri': ('Masa Shivaratri', 'மாத சிவராத்திரி'), 'karthigai': ('Karthigai', 'கார்த்திகை'),
+    'month_start': ('Tamil month begins', 'மாதப் பிறப்பு')
+}
+TITHI_TA = ['பிரதமை', 'துவிதியை', 'திருதியை', 'சதுர்த்தி', 'பஞ்சமி', 'சஷ்டி', 'சப்தமி', 'அஷ்டமி',
+            'நவமி', 'தசமி', 'ஏகாதசி', 'துவாதசி', 'திரயோதசி', 'சதுர்த்தசி']
 
 # Mean daily motions (degrees) used to seed the Newton searches
 SUN_RATE, MOON_RATE = 0.9856, 13.176
@@ -569,6 +582,129 @@ def _stars_in_sign(sign_idx):
     first = int(sign_idx * 30 / NAK_SPAN)
     last = int((sign_idx * 30 + 29.9999) / NAK_SPAN)
     return [dict(en=STARS[i], ta=TAMIL_STARS[i]) for i in range(first, last + 1)]
+
+
+def _tithi_at(jd):
+    return int(_elongation(jd)[0] // 12) + 1
+
+
+def _star_at(jd):
+    return int(_moon(jd)[0] / NAK_SPAN)
+
+
+def _moonrise(day, tz, lat, lon):
+    midnight = utc_to_jd(datetime(day.year, day.month, day.day, tzinfo=tz).astimezone(timezone.utc))
+    res, tret = swe.rise_trans(midnight, swe.MOON, swe.CALC_RISE, (lon, lat, 0), 0, 0, swe.FLG_MOSEPH)
+    return tret[0] if res == 0 and tret[0] < midnight + 1 else None
+
+
+def _observances(d, ev, tithi_at, moonrise):
+    """Observance keys falling on day d; ev maps days (d-1 .. d+2) to sun events."""
+    prev, nxt, nxt2 = d - timedelta(days=1), d + timedelta(days=1), d + timedelta(days=2)
+    sr = lambda x: ev[x]['sunrise']
+    ss = lambda x: ev[x]['sunset']
+    at = lambda x, f: sr(x) + f * (ss(x) - sr(x))
+    found = []
+
+    # Amavasai: the new moon prevailing at mid-afternoon (Aparahna)
+    if tithi_at(at(d, 0.7)) == 30:
+        found.append('amavasai')
+    # Pournami: the full moon at the close of Madhyahna, the first such day; else at sunrise
+    if tithi_at(at(prev, 0.6)) != 15 and (tithi_at(at(d, 0.6)) == 15 or tithi_at(sr(d)) == 15):
+        found.append('pournami')
+
+    # Ekadasi (Smarta): Ekadasi at sunrise, with the Dwadashi needed for next morning's
+    # parana, the arunodaya test when it spans two sunrises, and the kshaya case
+    ek = lambda t: tithi_at(t) in (11, 26)
+    dw = lambda t: tithi_at(t) in (12, 27)
+    aruna = lambda x: sr(x) - 96 / 1440
+    if ek(sr(d)):
+        if ek(sr(prev)):
+            ekadasi = not ek(aruna(prev))
+        elif ek(sr(nxt)):
+            ekadasi = ek(aruna(d))
+        else:
+            ekadasi = dw(sr(nxt))
+    else:
+        ekadasi = ek(ss(d)) and (not ek(sr(nxt)) or (not ek(sr(nxt2)) and not dw(sr(nxt2))))
+    if ekadasi:
+        found.append('ekadasi')
+
+    # Pradosham: the day whose Pradosha (first fifth of the night) holds Trayodashi longest
+    def pradosha(x):
+        t0 = ss(x)
+        span = (ev[x]['next_sunrise'] - t0) / 5
+        return sum(tithi_at(t0 + span * (i + 0.5) / 12) in (13, 28) for i in range(12))
+    here = pradosha(d)
+    if here and here >= pradosha(prev) and here > pradosha(nxt):
+        found.append('pradosham')
+
+    # Skanda Sashti: Shukla Shashti beginning in daytime, else Shashti at sunrise
+    starts_by_day = lambda x: tithi_at(sr(x)) != 6 and tithi_at(ss(x)) == 6
+    if starts_by_day(d) or (tithi_at(sr(d)) == 6 and not starts_by_day(prev)):
+        found.append('sashti')
+    # Sankatahara Chaturthi: Krishna Chaturthi at moonrise
+    rise = moonrise(d)
+    if rise is not None and tithi_at(rise) == 19:
+        found.append('sankatahara')
+    # Masa Shivaratri: Krishna Chaturdashi at Nishita, the 8th of 15 night muhurtas
+    if tithi_at(ss(d) + 7.5 * (ev[d]['next_sunrise'] - ss(d)) / 15) == 29:
+        found.append('shivaratri')
+    # Karthigai: Krittika at sunset; if it touches no sunset, the day it holds at sunrise
+    if _star_at(ss(d)) == 2 or (_star_at(sr(d)) == 2 and _star_at(ss(d)) != 2 and _star_at(ss(prev)) != 2):
+        found.append('karthigai')
+    return found
+
+
+def month_calendar(year, month, tz_name, lat, lon, ayanamsa='Lahiri'):
+    """A Tamil panchangam month: each day's Tamil date, tithi and star at sunrise, and observances."""
+    if not math.isfinite(lat) or not -66 <= lat <= 66:
+        raise ValueError('Latitude must be between 66° south and 66° north in this version.')
+    if not math.isfinite(lon) or not -180 <= lon <= 180:
+        raise ValueError('Longitude must be between -180 and 180.')
+    if not 1800 <= year <= 2200 or not 1 <= month <= 12:
+        raise ValueError('Choose a date between 1800 and 2200.')
+    tz = _zone(tz_name)
+    swe.set_sid_mode(AYAN[ayanamsa])
+    first = date(year, month, 1)
+    last = (first + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+    ev = {}
+    day = first - timedelta(days=1)
+    while day <= last + timedelta(days=2):
+        ev[day] = sun_events(day, tz, lat, lon)
+        day += timedelta(days=1)
+
+    cal = tamil_calendar(first, tz, lat, lon)
+    tamil_month, tamil_day, year_idx = cal['month_index'], cal['day'] - 1, cal['year_number'] - 1
+    days = []
+    day = first
+    while day <= last:
+        month_now = int(_sun(ev[day]['sunset'])[0] // 30)  # the sunset rule, day by day
+        if month_now != tamil_month:
+            tamil_month, tamil_day = month_now, 0
+            if month_now == 0:
+                year_idx = (year_idx + 1) % 60
+        tamil_day += 1
+        sunrise = ev[day]['sunrise']
+        tithi = _tithi_at(sunrise)
+        star = _star_at(sunrise)
+        keys = _observances(day, ev, _tithi_at, lambda x: _moonrise(x, tz, lat, lon))
+        if tamil_day == 1:
+            keys.insert(0, 'month_start')
+        weekday = (day.weekday() + 1) % 7
+        days.append(dict(
+            date=day.isoformat(),
+            weekday=VAARAM[weekday][0], weekday_ta=VAARAM[weekday][1],
+            tamil_month=TAMIL_MONTHS[tamil_month], tamil_month_ta=TAMIL_MONTHS_TA[tamil_month], tamil_day=tamil_day,
+            tamil_year=TAMIL_YEARS[year_idx][0], tamil_year_ta=TAMIL_YEARS[year_idx][1],
+            tithi=tithi, tithi_name=TITHIS[tithi - 1], tithi_ta=TITHI_TA[(tithi - 1) % 15] if tithi not in (15, 30) else ('பௌர்ணமி' if tithi == 15 else 'அமாவாசை'),
+            paksha='Shukla' if tithi <= 15 else 'Krishna',
+            nakshatra=STARS[star], nakshatra_ta=TAMIL_STARS[star],
+            sunrise_local=_local_iso(sunrise, tz)[11:16], sunset_local=_local_iso(ev[day]['sunset'], tz)[11:16],
+            observances=[dict(key=k, en=OBSERVANCES[k][0], ta=OBSERVANCES[k][1]) for k in keys]
+        ))
+        day += timedelta(days=1)
+    return dict(year=year, month=month, timezone=tz_name, days=days)
 
 
 def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, natal_sign=None, ayanamsa='Lahiri'):

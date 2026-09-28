@@ -2002,6 +2002,80 @@ input:focus, select:focus {
   margin-top: 6px;
 }
 
+/* Monthly Tamil calendar */
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  margin-top: 12px;
+}
+.month-head {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--gold);
+  padding: 4px 0;
+}
+.month-cell {
+  min-height: 78px;
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.month-cell.empty {
+  background: transparent;
+  border: 0;
+}
+.month-cell.today {
+  border-color: var(--gold);
+  box-shadow: 0 0 10px var(--gold-glow);
+}
+.month-cell.has-obs {
+  background: var(--bg-subtle-hover);
+}
+.month-cell-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 4px;
+}
+.month-cell-top small,
+.month-cell-anga {
+  font-size: 9px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.month-cell-obs {
+  margin-top: auto;
+  font-size: 13px;
+  letter-spacing: 1px;
+}
+.month-observances {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 6px 18px;
+  margin-top: 14px;
+}
+.month-obs-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  border-bottom: 1px dotted var(--border-subtle);
+  padding: 3px 0;
+}
+
 /* Hora (Orai) grid */
 .hora-grid {
   display: grid;

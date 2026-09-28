@@ -15,7 +15,7 @@ from urllib.parse import urlsplit, unquote
 
 from . import __version__
 from .core.engine import calculate, calculate_match
-from .core.south_indian import daily_panchangam
+from .core.south_indian import daily_panchangam, month_calendar
 
 MODULE_DIR = Path(__file__).resolve().parent
 # Locate web assets directory
@@ -58,7 +58,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/match', '/api/panchangam'):
+        if req_path not in ('/api/chart', '/api/match', '/api/panchangam', '/api/calendar'):
             self.send(b'{}', 404)
             return
 
@@ -108,6 +108,10 @@ class Handler(BaseHTTPRequestHandler):
                     natal_sign=None if natal_sign in (None, '') else int(natal_sign)
                 )
                 self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/calendar':
+                cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
+                                     float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)))
+                self.send(json.dumps(cal, ensure_ascii=False, allow_nan=False).encode())
         except Exception as err:
             self.send(json.dumps({'error': str(err)}).encode(), 400)
 
