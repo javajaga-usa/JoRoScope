@@ -183,3 +183,48 @@ class ArudhaTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class MuhurthamTests(unittest.TestCase):
+    def test_marriage_rules(self):
+        from joroscope.core.muhurtham import find_muhurthams, MUHURTHA_EVENTS
+        found = find_muhurthams('marriage', '2026-09-20', 70, 'Asia/Kolkata', 13.0827, 80.2707, limit=60)
+        dates = [d['date'] for d in found['results']]
+        # Purattasi (to 17 Oct 2026) is avoided; two of Golden Chennai's published dates agree
+        self.assertTrue(all(d >= '2026-10-18' for d in dates))
+        self.assertIn('2026-11-11', dates)
+        self.assertIn('2026-11-20', dates)
+        stars = MUHURTHA_EVENTS['marriage']['stars']
+        from joroscope.core.engine import STARS
+        for day in found['results']:
+            for w in day['windows']:
+                self.assertIn(STARS.index(w['nakshatra']), stars)
+                self.assertGreaterEqual(w['minutes'], 30)
+                self.assertNotEqual(w['karana'], 'Vishti')
+
+    def test_windows_avoid_rahu_kalam(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        from joroscope.core.muhurtham import find_muhurthams
+        from joroscope.core.engine import calculate_panchangam
+        found = find_muhurthams('general', '2026-11-01', 30, 'Asia/Kolkata', 13.0827, 80.2707)
+        for day in found['results']:
+            noon = datetime.fromisoformat(day['date'] + 'T12:00:00').replace(tzinfo=ZoneInfo('Asia/Kolkata'))
+            rahu = calculate_panchangam(noon.astimezone(ZoneInfo('UTC')), 13.0827, 80.2707, 0, 0, 'Asia/Kolkata')['rahu_kalam_local']
+            r_start, r_end = rahu.split(' - ')
+            for w in day['windows']:
+                start, end = w['start_local'][11:16], w['end_local'][11:16]
+                self.assertTrue(end <= r_start or start >= r_end, (day['date'], start, end, rahu))
+
+    def test_personal_chandrashtamam_excluded(self):
+        from joroscope.core.muhurtham import find_muhurthams
+        from joroscope.core.engine import swe, AYAN, sidereal_position, utc_to_jd
+        from datetime import datetime, timezone
+        found = find_muhurthams('general', '2026-11-01', 45, 'Asia/Kolkata', 13.0827, 80.2707, natal_star=0, natal_sign=0,
+                                limit=60)
+        swe.set_sid_mode(AYAN['Lahiri'])
+        for day in found['results']:
+            for w in day['windows']:
+                jd = utc_to_jd(datetime.fromisoformat(w['start_local']).astimezone(timezone.utc)) + 1 / 1440
+                moon_sign = int(sidereal_position(jd, swe.MOON)[0] // 30)
+                self.assertNotEqual(moon_sign, 7)  # Scorpio is 8th from an Aries Moon

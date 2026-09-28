@@ -16,6 +16,7 @@ from urllib.parse import urlsplit, unquote
 from . import __version__
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
+from .core.muhurtham import find_muhurthams
 
 MODULE_DIR = Path(__file__).resolve().parent
 # Locate web assets directory
@@ -58,7 +59,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/match', '/api/panchangam', '/api/calendar'):
+        if req_path not in ('/api/chart', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham'):
             self.send(b'{}', 404)
             return
 
@@ -108,6 +109,20 @@ class Handler(BaseHTTPRequestHandler):
                     natal_sign=None if natal_sign in (None, '') else int(natal_sign)
                 )
                 self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/muhurtham':
+                tz_str = data.get('timezone', 'Asia/Kolkata')
+                try:
+                    today = datetime.now(ZoneInfo(tz_str)).strftime('%Y-%m-%d')
+                except ZoneInfoNotFoundError:
+                    raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+                natal_star = data.get('natal_nakshatra_index')
+                natal_sign = data.get('natal_sign_index')
+                found = find_muhurthams(
+                    data.get('event', 'marriage'), data.get('start_date') or today, int(data.get('days', 60)), tz_str,
+                    float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
+                    natal_star=None if natal_star in (None, '') else int(natal_star),
+                    natal_sign=None if natal_sign in (None, '') else int(natal_sign))
+                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/calendar':
                 cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
                                      float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)))

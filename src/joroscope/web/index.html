@@ -1786,6 +1786,35 @@
           </div>
           <div class="hora-grid" id="gowri-grid"></div>
         </div>
+
+        <!-- Muhurtham finder -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="muhurtham_title">Muhurtham Finder</h2>
+              <p class="card-subtitle" data-i18n="muhurtham_sub">Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.</p>
+            </div>
+            <span class="card-badge">💍</span>
+          </div>
+          <div class="muhurtham-controls">
+            <select id="muhurtham-event" aria-label="Event">
+              <option value="marriage" data-i18n="mh_marriage">Marriage</option>
+              <option value="griha_pravesam" data-i18n="mh_griha">House-warming (Griha Pravesam)</option>
+              <option value="business" data-i18n="mh_business">Opening a business</option>
+              <option value="vehicle" data-i18n="mh_vehicle">Buying a vehicle</option>
+              <option value="general" data-i18n="mh_general">Any auspicious beginning</option>
+            </select>
+            <select id="muhurtham-days" aria-label="Days">
+              <option value="30" data-i18n="mh_30">Next 30 days</option>
+              <option value="60" selected data-i18n="mh_60">Next 60 days</option>
+              <option value="90" data-i18n="mh_90">Next 90 days</option>
+            </select>
+            <button class="action-btn" id="muhurtham-btn" type="button" data-i18n="mh_find">Find Muhurthams</button>
+          </div>
+          <p class="muted" id="muhurtham-summary"></p>
+          <div class="muhurtham-list" id="muhurtham-list"></div>
+          <p class="muted" style="font-size:11.5px" data-i18n="mh_note">Published Tamil calendars also fix the Lagna and follow regional customs; confirm the final time with your family astrologer.</p>
+        </div>
       </section>
 
       <!-- VIEW 9: SAVED PROFILES -->

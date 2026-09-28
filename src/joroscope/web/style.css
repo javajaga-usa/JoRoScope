@@ -1940,6 +1940,42 @@ input:focus, select:focus {
   color: var(--text-primary);
 }
 
+/* Muhurtham finder */
+.muhurtham-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0 12px;
+}
+.muhurtham-controls select {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.muhurtham-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 12px;
+}
+.muhurtham-day {
+  border: 1px solid var(--border-subtle, var(--gold-dim));
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.muhurtham-day h4 {
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 14px;
+}
+.muhurtham-day ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  display: grid;
+  gap: 4px;
+}
+
 /* Tamil Jathaga Kurippu */
 .kurippu-grid {
   display: grid;

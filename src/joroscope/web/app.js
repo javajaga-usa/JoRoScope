@@ -534,6 +534,18 @@ const I18N = {
     th_result: "Result",
     h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
     h_bhava_bala: "Bhava Bala (House Strength)",
+    muhurtham_title: "Muhurtham Finder",
+    muhurtham_sub: "Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.",
+    mh_marriage: "Marriage",
+    mh_griha: "House-warming (Griha Pravesam)",
+    mh_business: "Opening a business",
+    mh_vehicle: "Buying a vehicle",
+    mh_general: "Any auspicious beginning",
+    mh_30: "Next 30 days",
+    mh_60: "Next 60 days",
+    mh_90: "Next 90 days",
+    mh_find: "Find Muhurthams",
+    mh_note: "Published Tamil calendars also fix the Lagna and follow regional customs; confirm the final time with your family astrologer.",
     h_sudarshana: "Sudarshana Chakra",
     pill_sudarshana: "Lagna · Moon · Sun",
     th_from_lagna: "From Lagna",
@@ -916,6 +928,18 @@ const I18N = {
     th_result: "பலன்",
     h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
     h_bhava_bala: "பாவ பலம்",
+    muhurtham_title: "முகூர்த்த நாள் தேடல்",
+    muhurtham_sub: "பாரம்பரிய முகூர்த்த விதிகளின்படி பகல் நேர சுப காலங்கள்: நிகழ்விற்கு உகந்த நட்சத்திரம், நல்ல கிழமை மற்றும் திதி, கடினமான யோகங்கள், பத்திரை கரணம், ராகு காலம், எமகண்டம், குளிகை தவிர்த்து. ஜாதகம் ஏற்றப்பட்டிருந்தால் தாரா பலம், சந்திர பலம் சரிபார்க்கப்பட்டு சந்திராஷ்டம நாட்கள் விலக்கப்படும்.",
+    mh_marriage: "திருமணம்",
+    mh_griha: "கிரகப் பிரவேசம்",
+    mh_business: "தொழில் / கடை திறப்பு",
+    mh_vehicle: "வாகனம் வாங்குதல்",
+    mh_general: "பொதுவான சுப காரியம்",
+    mh_30: "அடுத்த 30 நாட்கள்",
+    mh_60: "அடுத்த 60 நாட்கள்",
+    mh_90: "அடுத்த 90 நாட்கள்",
+    mh_find: "முகூர்த்தம் தேடு",
+    mh_note: "வெளியிடப்படும் தமிழ் நாட்காட்டிகள் லக்னத்தையும் வட்டார வழக்கங்களையும் கணக்கில் கொள்கின்றன; இறுதி நேரத்தை உங்கள் குடும்ப ஜோதிடரிடம் உறுதிசெய்யுங்கள்.",
     h_sudarshana: "சுதர்சன சக்கரம்",
     pill_sudarshana: "லக்னம் · சந்திரன் · சூரியன்",
     th_from_lagna: "லக்னத்திலிருந்து",
@@ -1158,6 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Daily Panchangam: a picked date shows that day at sunrise; "Now" shows this moment
   $('#panch-date')?.addEventListener('change', loadDailyPanchangam);
+  $('#muhurtham-btn')?.addEventListener('click', loadMuhurthams);
   $('#month-prev-btn')?.addEventListener('click', () => shiftCalendarMonth(-1));
   $('#month-next-btn')?.addEventListener('click', () => shiftCalendarMonth(1));
   $('#panch-today-btn')?.addEventListener('click', () => {
@@ -1246,6 +1271,7 @@ function toggleLanguage() {
   }
   if (lastDailyPanchangam) populatePanchangamView(lastDailyPanchangam);
   if (lastCalendar) renderMonthCalendar(lastCalendar);
+  if (lastMuhurthams) renderMuhurthams(lastMuhurthams);
   if (lastMatch) renderMatchResult(lastMatch);
   populateQuickProfileDropdown();
   renderProfilesList();
@@ -3467,6 +3493,58 @@ function shiftCalendarMonth(step) {
   const m = calendarMonth.month - 1 + step;
   calendarMonth = { year: calendarMonth.year + Math.floor(m / 12), month: ((m % 12) + 12) % 12 + 1 };
   loadMonthCalendar();
+}
+
+// Muhurtham finder: auspicious daytime windows for an undertaking over the coming days
+let lastMuhurthams = null;
+async function loadMuhurthams() {
+  const form = $('#birth-form');
+  const payload = {
+    event: $('#muhurtham-event').value,
+    days: Number($('#muhurtham-days').value),
+    start_date: $('#panch-date').value || undefined,
+    latitude: form.elements['latitude']?.value,
+    longitude: form.elements['longitude']?.value,
+    timezone: form.elements['timezone']?.value || 'Asia/Kolkata'
+  };
+  if (currentChart) {
+    payload.natal_nakshatra_index = STARS_EN.indexOf(currentChart.planets.Moon.nakshatra);
+    payload.natal_sign_index = currentChart.planets.Moon.sign_index;
+  }
+  const btn = $('#muhurtham-btn');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/muhurtham', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Muhurtham search failed.');
+    lastMuhurthams = data;
+    renderMuhurthams(data);
+  } catch (err) {
+    notify(errorText(err.message));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function renderMuhurthams(data) {
+  if (!data) return;
+  const personal = data.personal ? txt(' Checked against your birth star and Moon sign.', ' உங்கள் ஜன்ம நட்சத்திரம், ராசிக்கு ஏற்பச் சரிபார்க்கப்பட்டது.') : '';
+  $('#muhurtham-summary').textContent = txt(
+    `${data.days_found} suitable day${data.days_found === 1 ? '' : 's'} for ${data.event_en} in the ${data.days} days from ${data.start}.${personal}`,
+    `${data.start} முதல் ${data.days} நாட்களில் ${data.event_ta} செய்ய ${data.days_found} உகந்த நாட்கள்.${personal}`);
+  $('#muhurtham-list').innerHTML = data.results.map(d => `
+    <div class="muhurtham-day">
+      <h4>${d.date} · ${esc(txt(d.weekday, d.weekday_ta))} <small class="muted">(${esc(d.tamil_date)})</small></h4>
+      <ul>${d.windows.map(w => `
+        <li><strong>${clockTime(w.start_local)} – ${clockTime(w.end_local)}</strong> · ${esc(txt(w.nakshatra, w.nakshatra_ta))} ·
+          ${esc(txt(`${w.tithi} (${w.paksha})`, `${w.tithi_ta} (${w.paksha === 'Shukla' ? 'வளர்பிறை' : 'தேய்பிறை'})`))}
+          ${w.notes_en.length ? `<br><small class="muted">${esc(txt(w.notes_en.join(', '), w.notes_ta.join(', ')))}</small>` : ''}</li>`).join('')}
+      </ul>
+    </div>`).join('') || `<p class="muted">${txt('No suitable day in this period; try a longer range.', 'இந்தக் காலத்தில் உகந்த நாள் இல்லை; நீண்ட காலத்தைத் தேர்ந்தெடுக்கவும்.')}</p>`;
 }
 
 async function loadMonthCalendar() {
