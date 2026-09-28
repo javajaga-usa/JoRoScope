@@ -798,7 +798,10 @@ function reportTableHtml(t) {
 }
 
 function renderReportChapter(key, ch) {
-  const panel = document.getElementById(`ppanel-${key}`);
+  renderChapterInto(document.getElementById(`ppanel-${key}`), ch);
+}
+
+function renderChapterInto(panel, ch) {
   if (!panel) return;
   if (!ch) {
     panel.innerHTML = `<p class="muted">${txt('Not available for this chart.', 'இந்த ஜாதகத்திற்குக் கிடைக்கவில்லை.')}</p>`;
@@ -809,6 +812,7 @@ function renderReportChapter(key, ch) {
       <h2>${esc(txt(ch.title.en, ch.title.ta))}</h2>
       <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta))}</p>
     </div>
-    ${ch.tables.map(reportTableHtml).join('')}
-    <div class="readings-grid">${ch.cards.map(reportCardHtml).join('')}</div>`;
+    ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}
+    <div class="readings-grid">${ch.cards.map(reportCardHtml).join('')}</div>
+    ${ch.cards_first ? ch.tables.map(reportTableHtml).join('') : ''}`;
 }

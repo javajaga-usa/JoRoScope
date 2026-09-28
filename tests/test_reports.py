@@ -137,5 +137,38 @@ class LifeReportTests(unittest.TestCase):
         w = period_windows(rows, {'Venus'}, datetime(2026, 1, 1, tzinfo=timezone.utc))
         self.assertEqual([(x['bhukti'], x['strength']) for x in w], [('Venus', 'strong')])
 
+
+class PrasnaTests(unittest.TestCase):
+    def test_rules_and_ithasala(self):
+        from joroscope.core.prasna import calculate_prasna, SHIRSHODAYA
+        r = calculate_prasna('career', '2026-09-29', '04:15:00', 'Asia/Kolkata', 13.0827, 80.2707, arudha=7)
+        check_chapter(self, r)
+        self.assertEqual(r['lagna'], 'Leo')
+        self.assertIn(4, SHIRSHODAYA)                      # Leo rises head first
+        self.assertEqual(r['arudha'], 'Libra')
+        self.assertIn(r['verdict'], ('good', 'mixed', 'bad'))
+        factors = [row[0]['en'] for row in r['tables'][0]['rows']]
+        self.assertTrue(any('Shirshodaya' in f for f in factors))
+        with self.assertRaises(ValueError):
+            calculate_prasna('career', '', '', 'Asia/Kolkata', 13.08, 80.27, arudha=13)
+
+    def test_api(self):
+        import json, threading, urllib.request
+        from http.server import HTTPServer
+        from joroscope.server import Handler
+        server = HTTPServer(('127.0.0.1', 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            body = json.dumps({'question': 'marriage', 'latitude': 13.08, 'longitude': 80.27, 'timezone': 'Asia/Kolkata'}).encode()
+            req = urllib.request.Request(f'http://127.0.0.1:{server.server_port}/api/prasna', data=body,
+                                         headers={'Content-Type': 'application/json'})
+            with urllib.request.urlopen(req) as resp:
+                data = json.loads(resp.read())
+            self.assertEqual(data['question'], 'marriage')
+            self.assertTrue(data['cards'][0]['title']['en'].startswith('Answer'))
+        finally:
+            server.shutdown()
+            server.server_close()
+
 if __name__ == '__main__':
     unittest.main()

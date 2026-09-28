@@ -267,6 +267,7 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
+  if (pageName === 'tools') fillPrasnaQuestions();
   if (pageName === 'panchangam') {
     loadDailyPanchangam();
     loadMonthCalendar();
@@ -387,6 +388,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Profiles toolbar buttons
   $('#export-profiles-btn')?.addEventListener('click', exportProfilesJSON);
   $('#muhurtham-ics-btn')?.addEventListener('click', exportMuhurthamsIcs);
+  $('#prasna-btn')?.addEventListener('click', askPrasna);
+  fillPrasnaQuestions();
   $('#month-ics-btn')?.addEventListener('click', exportMonthIcs);
   $('#chandrashtamam-ics-btn')?.addEventListener('click', exportChandrashtamamIcs);
   $('#import-profiles-input')?.addEventListener('change', importProfilesJSON);
@@ -495,6 +498,8 @@ function toggleLanguage() {
   if (lastCalendar) renderMonthCalendar(lastCalendar);
   if (lastMuhurthams) renderMuhurthams(lastMuhurthams);
   if (lastMatch) renderMatchResult(lastMatch);
+  fillPrasnaQuestions();
+  if (lastPrasna) renderChapterInto($('#prasna-result'), lastPrasna);
   populateQuickProfileDropdown();
   renderProfilesList();
   populateMatchDropdowns();

@@ -68,6 +68,10 @@
           <span class="nav-icon">🌅</span>
           <span class="nav-text" data-i18n="daily_panchangam">Daily Panchangam</span>
         </button>
+        <button class="nav-item" data-page="tools" id="nav-tools">
+          <span class="nav-icon">🔮</span>
+          <span class="nav-text" data-i18n="nav_tools">Prasna & Tools</span>
+        </button>
         <button class="nav-item" data-page="profiles" id="nav-profiles">
           <span class="nav-icon">📁</span>
           <span class="nav-text" data-i18n="saved_profiles">Saved Profiles</span>
@@ -1925,6 +1929,35 @@
           <div class="muhurtham-list" id="muhurtham-list"></div>
           <p class="muted" style="font-size:11.5px" data-i18n="mh_note">Published Tamil calendars also fix the Lagna and follow regional customs; confirm the final time with your family astrologer.</p>
         </div>
+      </section>
+
+      <!-- VIEW: PRASNA & TOOLS -->
+      <section id="page-tools" class="app-page" hidden>
+        <div class="page-intro">
+          <div>
+            <span class="eyebrow" data-i18n="tools_eyebrow">HORARY & RECTIFICATION</span>
+            <h1 data-i18n="nav_tools">Prasna & Tools</h1>
+            <p class="muted" data-i18n="tools_sub">Ask a question for the present moment, or check a birth time against the events of a life.</p>
+          </div>
+        </div>
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="prasna_title">Prasna (Horary)</h2>
+              <p class="card-subtitle" data-i18n="prasna_sub">The chart of the moment you ask, at the place in the birth form, judged by Prasna Marga and Tajika rules. Optionally think of your question and pick a number from 1 to 12 (the Arudha).</p>
+            </div>
+            <span class="card-badge">🔮</span>
+          </div>
+          <div class="muhurtham-controls">
+            <select id="prasna-question" aria-label="Question"></select>
+            <input id="prasna-arudha" type="number" min="1" max="12" placeholder="Arudha 1-12" data-i18n-placeholder="prasna_arudha" aria-label="Arudha number">
+            <input id="prasna-date" type="date" aria-label="Date">
+            <input id="prasna-time" type="time" aria-label="Time">
+            <button class="action-btn" id="prasna-btn" type="button" data-i18n="prasna_ask">Ask now</button>
+          </div>
+          <p class="muted" style="font-size:11.5px" data-i18n="prasna_hint">Leave the date and time empty to use this moment.</p>
+        </div>
+        <div class="report-panel" id="prasna-result"></div>
       </section>
 
       <!-- VIEW 9: SAVED PROFILES -->

@@ -441,3 +441,45 @@ function exportChandrashtamamIcs() {
   }));
   downloadText(`JoRoScope-Chandrashtamam-${name.replace(/\W+/g, '-')}.ics`, buildIcs(events, txt('Chandrashtamam', 'சந்திராஷ்டமம்')), 'text/calendar');
 }
+
+// Prasna (horary): the question list comes from the server's answer, so the first ask fills it
+const PRASNA_QUESTIONS = [
+  ['general', 'General question', 'பொதுக் கேள்வி'], ['marriage', 'Marriage or relationship', 'திருமணம் / உறவு'],
+  ['career', 'Job, career or promotion', 'வேலை / தொழில் / பதவி உயர்வு'], ['money', 'Money, loans or business gain', 'பணம் / கடன் / வியாபார லாபம்'],
+  ['health', 'Health or recovery', 'உடல்நலம் / குணமடைதல்'], ['travel', 'Travel or going abroad', 'பயணம் / வெளிநாடு'],
+  ['children', 'Children or conception', 'குழந்தை / கருத்தரிப்பு'], ['property', 'House, land or vehicle', 'வீடு / நிலம் / வாகனம்'],
+  ['education', 'Studies or examinations', 'படிப்பு / தேர்வு'], ['lost', 'A lost or stolen object', 'தொலைந்த / திருடுபோன பொருள்'],
+  ['dispute', 'Dispute or court case', 'வழக்கு / தகராறு']
+];
+let lastPrasna = null;
+
+function fillPrasnaQuestions() {
+  const sel = $('#prasna-question');
+  if (!sel) return;
+  const chosen = sel.value || 'general';
+  sel.innerHTML = PRASNA_QUESTIONS.map(([k, en, ta]) => `<option value="${k}">${esc(txt(en, ta))}</option>`).join('');
+  sel.value = chosen;
+}
+
+async function askPrasna() {
+  const form = $('#birth-form');
+  const payload = {
+    question: $('#prasna-question').value, arudha: $('#prasna-arudha').value || null,
+    date: $('#prasna-date').value || '', time: $('#prasna-time').value || '',
+    latitude: form.elements['latitude']?.value, longitude: form.elements['longitude']?.value,
+    timezone: form.elements['timezone']?.value || 'Asia/Kolkata', ayanamsa: form.elements['ayanamsa']?.value || 'Lahiri'
+  };
+  const btn = $('#prasna-btn');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/prasna', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Prasna failed.');
+    lastPrasna = data;
+    renderChapterInto($('#prasna-result'), data);
+  } catch (err) {
+    notify(errorText(err.message));
+  } finally {
+    btn.disabled = false;
+  }
+}

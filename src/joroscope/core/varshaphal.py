@@ -20,7 +20,7 @@ from datetime import datetime, timezone
 
 from .engine import (AYAN, NATURAL_FRIENDS, SIGNS, TAMIL, calculate_vargas, jd_to_utc, sidereal_position,
                      swe, utc_to_jd)
-from .readings.common import DASA_LORDS, HOUSE_THEMES, PLANET_TAMIL, SIGN_LORDS
+from .readings.common import DASA_LORDS, HOUSE_THEMES, PLANET_TAMIL, SIGN_LORDS, _ordinal
 from .readings.report import card, chapter, table
 
 SIDEREAL_YEAR = 365.256364
@@ -203,7 +203,7 @@ def calculate_varshaphal(chart, now=None):
              f"இது {'பகல்' if day_year else 'இரவு'} வருடம்.",
              'Varsha Pravesh: the Sun returns to its birth position', 'வருட பிரவேசம்: சூரியன் ஜனன நிலைக்குத் திரும்பும் நேரம்'),
         card('🎯', f'Muntha in {SIGNS[muntha]}, house {muntha_house}', f'முந்தா {TAMIL[muntha]}, {muntha_house}-ஆம் இடம்',
-             f"Muntha, the progressed Lagna, falls in the {muntha_house} house of the year: {m_en}. "
+             f"Muntha, the progressed Lagna, falls in the {_ordinal(muntha_house)} house of the year: {m_en}. "
              f"Its lord {lord(muntha)} sits in house {house_of(lord(muntha))}.",
              f"முன்னேறிய லக்னமான முந்தா வருட ஜாதகத்தின் {muntha_house}-ஆம் இடத்தில்: {m_ta}. "
              f"அதன் அதிபதி {PLANET_TAMIL[lord(muntha)]} {house_of(lord(muntha))}-ஆம் இடத்தில்.",
@@ -226,13 +226,13 @@ def calculate_varshaphal(chart, now=None):
         if state in ('same', 'applying'):
             cards.append(card('✨', f'{en}: promised this year', f'{ta}: இந்த வருடம் கைகூடும்',
                               f"The year's Lagna lord {ylord} {'also rules' if state == 'same' else 'applies (Ithasala) to'} "
-                              f"the {h} house lord {hl}: {HOUSE_THEMES[h][0]} come forward this year.",
+                              f"the {_ordinal(h)} house lord {hl}: {HOUSE_THEMES[h][0]} come forward this year.",
                               f"வருட லக்னாதிபதி {PLANET_TAMIL[ylord]} {h}-ஆம் அதிபதி {PLANET_TAMIL[hl]} உடன் "
                               f"{'ஒன்றே' if state == 'same' else 'இத்தசால யோகம்'}: {HOUSE_THEMES[h][1]} இவ்வருடம் முன்னேறும்.",
                               verdict='good'))
         elif state == 'separating':
             cards.append(card('⌛', f'{en}: passing', f'{ta}: கடந்து செல்கிறது',
-                              f"{ylord} is separating from {hl} (Easarapha): a matter of the {h} house that has just been settled, "
+                              f"{ylord} is separating from {hl} (Easarapha): a matter of the {_ordinal(h)} house that has just been settled, "
                               f"or an opportunity already passing.",
                               f"{PLANET_TAMIL[ylord]} {PLANET_TAMIL[hl]}-இலிருந்து பிரிகிறது (ஈசராப யோகம்): {h}-ஆம் இடக் காரியம் "
                               f"முடிந்தது அல்லது வாய்ப்பு கடந்து செல்கிறது.", verdict='mixed'))
