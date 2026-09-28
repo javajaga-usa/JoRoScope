@@ -1,8 +1,8 @@
 # JoRoScope (ராஜகணிதம்) — Modern Precision Vedic Astrology
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 80 Passed](https://img.shields.io/badge/tests-80%20passed-success)](tests/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
+[![Tests: 133 Passed](https://img.shields.io/badge/tests-133%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -15,7 +15,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 ### 🌌 Astronomical & Vedic Precision
 - **Swiss Ephemeris 2.10 Engine**: Sub-arcsecond planetary accuracy for dates between 1800 CE and 2200 CE.
 - **Multiple Ayanamsas**: Lahiri (Chitra Paksha standard), B.V. Raman, Krishnamurti (KP), and Fagan-Bradley.
-- **14 Parashara Divisional Vargas**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), and D60 (Shashtiamsa).
+- **16 Parashara Divisional Vargas (Shodasavarga)**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), D40 (Khavedamsa), D45 (Akshavedamsa) and D60 (Shashtiamsa).
 - **Chart Styles**: South Indian (ஜாதகக் கட்டம்), North Indian Diamond, and East Indian formats.
 - **Interactive Inspector**: Click any house to see resident grahas, aspects received, house significations, and SAV points.
 
@@ -76,15 +76,28 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 
 ### 1. Requirements
 - **Operating System**: Windows, macOS, or Linux.
-- **Python**: 3.11 or 3.12 (64-bit recommended).
+- **Python**: 3.11 or newer (64-bit recommended).
 
 ### 2. Launch on Windows (1-Click)
 Double-click `Start JoRoScope.cmd` or run with PowerShell:
 ```powershell
 .\Launch.ps1
 ```
+The first launch needs Python 3.11+ (64-bit, from [python.org](https://www.python.org/downloads/windows/)) and an internet connection: it creates a private `.venv` and installs the Swiss Ephemeris. Later launches start straight away and open the app in your browser. Extra arguments go to the server, for example a port number or `--no-browser`.
 
-### 3. Run with Python CLI
+### Print & PDF
+Use **Print / PDF** to choose a Traditional Jathagam, a Detailed Horoscope or a Complete Report, pick sections and the language, then print or choose "Save as PDF" in the print window.
+
+### 3. Launch on macOS (1-Click)
+Double-click `Start JoRoScope.command` in Finder, or run it from Terminal:
+```bash
+./"Start JoRoScope.command"
+```
+The first launch needs Python 3.11+ (from [python.org](https://www.python.org/downloads/macos/)) and an internet connection: it creates a private `.venv` and installs the Swiss Ephemeris. Later launches start straight away and open the app in your browser. Extra arguments go to the server, for example a port number or `--no-browser`.
+
+If macOS says the file is from an unidentified developer (a downloaded ZIP), Control-click it and choose **Open** once. If Finder opens it as text, run `chmod +x "Start JoRoScope.command"`.
+
+### 4. Run with Python CLI
 ```bash
 # Install dependencies
 pip install -r requirements.txt
@@ -108,11 +121,20 @@ JoRoScope/
 ├── src/joroscope/
 │   ├── core/
 │   │   ├── engine.py            # Astronomical math & Swiss Ephemeris wrapper
-│   │   └── predictions.py       # 17 prediction chapters & classical rules
+│   │   ├── south_indian.py      # Tamil calendar, panchangam, doshas, Tamil yogam
+│   │   ├── shadbala.py          # Shadbala, Bhava Bala, Vimsopaka
+│   │   ├── yogas.py             # About 75 classical yogas
+│   │   ├── dasas.py             # Ashtottari & Chara Dasa, dasa year lengths
+│   │   ├── muhurtham.py         # Muhurtham finder
+│   │   ├── timeline.py          # Dasa-Bhukti timeline readings
+│   │   ├── predictions.py       # Assembles the life prediction report
+│   │   └── readings/            # The report's chapters, one module per theme
 │   ├── server.py                # Local REST API & static server
 │   ├── cli.py                   # Command-line interface
-│   └── web/                     # Single Page Application (HTML, CSS, JS, Cities)
-├── tests/                       # 23 automated unit and integration tests
+│   └── web/                     # Single Page Application: index.html, style.css, and
+│                                #   app.js (core) with one script per page (chart-views,
+│                                #   dasa, readings, panchangam, matching, profiles-ui, print)
+├── tests/                       # Python unittest and Node test suites
 ├── pyproject.toml               # PEP 621 package specification
 ├── requirements.txt             # Runtime dependencies
 └── README.md                    # This documentation
@@ -136,7 +158,12 @@ When running locally, JoRoScope provides secure JSON API endpoints:
 - `GET /api/health`: Health status and application version.
 - `POST /api/chart`: Computes full birth chart, divisional vargas, dasas, yogas, and all 17 prediction chapters.
 - `POST /api/match`: Computes 10 Poruthams, 36 Guna Milan, and Rajju agreement.
-- `POST /api/panchangam`: Computes 5 Panchanga Angas and daily Muhurthas.
+- `POST /api/panchangam`: Tamil daily panchangam for a date and place: the five angas with end times, Tamil yogam, horas, Gowri Panchangam, Soolam and Chandrashtamam.
+- `POST /api/timeline`: The detailed readings of all 81 Dasa-Bhukti periods (the chart response carries only the running one).
+- `POST /api/calendar`: A month of the Tamil calendar with observance days.
+- `POST /api/muhurtham`: Auspicious windows for an event over the coming days.
+
+Responses are gzip-compressed when the client accepts it.
 
 ---
 

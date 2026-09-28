@@ -668,6 +668,11 @@ input:focus, select:focus {
   margin-top: 14px;
 }
 
+/* The hidden attribute always wins over component display rules */
+[hidden] {
+  display: none !important;
+}
+
 /* Workspace Grid */
 .workspace-grid {
   display: grid;
@@ -1940,6 +1945,56 @@ input:focus, select:focus {
   color: var(--text-primary);
 }
 
+/* Shodasavarga table */
+.varga-table {
+  font-size: 11.5px;
+}
+.varga-table th, .varga-table td {
+  text-align: center;
+  white-space: nowrap;
+  padding: 6px 7px;
+}
+.varga-table td.varga-same {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+/* Muhurtham finder */
+.muhurtham-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin: 8px 0 12px;
+}
+.muhurtham-controls select {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.muhurtham-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 12px;
+}
+.muhurtham-day {
+  border: 1px solid var(--border-subtle, var(--gold-dim));
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+.muhurtham-day h4 {
+  margin: 0 0 6px;
+  color: var(--gold);
+  font-size: 14px;
+}
+.muhurtham-day ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  display: grid;
+  gap: 4px;
+}
+
 /* Tamil Jathaga Kurippu */
 .kurippu-grid {
   display: grid;
@@ -2400,6 +2455,13 @@ input:focus, select:focus {
   }
 }
 
+/* Below this width the chart column is too narrow for the Rasi and Navamsa charts: stack them under the form */
+@media (max-width: 1100px) {
+  .workspace-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .sidebar {
     transform: translateX(-100%);
@@ -2445,11 +2507,13 @@ input:focus, select:focus {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
-  background: rgba(18, 22, 34, 0.6);
+  flex-wrap: wrap;
+  background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 6px;
   width: fit-content;
+  max-width: 100%;
 }
 
 .view-mode-btn {
@@ -3047,7 +3111,7 @@ input:focus, select:focus {
     justify-content: center;
   }
   .view-mode-btn {
-    flex: 1;
+    flex: 1 1 auto;
     justify-content: center;
     padding: 8px 12px;
     font-size: 12.5px;
@@ -3061,6 +3125,113 @@ input:focus, select:focus {
   .timeline-toolbar {
     padding: 14px;
   }
+}
+
+/* Print / PDF dialog */
+.print-dialog {
+  margin: auto;
+  width: min(560px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 20px 22px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+.print-dialog::backdrop {
+  background: rgba(10, 12, 20, 0.55);
+}
+.print-dialog h2 {
+  margin: 0 0 12px;
+  font-family: var(--font-serif);
+  color: var(--gold);
+  font-size: 18px;
+}
+.print-presets {
+  border: 0;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.print-presets legend {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.print-preset {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+}
+.print-preset:has(input:checked) {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 1px var(--gold);
+}
+.print-preset span {
+  display: grid;
+  gap: 2px;
+  flex: 1;
+}
+.print-preset input,
+.print-section-list input {
+  width: auto;
+  min-width: 0;
+  height: auto;
+  flex: 0 0 auto;
+  margin: 3px 0 0;
+  padding: 0;
+  accent-color: var(--gold);
+}
+.print-language select {
+  flex: 1;
+}
+.print-preset small {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+.print-sections summary {
+  cursor: pointer;
+  color: var(--gold);
+  font-size: 13px;
+  margin: 4px 0 8px;
+}
+.print-section-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+  gap: 6px 14px;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.print-section-list label,
+.print-language {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.print-language {
+  margin: 6px 0;
+  font-size: 13px;
+}
+.print-hint {
+  font-size: 12px;
+  margin: 8px 0 12px;
+}
+.print-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.print-dialog-actions .primary-print {
+  background: var(--gold);
+  color: #1a1408;
+  border-color: var(--gold);
 }
 
 /* Printable Jathagam sheet: only ever shown on paper */
@@ -3120,64 +3291,211 @@ input:focus, select:focus {
     display: none !important;
   }
 
-  /* Printing a Jathagam replaces the whole app with the assembled sheet */
+  /* Printing a report replaces the whole app with the assembled sheet (print.js) */
   @page {
     size: A4;
-    margin: 12mm;
+    margin: 14mm 12mm 15mm;
   }
   body.printing-jathagam .app-layout,
   body.printing-jathagam .cosmic-bg,
-  body.printing-jathagam .toast-popup {
+  body.printing-jathagam .toast-popup,
+  body.printing-jathagam .print-dialog {
     display: none !important;
   }
   body.printing-jathagam .print-jathagam {
     display: block !important;
-    color: #000000;
-    font-size: 10pt;
-    line-height: 1.4;
+    color: #111111;
+    font-family: 'Noto Serif Tamil', 'Latha', Georgia, 'Times New Roman', serif;
+    font-size: 9.5pt;
+    line-height: 1.38;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
   .print-jathagam .pj-header {
     text-align: center;
-    border-bottom: 2px solid #000000;
-    padding-bottom: 6px;
+    border-top: 3px double #7a5c1e;
+    border-bottom: 3px double #7a5c1e;
+    padding: 6px 0 8px;
     margin-bottom: 10px;
   }
   .print-jathagam .pj-om {
-    font-size: 18pt;
+    font-size: 16pt;
+    color: #7a5c1e;
+    line-height: 1;
   }
   .print-jathagam h1 {
-    font-family: var(--font-serif);
-    font-size: 20pt;
-    margin: 0;
+    color: #000000;
+    font-size: 18pt;
+    margin: 2px 0 0;
+    letter-spacing: 0.04em;
+  }
+  .print-jathagam .pj-name {
+    font-size: 13pt;
+    font-weight: 700;
+    margin: 2px 0 0;
+  }
+  .print-jathagam .pj-sub,
+  .print-jathagam .pj-verdict {
+    margin: 2px 0 0;
+    color: #333333;
+  }
+  .print-jathagam .pj-verdict {
+    font-weight: 700;
+  }
+  .print-jathagam .pj-contents {
+    margin: 6px auto 0;
+    max-width: 92%;
+    font-size: 8pt;
+    color: #555555;
+  }
+  .print-jathagam .pj-section {
+    margin: 0 0 10px;
+  }
+  .print-jathagam .pj-page {
+    break-before: page;
   }
   .print-jathagam h2 {
-    font-size: 11pt;
-    border-bottom: 1px solid #999999;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11.5pt;
     margin: 12px 0 6px;
-    padding-bottom: 2px;
+    padding: 3px 6px;
+    background: #f3ecdc;
+    border-left: 4px solid #7a5c1e;
+    break-after: avoid;
+  }
+  .print-jathagam .pj-num {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #7a5c1e;
+    color: #ffffff;
+    font-size: 8pt;
+  }
+  .print-jathagam h3 {
+    font-size: 10pt;
+    margin: 8px 0 4px;
+    color: #4a3810;
+    break-after: avoid;
+  }
+  .print-jathagam h4 {
+    font-size: 9.5pt;
+    margin: 0 0 2px;
+  }
+  .print-jathagam .pj-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    align-items: start;
   }
   .print-jathagam .pj-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    column-gap: 18px;
+    column-gap: 16px;
+  }
+  .print-jathagam .pj-grid.one {
+    grid-template-columns: 1fr;
   }
   .print-jathagam .pj-kv {
     display: flex;
     justify-content: space-between;
     gap: 8px;
-    border-bottom: 1px dotted #bbbbbb;
-    padding: 2px 0;
+    border-bottom: 1px dotted #c8bfa8;
+    padding: 1.5px 0;
     break-inside: avoid;
   }
   .print-jathagam .pj-kv span {
+    color: #555555;
+  }
+  .print-jathagam .pj-kv strong {
+    text-align: right;
+  }
+  .print-jathagam .pj-note {
+    font-size: 8.5pt;
     color: #444444;
+    margin: 4px 0;
   }
   .print-jathagam .pj-charts {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
-    margin: 10px 0;
+    margin: 6px 0;
     break-inside: avoid;
+  }
+  .print-jathagam .pj-charts.single {
+    grid-template-columns: minmax(0, 0.6fr);
+    justify-content: center;
+  }
+  .print-jathagam .pj-figure {
+    margin: 0;
+    break-inside: avoid;
+  }
+  .print-jathagam .pj-svg-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
+  .print-jathagam figcaption {
+    text-align: center;
+    font-size: 8.5pt;
+    font-weight: 700;
+    margin-top: 2px;
+  }
+  /* Inline blocks, not a grid: WebKit splits grid items across pages despite break-inside */
+  .print-jathagam .pj-varga-grid {
+    display: block;
+  }
+  .print-jathagam .pj-varga-grid > .pj-figure {
+    display: inline-block;
+    width: 32%;
+    margin: 0 2% 8px 0;
+    vertical-align: top;
+  }
+  .print-jathagam .pj-varga-grid > .pj-figure:nth-child(3n) {
+    margin-right: 0;
+  }
+  .print-jathagam .pj-varga-grid .south-chart-grid {
+    aspect-ratio: 1;
+    grid-template-rows: repeat(4, 1fr);
+  }
+  .print-jathagam .pj-varga-grid .house-cell {
+    padding: 1px 2px;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .print-jathagam .pj-varga-grid .house-planets-flow {
+    gap: 0 2px;
+  }
+  .print-jathagam .pj-varga-grid .planet-badge {
+    font-size: 7pt;
+    line-height: 1.15;
+  }
+  .print-jathagam .pj-varga-grid .house-num-badge {
+    font-size: 6pt;
+    padding: 0 2px;
+  }
+  .print-jathagam .planet-badge.combust::before {
+    content: none;
+  }
+  .print-jathagam .planet-badge.retro::after {
+    color: #000000;
+    font-size: 6.5pt;
+    font-family: var(--font-sans);
+  }
+  .print-jathagam[data-lang="en"] .planet-badge.retro::after {
+    content: '(R)';
+  }
+  .print-jathagam .pj-varga-grid .sign-label,
+  .print-jathagam .pj-varga-grid .center-meta,
+  .print-jathagam .pj-varga-grid .center-sub {
+    display: none;
+  }
+  .print-jathagam .pj-varga-grid .center-title {
+    font-size: 9pt !important;
   }
   .print-jathagam .south-chart-grid,
   .print-jathagam .chart-center-box,
@@ -3185,10 +3503,45 @@ input:focus, select:focus {
     background: #ffffff !important;
     box-shadow: none !important;
   }
+  .print-jathagam .south-chart-grid {
+    border: 1.5px solid #222222 !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 100%;
+  }
+  .print-jathagam .house-header {
+    gap: 2px;
+    min-width: 0;
+  }
+  .print-jathagam .sign-label {
+    font-size: 7.5pt;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .print-jathagam .house-num-badge {
+    font-size: 6.5pt;
+    padding: 0 3px;
+    flex: 0 0 auto;
+  }
+  .print-jathagam .house-cell {
+    border: 0.75px solid #444444 !important;
+  }
+  /* A thin rotated line: WebKit's PDF output prints the screen gradient's transparent stops black */
   .print-jathagam .house-cell.lagna-cell::after {
-    background: linear-gradient(to top right,
-      transparent calc(50% - 1px), #000000 calc(50% - 1px),
-      #000000 calc(50% + 1px), transparent calc(50% + 1px));
+    background: #7a5c1e;
+    width: 26px;
+    height: 1.5px;
+    top: 12px;
+    left: -5px;
+    transform: rotate(-45deg);
+  }
+  .print-jathagam .planet-badge {
+    background: #ffffff !important;
+    border: none !important;
+    color: #000000 !important;
+    font-weight: 700;
+    padding: 0 2px !important;
   }
   .print-jathagam .sign-label,
   .print-jathagam .house-num-badge,
@@ -3202,38 +3555,60 @@ input:focus, select:focus {
   .print-jathagam .pj-table {
     width: 100%;
     border-collapse: collapse;
+    margin: 2px 0 6px;
+    font-size: 8.8pt;
+  }
+  .print-jathagam .pj-table.compact {
+    font-size: 8pt;
+  }
+  .print-jathagam .pj-table.center td,
+  .print-jathagam .pj-table.center th {
+    text-align: center;
+  }
+  .print-jathagam .pj-table th {
+    background: #efe6cf;
+    font-weight: 700;
   }
   .print-jathagam .pj-table th,
   .print-jathagam .pj-table td {
-    border: 1px solid #999999;
-    padding: 3px 5px;
+    border: 0.75px solid #9c9280;
+    padding: 2.5px 4px;
     text-align: left;
+    vertical-align: top;
   }
-  .print-jathagam .pj-dasa {
-    break-before: page;
+  .print-jathagam .pj-table tbody tr:nth-child(even) td {
+    background: #faf7ef;
+  }
+  .print-jathagam .pj-table tr {
+    break-inside: avoid;
+  }
+  .print-jathagam .pj-table thead {
+    display: table-header-group;
   }
   .print-jathagam .pj-dasa-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 7px;
   }
   .print-jathagam .pj-dasa-block {
-    border: 1px solid #999999;
-    padding: 5px 7px;
+    border: 0.75px solid #9c9280;
+    padding: 4px 6px;
     break-inside: avoid;
   }
   .print-jathagam .pj-dasa-block.active {
-    border: 2px solid #000000;
+    border: 2px solid #7a5c1e;
+    background: #faf5e6;
   }
   .print-jathagam .pj-dasa-block > span {
     display: block;
-    font-size: 8.5pt;
+    font-size: 8pt;
     color: #444444;
   }
   .print-jathagam .pj-dasa-block ul {
     list-style: none;
-    margin: 4px 0 0;
-    font-size: 8.5pt;
+    margin: 3px 0 0;
+    padding: 0;
+    font-size: 8pt;
   }
   .print-jathagam .pj-dasa-block li {
     display: flex;
@@ -3241,14 +3616,35 @@ input:focus, select:focus {
   }
   .print-jathagam .pj-dasa-block li.active {
     font-weight: 700;
+    text-decoration: underline;
   }
   .print-jathagam .pj-dasa-block em {
     font-style: normal;
   }
+  .print-jathagam .pj-reading {
+    margin: 0 0 6px;
+    break-inside: avoid;
+  }
+  .print-jathagam .pj-reading p {
+    margin: 0;
+    text-align: justify;
+  }
+  .print-jathagam .pj-break {
+    break-before: page;
+  }
+  .print-jathagam .pj-nowrap {
+    white-space: nowrap;
+  }
   .print-jathagam .pj-footer {
     margin-top: 12px;
-    font-size: 8pt;
+    padding-top: 4px;
+    border-top: 1px solid #c8bfa8;
+    font-size: 7.5pt;
     color: #555555;
     text-align: center;
   }
 }
+
+/* Tamil (Amirthathi) yogam */
+.tamil-day-facts .good-text { color: var(--emerald); }
+.tamil-day-facts .bad-text { color: var(--ruby); }

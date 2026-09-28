@@ -20,7 +20,8 @@ if (!css.includes('.timeline-details-toggle.expanded')) {
 console.log('PASS: .timeline-details-toggle.expanded styling exists');
 
 // 2. Verify JS toggle implementation
-const js = fs.readFileSync(path.join(__dirname, '../src/joroscope/web/app.js'), 'utf-8');
+const webDir = path.join(__dirname, '../src/joroscope/web');
+const js = fs.readdirSync(webDir).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(webDir, f), 'utf-8')).join('\n');
 if (!js.includes("panel.style.display = 'grid'") || !js.includes("panel.style.display = 'none'")) {
     console.error('FAIL: JS does not explicitly manage style.display');
     process.exit(1);
@@ -38,64 +39,59 @@ const postData = JSON.stringify({
     ayanamsa: 'Lahiri'
 });
 
-const req = http.request('http://127.0.0.1:8765/api/chart', {
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(postData)
+function post(route) {
+    return new Promise((resolve, reject) => {
+        const req = http.request('http://127.0.0.1:8765' + route, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }
+        }, res => {
+            let raw = '';
+            res.on('data', chunk => raw += chunk);
+            res.on('end', () => (res.statusCode === 200 ? resolve(JSON.parse(raw)) : reject(new Error(raw))));
+        });
+        req.on('error', reject);
+        req.end(postData);
+    });
+}
+
+(async () => {
+    // The chart carries the readings only for the running period; /api/timeline has them all
+    const chart = await post('/api/chart');
+    const periods = chart.predictions.timeline_predictions.periods;
+    console.log(`PASS: Received ${periods.length} periods from the chart API`);
+    const dims = ['career', 'wealth', 'health', 'family', 'milestones', 'remedy'];
+    const deferred = periods.filter(p => p.details_deferred);
+    const inline = periods.filter(p => !p.details_deferred);
+    if (inline.some(p => !p.is_active) || deferred.some(p => p.career_en)) {
+        console.error('FAIL: only the running period should carry its readings in the chart response');
+        process.exit(1);
     }
-}, (res) => {
-    let raw = '';
-    res.on('data', chunk => raw += chunk);
-    res.on('end', () => {
-        try {
-            const data = JSON.parse(raw);
-            const periods = data.predictions.timeline_predictions.periods;
-            console.log(`PASS: Received ${periods.length} periods from timeline API`);
-            
-            let issues = 0;
-            const dims = ['career', 'wealth', 'health', 'family', 'milestones', 'remedy'];
-            for (const p of periods) {
-                for (const dim of dims) {
-                    const enKey = `${dim}_en`;
-                    const taKey = `${dim}_ta`;
-                    if (!p[enKey] || p[enKey].length < 15) {
-                        console.error(`FAIL: Underpopulated ${enKey} in period ${p.dasa_lord}-${p.bhukti_lord}: "${p[enKey]}"`);
-                        issues++;
-                    }
-                    if (!p[taKey] || p[taKey].length < 15) {
-                        console.error(`FAIL: Underpopulated ${taKey} in period ${p.dasa_lord}-${p.bhukti_lord}: "${p[taKey]}"`);
-                        issues++;
-                    }
+    const { details } = await post('/api/timeline');
+    let issues = 0;
+    for (const p of periods) {
+        const d = p.details_deferred ? details[p.id] : p;
+        for (const dim of dims) {
+            for (const key of [`${dim}_en`, `${dim}_ta`]) {
+                if (!d || !d[key] || d[key].length < 15) {
+                    console.error(`FAIL: Underpopulated ${key} in period ${p.dasa_lord}-${p.bhukti_lord}`);
+                    issues++;
                 }
             }
-
-            if (issues > 0) {
-                console.error(`Encountered ${issues} issues across the 81 periods!`);
-                process.exit(1);
-            }
-
-            console.log('PASS: All 81 periods contain comprehensive 6-dimension readings in both EN and TA!');
-            
-            // Test sample active period
-            const activePeriod = periods.find(p => p.is_active);
-            console.log(`Active Period: ${activePeriod.dasa_lord}-${activePeriod.bhukti_lord}`);
-            console.log('Career EN:', activePeriod.career_en);
-            console.log('Career TA:', activePeriod.career_ta);
-            console.log('Remedy EN:', activePeriod.remedy_en);
-            console.log('Remedy TA:', activePeriod.remedy_ta);
-            console.log('\nALL EXPAND/COLLAPSE & PREDICTION TESTS PASSED!');
-        } catch (e) {
-            console.error('Error parsing response:', e);
-            process.exit(1);
         }
-    });
-});
-
-req.on('error', (err) => {
-    console.error('HTTP Request failed:', err);
+    }
+    if (issues > 0) {
+        console.error(`Encountered ${issues} issues across the ${periods.length} periods!`);
+        process.exit(1);
+    }
+    console.log(`PASS: All ${periods.length} periods have 6-dimension readings in EN and TA (${deferred.length} fetched on demand)`);
+    if (!js.includes("fetch('/api/timeline'")) {
+        console.error('FAIL: app.js does not load the deferred readings');
+        process.exit(1);
+    }
+    const activePeriod = periods.find(p => p.is_active);
+    if (activePeriod) console.log(`Active Period: ${activePeriod.dasa_lord}-${activePeriod.bhukti_lord}:`, activePeriod.career_en);
+    console.log('\nALL EXPAND/COLLAPSE & PREDICTION TESTS PASSED!');
+})().catch(err => {
+    console.error('Request failed:', err);
     process.exit(1);
 });
-
-req.write(postData);
-req.end();

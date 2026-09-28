@@ -779,11 +779,16 @@ def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dign
     is_dusthana = mutual_kendra in (6, 8, 12)
 
     if is_trikone:
-        axis_en = f"Harmonious {mutual_kendra}-Trikona Alignment"
-        axis_ta = f"{mutual_kendra}-ஆம் திரிகோண சுப அமைப்பு"
-        potency = 5
-        theme_en = f"{d_info['name_en']} Maha Dasa combined with {b_info['name_en']} Bhukti in a blissful trine aspect. Brings auspicious expansion, spiritual merit fruition, and creative success across {b_info['gov_en']}."
-        theme_ta = f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி திரிகோண சுப அமைப்பில் இணைவதால், {b_info['gov_ta']} வழிகளில் நற்பலன்களை வாரி வழங்கும் உன்னதமான சுப காலம்."
+        swa = d_lord == b_lord
+        axis_en = "Swabhukti (own sub-period)" if swa else f"Harmonious {mutual_kendra}-Trikona Alignment"
+        axis_ta = "சுய புக்தி" if swa else f"{mutual_kendra}-ஆம் திரிகோண சுப அமைப்பு"
+        potency = 4 if swa else 5
+        opening_en = (f"{d_info['name_en']} Maha Dasa in its own Bhukti: the Dasa lord's significations come through most directly." if swa else
+                      f"{d_info['name_en']} Maha Dasa combined with {b_info['name_en']} Bhukti in a blissful trine aspect.")
+        theme_en = f"{opening_en} Brings auspicious expansion, spiritual merit fruition, and creative success across {b_info['gov_en']}."
+        opening_ta = (f"{d_info['name_ta']} தசையில் சுய புக்தி: தசா நாதரின் காரகத்துவங்கள் நேரடியாக வெளிப்படும்;" if swa else
+                      f"{d_info['name_ta']} தசையில் {b_info['name_ta']} புக்தி திரிகோண சுப அமைப்பில் இணைவதால்,")
+        theme_ta = f"{opening_ta} {b_info['gov_ta']} வழிகளில் நற்பலன்களை வாரி வழங்கும் உன்னதமான சுப காலம்."
         career_en = f"{b_info['career_pos_en']} Under the commanding auspices of {d_info['name_en']}, professional milestones and promotions manifest smoothly."
         career_ta = f"{b_info['career_pos_ta']} {d_info['name_ta']} தசா நாதரின் பலத்தால் உத்தியோகம் மற்றும் தொழிலில் புதிய நன்மதிப்பும் உயர் பதவிகளும் கிட்டும்."
         wealth_en = f"{b_info['wealth_pos_en']} {d_info['wealth_pos_en']}"
@@ -874,6 +879,60 @@ def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dign
         'remedy_ta': remedy_ta,
         'base_potency': potency
     }
+
+
+KENDRA_TRIKONA = (1, 4, 5, 7, 9, 10)
+DUSTHANA = (6, 8, 12)
+ROLE_SCORE = {'yogakaraka': 2, 'benefic': 1, 'neutral': 0, 'malefic': -1}
+ROLE_WORDS = {'yogakaraka': ('a Yogakaraka', 'யோககாரகர்'), 'benefic': ('a functional benefic', 'சுப ஆதிபத்தியம் பெற்றவர்'),
+              'neutral': ('functionally neutral', 'சம ஆதிபத்தியம் உடையவர்'), 'malefic': ('a functional malefic', 'பாப ஆதிபத்தியம் பெற்றவர்')}
+# Icons for the annual view by the running Bhukti lord's main significations
+BHUKTI_ICONS = {'Sun': '🏛️', 'Moon': '🌙', 'Mars': '🏡', 'Mercury': '📚', 'Jupiter': '🎓', 'Venus': '💍',
+                'Saturn': '⚙️', 'Rahu': '✈️', 'Ketu': '🧘'}
+
+
+def _period_assessment(d_lord, b_lord, planets):
+    """How this chart colours a Bhukti (BPHS antardasa principles): the Bhukti lord's
+    functional role from its lordships, its house and dignity, its position from the Dasa
+    lord, and the two lords' natural friendship. Returns a -4..+5 score and the reasons."""
+    from .engine import NATURAL_FRIENDS, SIGN_LORDS
+    from .readings.common import _functional_role, _house_list, _ordinal, DIGNITY_SCORE, DIGNITY_PHRASE, HOUSE_THEMES
+    asc_sign = planets['Ascendant']['sign_index']
+    b = planets[b_lord]
+    agent = b_lord
+    if b_lord in ('Rahu', 'Ketu'):  # a node gives the results of the lord of the sign it occupies
+        agent = SIGN_LORDS[b['sign_index']]
+    role, owned = _functional_role(agent, asc_sign)
+    role = role or 'neutral'
+    house = b['house']
+    score = ROLE_SCORE[role]
+    if b_lord in ('Rahu', 'Ketu'):
+        score += 1 if house in (3, 6, 10, 11) else (-1 if house in (8, 12) else 0)
+    elif role == 'malefic' and house in DUSTHANA and all(h in DUSTHANA for h in owned):
+        score += 2  # a dusthana lord hidden in a dusthana: Vipareeta
+    else:
+        score += 1 if house in KENDRA_TRIKONA + (11,) else (-1 if house in DUSTHANA else 0)
+    score += max(-1, min(1, DIGNITY_SCORE.get(b.get('dignity', 'Neutral'), 0)))
+    mutual = (house - planets[d_lord]['house']) % 12 + 1
+    score += 1 if mutual in (1, 4, 5, 7, 9, 10, 11) else (-1 if mutual in (6, 8, 12) else 0)
+    relation = NATURAL_FRIENDS.get(d_lord, {}).get(b_lord, 0) if d_lord != b_lord else 1
+    score += 0 if relation == 0 else (1 if relation > 0 else -1)
+
+    dig_en, dig_ta = DIGNITY_PHRASE.get(b.get('dignity', 'Neutral'), DIGNITY_PHRASE['Neutral'])
+    role_en, role_ta = ROLE_WORDS[role]
+    themes = sorted(set(owned + [house]))
+    theme_en = '; '.join(HOUSE_THEMES[h][0] for h in themes)
+    theme_ta = '; '.join(HOUSE_THEMES[h][1] for h in themes)
+    lords_en = f"rules the {_house_list(owned, 'en')} and " if owned and b_lord not in ('Rahu', 'Ketu') else ''
+    lords_ta = f"{_house_list(owned, 'ta')} அதிபதியாக " if owned and b_lord not in ('Rahu', 'Ketu') else ''
+    agent_en = f", acting for {agent}," if agent != b_lord else ''
+    agent_ta = f" ({PLANET_TAMIL[agent]} சார்பில்)" if agent != b_lord else ''
+    basis_en = (f"In this chart {b_lord}{agent_en} {lords_en}sits in the {_ordinal(house)} house in {dig_en}; it is {role_en}, "
+                f"placed {_ordinal(mutual)} from the Dasa lord {d_lord}. The Bhukti brings matters of {theme_en} to the fore.")
+    basis_ta = (f"இந்த ஜாதகத்தில் {PLANET_TAMIL[b_lord]}{agent_ta} {lords_ta}{house}-ம் பாவத்தில் {dig_ta} உள்ளார்; இவர் {role_ta}, "
+                f"தசா நாதர் {PLANET_TAMIL[d_lord]}-க்கு {mutual}-ஆம் இடத்தில் உள்ளார். இப்புக்தியில் {theme_ta} தொடர்பான விஷயங்கள் முன்னிலை பெறும்.")
+    return score, basis_en, basis_ta
+
 
 
 def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
@@ -973,14 +1032,17 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
             d_dignity = planets.get(d_lord, {}).get('dignity', 'Neutral')
             b_dignity = planets.get(b_lord, {}).get('dignity', 'Neutral')
 
-            reading = get_dasa_bhukti_reading(d_lord, b_lord, mutual_dist, d_dignity, b_dignity)
+            reading = dict(get_dasa_bhukti_reading(d_lord, b_lord, mutual_dist, d_dignity, b_dignity))
 
-            # Potency classification
-            potency = reading.get('base_potency', 3)
-            if 'Exalted' in (d_dignity, b_dignity):
-                potency = min(5, potency + 1)
-            elif 'Debilitated' in (d_dignity, b_dignity):
-                potency = max(1, potency - 1)
+            # Potency: the chart's own assessment weighs twice the pair's general nature
+            if b_lord in planets and d_lord in planets and 'Ascendant' in planets:
+                chart_score, basis_en, basis_ta = _period_assessment(d_lord, b_lord, planets)
+                chart_potency = max(1, min(5, 3 + round(chart_score / 1.6)))
+                potency = max(1, min(5, round((reading.get('base_potency', 3) + 2 * chart_potency) / 3)))
+                reading['theme_en'] = f"{basis_en} {reading['theme_en']}"
+                reading['theme_ta'] = f"{basis_ta} {reading['theme_ta']}"
+            else:
+                potency = reading.get('base_potency', 3)
 
             status_class = 'auspicious' if potency >= 4 else ('moderate' if potency == 3 else 'challenging')
             status_text_en = 'Auspicious ★★★' if potency >= 4 else ('Moderate ★★' if potency == 3 else 'Caution ★')
@@ -1085,9 +1147,17 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
         b_lord = matched_period['bhukti_lord'] if matched_period else 'Venus'
         potency = matched_period['potency'] if matched_period else 4
 
-        icons = ['🌟', '💼', '🏡', '💍', '🎓', '✈️', '🧘', '🏆', '📈', '🕊️']
-        chosen_icon = icons[(yr + age) % len(icons)]
-        score = 65 + (potency * 6) + ((yr * 7) % 8)
+        # Score: the Dasa-Bhukti rating, less a little under Sade Sati or Ashtama Sani that year
+        saturn_note = None
+        for cycle in (chart.get('gochara') or {}).get('saturn_cycles', []):
+            try:
+                if datetime.fromisoformat(cycle['start']) <= yr_dt < datetime.fromisoformat(cycle['end']):
+                    saturn_note = cycle['kind']
+                    break
+            except (KeyError, ValueError):
+                continue
+        score = 50 + potency * 9 - (6 if saturn_note in ('sade_sati', 'ashtama') else (3 if saturn_note else 0))
+        chosen_icon = BHUKTI_ICONS.get(b_lord, '🌟')
 
         annual_projections.append({
             'year': yr,
@@ -1101,7 +1171,8 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
             'theme_en': matched_period['theme_en'] if matched_period else 'Progressive life milestones.',
             'theme_ta': matched_period['theme_ta'] if matched_period else 'வாழ்வியல் முன்னேற்ற காலம்.',
             'icon': chosen_icon,
-            'score': min(98, score),
+            'score': max(40, min(98, score)),
+            'saturn_cycle': saturn_note,
             'is_current_year': (yr == current_year)
         })
 
@@ -1111,3 +1182,24 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
         'active_spotlight': active_spotlight,
         'annual_projections': annual_projections
     }
+
+
+# The six reading texts of each period. The chart response keeps them only for the running
+# period; the rest come from /api/timeline when a card is opened, as they are most of its size.
+DETAIL_FIELDS = tuple(f"{part}_{lang}" for part in ('career', 'wealth', 'health', 'family', 'milestones', 'remedy')
+                      for lang in ('en', 'ta'))
+
+
+def timeline_details(timeline: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
+    """Reading texts of every period, by period id."""
+    return {p['id']: {k: p[k] for k in DETAIL_FIELDS} for p in timeline.get('periods', [])}
+
+
+def defer_timeline_details(timeline: Dict[str, Any]) -> None:
+    """Drop the reading texts from all but the running period, marking the rest as deferred."""
+    for p in timeline.get('periods', []):
+        if not p.get('is_active'):
+            for k in DETAIL_FIELDS:
+                p.pop(k, None)
+            p['details_deferred'] = True
+

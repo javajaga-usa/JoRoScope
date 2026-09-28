@@ -1,8 +1,8 @@
 @echo off
-title JoRoScope v2.0 - Vedic Astrology
+rem JoRoScope launcher for Windows: double-click to start. Launch.ps1 does the work
+rem (Python check, a private .venv on first run, then the server).
+title JoRoScope - Vedic Astrology
 cd /d "%~dp0"
-py -3.12 server.py
-if %ERRORLEVEL% NEQ 0 (
-    powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Launch.ps1"
-)
-pause
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Launch.ps1" %*
+if %ERRORLEVEL% EQU 3 exit /b 3
+if errorlevel 1 pause

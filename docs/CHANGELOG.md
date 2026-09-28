@@ -1,6 +1,56 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.1.0] - 2026-09-28
+
+The South Indian (Tamil) jathagam release: Tamil calendar and panchangam, accurate Shadbala, about 75 classical yogas, KP, Jaimini (arudhas, Chara Dasa), Ashtottari Dasa, a Muhurtham finder with Tamil yogam and Lagna Shuddhi, chart-specific Dasa-Bhukti ratings, Sri Lankan charts, a restructured print report checked on paper, safer profile backups, one-click launchers for macOS and Windows, and a faster, smaller chart response.
+
+### Printing checked on paper (WebKit PDF)
+- The report title printed near-white when the app was in the dark theme; it now prints black.
+- The Lagna corner mark in South Indian charts printed as a solid black square hiding the sign name (a gradient with transparent stops); it is now a thin line.
+- Shodasavarga charts could be cut in half at a page break; they are now laid out so each chart stays whole, with a gap between them.
+- North Indian and Sri Lankan charts use larger text on paper.
+- `scripts/print_pdf.swift` prints any report and chart style to PDF through WebKit on macOS for checking layouts.
+
+### Code structure
+- `core/predictions.py` (2,600 lines) is split into `core/readings/`: `common`, `life`, `jaimini`, `timing`, `career_health`, `strength_kp` and `classical`. `predictions.py` now only assembles the report and re-exports the old names, so existing imports keep working; the report output is byte-identical.
+- `web/app.js` (4,500 lines) is split into `i18n.js`, the core `app.js`, and one script per page: `chart-views.js`, `dasa.js`, `readings.js`, `panchangam.js`, `matching.js` and `profiles-ui.js`. CI syntax-checks every script in `web/`.
+
+### Safer profile backups
+- Profile backups carry the app name, format version, export time and count. Import accepts these, older backups and bare lists of profiles.
+- Every imported profile is checked (name, a real calendar date, time, latitude and longitude) and reduced to the known fields; bad entries are skipped and named in the summary, which also counts new, updated and already-saved profiles.
+- A newer copy of a saved person (same id, or same name, date and time) replaces the older one instead of being ignored. Files from other applications are refused.
+- The backup logic lives in `web/profiles.js` with its own Node test.
+
+### Chart styles on screen and in print
+- Sri Lankan (Sinhala kendaraya) chart: the diamond drawing with the Lagna at the top and the houses running clockwise.
+- The print dialog has a chart style: South Indian (also the Kerala layout), North Indian, East Indian or Sri Lankan. Every chart in the report, including the Shodasavarga pages, uses it, drawn black on white.
+- North Indian and Sri Lankan charts put the sign numbers at the inner corners and wrap the grahas onto several lines, so crowded houses stay legible; the Lagna house is shaded.
+
+### Windows launcher
+- `Launch.ps1` and `Start JoRoScope.cmd` now work like the macOS launcher: they find Python 3.11 or newer (the `py` launcher, then `python`), create a private `.venv` and install the requirements on the first run, then start the server. They no longer look for a developer-machine runtime under `.cache\codex-runtimes` or require exactly Python 3.12.
+
+### Faster chart loading
+- The chart response keeps the six detailed readings (career, wealth, health, family, milestones, remedy) only for the running Dasa-Bhukti; the other 80 periods' readings load from the new `/api/timeline` endpoint the first time a card is opened.
+- JSON responses are gzip-compressed when the browser accepts it. A chart now transfers about 80 KB instead of about 950 KB.
+
+### Ashtottari and Jaimini Chara Dasa, and the dasa year
+- Ashtottari Dasa (108 years, eight lords counted from Ardra) with bhuktis from the Dasa lord, and whether its classical condition (Rahu in a kendra or trikona from the Lagna lord) holds. Dates match PyJHora.
+- Jaimini Chara Dasa by K.N. Rao's method: signs from the Lagna in the direction the 9th sign sets, each sign's years from its distance to its lord (the stronger lord for Scorpio and Aquarius), a second round of 12 less the first, and twelve antardasas ending with the dasa sign. It matches PyJHora on 35,548 of 36,000 random sign periods; the differences are Mercury in Virgo (counted as exalted here) and the choice of the stronger co-lord (P.V.R. Narasimha Rao's rules, as for the arudhas).
+- A Dasa Year setting in the birth form: 365.25 days (default, South Indian almanacs), the sidereal year (Jagannatha Hora) or the 360-day Savana year. It applies to Vimshottari, Yogini, Ashtottari and Chara Dasa and is saved with each profile.
+- New Ashtottari and Chara views on the Dasa page, and an "Ashtottari & Chara Dasa" section in the Detailed and Complete print reports. The dasa view switcher now wraps and follows the light theme.
+
+### Tamil Yogam and Lagna in the Muhurtham finder
+- Amirthathi (Tamil) yogam: Siddha, Amirtha, Marana or Prabalarishta from the weekday and nakshatra, by the table Tamil calendars print (cross-checked with PyJHora; Monday + Purattathi as in the Sringeri Tamil Panchangam). The daily Panchangam shows it with its end time and the yogam that follows.
+- Muhurthams now require Siddha or Amirtha yogam and a clean rising Lagna: no malefic in the 8th, the Moon not in the 6th, 8th or 12th, and not the person's Janma Ashtama rasi. Windows split at each Lagna change and name it; notes flag Jupiter or Venus in a kendra, a clear 7th for marriage and a fixed Lagna for griha pravesam.
+
+### Chart-specific Dasa-Bhukti timeline
+- Each Dasa-Bhukti rating now weighs the two lords' house lordships in this chart (kendra/trikona against dusthana, with Vipareeta cases), their dignity and their natural relationship; Rahu and Ketu act through their dispositors. The reason opens every reading in Tamil and English.
+- The ten-year view scores each year from its running period, less a little under Sade Sati or Ashtama Sani, instead of a year-based variation; the icon follows the Bhukti lord.
+- Swabhukti periods are named as such instead of repeating the lord.
+- Gemstones: the fortune stone is now always the 9th lord's (corrected for Cancer, Leo and Pisces Lagnas, with their days and fingers), and the card states the basis and cautions against stones of the 6th, 8th and 12th lords.
+
+### macOS launcher
+- `Start JoRoScope.command` starts the app with a double-click on macOS: it finds Python 3.11+, sets up a private `.venv` with the Swiss Ephemeris on first run, and opens the browser.
 
 ### South Indian (Tamil) Jathagam
 - New `joroscope.core.south_indian` module: Tamil calendar (60-year cycle, month and date by the sunset rule), Vaaram, Udayadi Nazhigai, Dasa Irruppu, Mandi, Chevvai and Rahu-Ketu Doshams, Papa Samyam, and a Tamil daily panchangam.
@@ -25,6 +75,55 @@
 - Reproduces B.V. Raman's *Graha and Bhava Balas* example and V.P. Jain's example within one virupa per component. The only differences are documented where a book goes beyond BPHS: a Dig Bala above the classical 60, and Moolatrikona taken over the whole sign.
 - The Shadbala chapter adds Ishta and Kashta Phala, the reasons behind each graha's strength, and a full component breakdown in Tamil and English.
 - Replaces the earlier approximation: sign-distance Saptavargaja, a wrong Mercury/Saturn Ojayugma, Kaala Bala with only three parts, speed-bucket Cheshta and ±15 aspect Drik.
+
+### Astro-Vision (LifeSign) parity
+- **Navamsa (D9) table** on the chart page: each graha's Navamsa sign, amsa number, lord and dignity there, with Vargottama and Pushkara Navamsa. It sits beside a full **Shodasavarga table** (every graha in all 16 vargas).
+- Fixed the "ready to calculate" placeholder staying on screen after a chart was calculated: a component's display rule overrode the `hidden` attribute. The chart page now stacks below 1100px so the Rasi and Navamsa charts are no longer clipped.
+- **Bhava Bala** (BPHS): Bhavadhipati, Bhava Dig and Bhava Drishti Bala for the twelve Sripati bhavas. Each house reading now weighs its Bhava Bala against the 7-rupa minimum.
+- **Shodasavarga** is complete with D40 (Khavedamsa) and D45 (Akshavedamsa). All 16 vargas match PyJHora across 20,000 longitudes; the only exception is D2, where we keep the Parashara Sun/Moon hora.
+- **Vimsopaka Bala and Varga Bheda** in the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes (BPHS weights), with dignity names from Parijatamsa to Sri Vallabhamsa.
+- **Sodhita Ashtakavarga and Sodhya Pinda:** Trikona and Ekadhipatya reductions with Rasi, Graha and Sodhya Pindas. These reproduce P.V.R. Narasimha Rao's worked Charts 7 and 11 exactly. PyJHora misses Chart 7 because of a Virgo multiplier of 6 (the classical value is 5) and its rule for equal counts.
+- **Jathaga Kurippu** additions: Yogi, Duplicate Yogi and Avayogi; Dagdha Rasi; Chandra Avastha, Vela and Kriya; Moudhyam; and Graha Yuddha. These also appear on the printed Jathagam.
+- **Panchanga Phala:** readings for the birth weekday (day lord), tithi (Nanda, Bhadra, Jaya, Rikta or Purna class and presiding deity, with Tamil observances such as Pradosham, Ekadasi and Amavasai tarpanam), nitya yoga (meaning, and the nine difficult yogas) and karana. This replaces a generic Sun-and-tithi paragraph. Vishkambha is now correctly listed among the difficult yogas.
+- **Sudarshana Chakra:** the houses counted from the Lagna, the Moon and the Sun, and the house the current year of life activates.
+- **Muhurtham finder** (`/api/muhurtham` and the Panchangam page): daytime windows for marriage, griha pravesam, a business opening, a vehicle purchase or any auspicious start. It applies the Muhurta Chintamani rules: event nakshatras; Sunday to Friday except Tuesday; good tithis; the difficult nitya yogas avoided in their inauspicious ghatis; no Vishti karana; Rahu Kalam, Yamagandam and Gulika cut out exactly; and no Aadi, Purattasi or Margazhi for marriage and griha pravesam. With a chart loaded it also applies Tara and Chandra Bala and leaves out Chandrashtamam days.
+- **Jaimini Arudha padas** (A1–A12, AL and UL) with PVR's stronger co-lord rules for Scorpio and Aquarius. They agree with PyJHora on every chart once two PyJHora bugs are reproduced. Adds readings for gains and losses from the AL and marital continuity from the UL.
+
+### Prediction chapters audited for accuracy
+- **KP:** positions and Placidus cusps now always use the Krishnamurti ayanamsa, and sub-lords are computed in exact arc-minutes. The sub-lord matches PyJHora at more than 500,000 test longitudes. Cusp readings now use real significators (the houses occupied and owned by the sub-lord's star lord and by the sub-lord itself), check them against the houses that promise or negate each matter, and give a verdict. KP ruling planets at birth are added.
+- **Sahams:** Karma (Mars − Mercury) and Roga (Lagna − Moon) now use the Tajika Neelakanthi formulas. Night reversals and the 30° rule are applied, and day or night is taken from the Sun's position above the horizon. Putra, Artha, Vanika and Samartha sahams are added. Artha, Samartha and Vanika reproduce P.V.R. Narasimha Rao's worked Chart 66, and each saham is judged by its lord.
+- **Kakshya:** a kakshya is fruitful only when its own lord gave a bindu. The rule is read from the new prastara (per-contributor) Ashtakavarga; before, the first *n* kakshyas were marked fruitful.
+- **Nakshatra pada:** the Moon's Navamsa sign and pada lord were always shown as Aries and Mars; they now follow the chart.
+- **Double transit:** follows K.N. Rao's rule that transit Saturn and Jupiter must both reach the house or its lord while the running dasa is connected with the matter. Dated windows are listed for the next six years, each checked against its dasa.
+- **Career:** Varahamihira's Karmajeeva rule (strongest of Lagna, Moon and Sun, then the 10th lord's Navamsa lord) with D-10 dignity, replacing points for arbitrary Dasamsa signs.
+- **Avasthas:** adds BPHS Lajjitadi states (Lajjita, Garvita, Kshudita, Trushita, Mudita, Kshobhita).
+- **Bhrigu Nandi Nadi:** adds the missing conjunction, opposition and 2nd/12th links, and the rule that a retrograde graha also acts from the previous sign. Adds Saturn- and Moon-based sutras, ranked by link strength.
+- **Ayur:** prakriti now comes from the Lagna, its lord, the Moon and the grahas on the Lagna, using BPHS graha doshas; before, a fixed set of planet points was added to every chart. Adds a health watch for the 6th and 8th houses.
+- **Jaimini:** results for grahas in the Karakamsa (Upadesa Sutras) and for Ketu in the 12th from it.
+- The Ashtakavarga tables were checked against BPHS and B.V. Raman: Moon from Mars 2, 3, 5, 6, 9, 10, 11 and Venus from Mars 3, 5, 6, 9, 11, 12, with totals 48/49/39/54/56/52/39. Unchanged.
+
+### Yogas: about 75 classical combinations
+- A new `yogas.py` covers:
+  - the Pancha Mahapurusha yogas;
+  - the Chandra yogas (Sunapha, Anapha, Durudhara, Kemadruma and its cancellation, Adhi, Gaja Kesari with Raman's conditions, Chandra-Mangala, Sakata, Vasumati);
+  - the Surya yogas (Vesi, Vasi, Ubhayachari, Budhaditya, noting a combust Mercury);
+  - Raja yogas from kendra and trikona lords, the Yogakaraka, Dharma-Karmadhipati and Dhana yogas;
+  - the named yogas: Lakshmi, Saraswati, Parvata, Kahala, Chamara, Sankha, Bheri, Guru-Mangala, Amala, Lagnadhi, and Shubha and Papa Kartari;
+  - Maha, Khala and Dainya Parivartana, the three Vipareeta Raja yogas, and Neechabhanga with all its classical cancellations named;
+  - the challenging combinations: Guru Chandala, Grahana, Angaraka, Punarphoo and Daridra;
+  - all 32 Nabhasa yogas.
+- Every yoga has Tamil and English names and readings, a category, and a nature (auspicious, mixed, challenging or cancelled). The yogas are ordered and coloured by nature.
+- Checked against PyJHora on 3,000 random charts. Where they differ it is by documented convention: we exclude the nodes from the Surya, Chandra and Nabhasa yogas as BPHS does; Sunapha, Anapha and Durudhara are mutually exclusive; and we follow Raman's text where PyJHora departs from its own documentation.
+
+### Print and PDF, restructured
+- A print dialog offers three presets modelled on current tools; every section can also be switched on or off, and the report prints in Tamil or English whatever language the app shows.
+  - **Traditional Jathagam** (about 3 pages, like Prokerala's basic report and the sheet Tamil families share).
+  - **Detailed Horoscope**, which adds the tables AstroSage's PDF carries: Navamsa and Shodasavarga charts and tables, the Sripati Bhava table, Shadbala, Bhava Bala and Vimsopaka, Ashtakavarga with Sodhya Pinda, and KP.
+  - **Complete Report**, which adds the readings, as Astro-Vision's reports do: Panchanga Phala, birth star and Lagna, the running dasa, Sudarshana, transits, career, health and the twelve bhavas.
+- A4 layout: a formal header with a contents line, numbered section bands, every major section on a fresh page, repeating table headers, and charts that fit the page in both languages. A running header and page numbers print where the browser supports CSS page margin boxes (Chrome and Edge 131+). Colours are tuned for paper.
+- The header Print button prints the Porutham report on the matching page and the page itself on the Panchangam and Profiles pages. Elsewhere it opens the report dialog instead of printing the web interface.
+- The Porutham report shares the new layout.
+- `esc()` now turns `<` into `&lt;`; it was being shown as `>`.
 
 ### Printable Jathagam
 - One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.

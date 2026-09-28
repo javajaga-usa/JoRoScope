@@ -263,7 +263,7 @@ class ChartTests(unittest.TestCase):
         # 6. Sensitive Sahams
         self.assertIn('sahams', preds)
         sh = preds['sahams']
-        self.assertEqual(len(sh['sahams']), 5)
+        self.assertEqual(len(sh['sahams']), 9)
         for s in sh['sahams']:
             self.assertTrue(0 <= s['longitude'] < 360)
             self.assertIn('reading_en', s)

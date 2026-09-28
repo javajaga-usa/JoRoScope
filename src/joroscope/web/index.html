@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>JoRoScope — Modern Precision Vedic Astrology</title>
-  <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 14 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
+  <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 16 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
@@ -82,7 +82,7 @@
             <small data-i18n="private_data">Zero cloud tracking · 100% Private</small>
           </div>
         </div>
-        <div class="app-version">JoRoScope v2.0</div>
+        <div class="app-version">JoRoScope v2.1</div>
       </div>
     </aside>
 
@@ -120,7 +120,7 @@
           <div>
             <span class="eyebrow" data-i18n="sacred_geometry">ASTRONOMICAL PRECISION & VEDIC TRADITION</span>
             <h1 data-i18n="birth_chart_heading">Your Celestial Blueprint</h1>
-            <p class="muted" data-i18n="birth_chart_sub">Explore planetary alignments across Rasi, Navamsa, and 14 Parashara divisional vargas.</p>
+            <p class="muted" data-i18n="birth_chart_sub">Explore planetary alignments across Rasi, Navamsa, and 16 Parashara divisional vargas.</p>
           </div>
         </div>
 
@@ -227,6 +227,17 @@
                 </div>
               </div>
 
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="input-dasa-year" data-i18n="dasa_year">Dasa Year</label>
+                  <select id="input-dasa-year" name="dasa_year">
+                    <option value="julian" selected data-i18n="dasa_year_julian">365.25 days (South Indian almanacs)</option>
+                    <option value="sidereal" data-i18n="dasa_year_sidereal">365.2564 days (sidereal, Jagannatha Hora)</option>
+                    <option value="savana" data-i18n="dasa_year_savana">360 days (Savana, classical)</option>
+                  </select>
+                </div>
+              </div>
+
               <button class="primary-btn glow-btn" id="calculate-btn" type="submit">
                 <span class="btn-text" data-i18n="generate_chart">Generate Birth Chart</span>
                 <span class="btn-arrow">➔</span>
@@ -245,9 +256,9 @@
                 <div class="orb-ring"></div>
               </div>
               <h2 data-i18n="ready_to_reveal">Ready to Reveal the Sky</h2>
-              <p data-i18n="enter_details_prompt">Enter birth details and click Generate to view South Indian, North Indian, and 14 Divisional Vargas with deep planetary analysis.</p>
+              <p data-i18n="enter_details_prompt">Enter birth details and click Generate to view South Indian, North Indian, and 16 Divisional Vargas with deep planetary analysis.</p>
               <div class="feature-pills">
-                <span data-i18n="pill_vargas">✦ 14 Divisional Vargas</span>
+                <span data-i18n="pill_vargas">✦ 16 Divisional Vargas</span>
                 <span data-i18n="pill_ashtaka">✦ Parashara Ashtakavarga</span>
                 <span data-i18n="pill_dasa">✦ 3-Tier Dasa</span>
                 <span data-i18n="pill_yoga">✦ Yoga Engine</span>
@@ -313,6 +324,7 @@
                     <button class="style-toggle" data-style="dual" id="btn-dual-style" data-i18n="rasi_navamsa">Rasi + Navamsa</button>
                     <button class="style-toggle" data-style="north" id="btn-north-style" data-i18n="north_diamond">North Indian (Diamond)</button>
                     <button class="style-toggle" data-style="east" id="btn-east-style" data-i18n="east_indian">East Indian</button>
+                    <button class="style-toggle" data-style="srilanka" id="btn-srilanka-style" data-i18n="sri_lankan">Sri Lankan</button>
                   </div>
 
                   <div class="chart-meta">
@@ -336,6 +348,8 @@
                   <button class="varga-pill" data-varga="D24">D24 Chaturvimsamsa</button>
                   <button class="varga-pill" data-varga="D27">D27 Saptavimsamsa</button>
                   <button class="varga-pill" data-varga="D30">D30 Trimsamsa</button>
+                  <button class="varga-pill" data-varga="D40">D40 Khavedamsa</button>
+                  <button class="varga-pill" data-varga="D45">D45 Akshavedamsa</button>
                   <button class="varga-pill" data-varga="D60">D60 Shashtiamsa</button>
                 </div>
 
@@ -353,6 +367,11 @@
                   <!-- North Indian Diamond SVG -->
                   <div id="north-chart-container" class="north-chart-wrapper" hidden>
                     <svg id="north-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
+                  </div>
+
+                  <!-- Sri Lankan (Sinhala) kendaraya: the diamond with houses running clockwise -->
+                  <div id="srilanka-chart-container" class="north-chart-wrapper" hidden>
+                    <svg id="srilanka-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
                   </div>
 
                   <!-- East Indian Grid -->
@@ -412,6 +431,41 @@
                   <span class="card-badge">ஜா</span>
                 </div>
                 <div class="kurippu-grid" id="kurippu-grid"></div>
+              </div>
+
+              <!-- Navamsa (D9) table -->
+              <div class="cosmic-card" id="navamsa-table-card">
+                <div class="card-header">
+                  <div>
+                    <h2 data-i18n="navamsa_table">Navamsa (D9) Table</h2>
+                    <p class="card-subtitle" data-i18n="navamsa_table_sub">Each graha's Navamsa sign and lord, its dignity there, and Vargottama and Pushkara Navamsa</p>
+                  </div>
+                  <span class="card-badge">D9</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="luxury-table" style="font-size:12px">
+                    <thead>
+                      <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_rasi">Rasi</th><th data-i18n="th_navamsa">Navamsa</th><th data-i18n="th_amsa">Amsa</th><th data-i18n="th_navamsa_lord">Navamsa Lord</th><th data-i18n="th_d9_dignity">Dignity in D9</th><th data-i18n="th_notes">Notes</th></tr>
+                    </thead>
+                    <tbody id="navamsa-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Shodasavarga table: every graha in all 16 vargas -->
+              <div class="cosmic-card" id="shodasavarga-card">
+                <div class="card-header">
+                  <div>
+                    <h2 data-i18n="shodasavarga_table">Shodasavarga Table</h2>
+                    <p class="card-subtitle" data-i18n="shodasavarga_sub">The sign of each graha in all 16 divisional charts; highlighted where it repeats the Rasi sign.</p>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="luxury-table varga-table">
+                    <thead><tr id="shodasavarga-head"></tr></thead>
+                    <tbody id="shodasavarga-tbody"></tbody>
+                  </table>
+                </div>
               </div>
 
               <!-- Calculation Metadata Box -->
@@ -531,6 +585,20 @@
             </table>
           </div>
         </div>
+
+        <!-- Sodhita Ashtakavarga and Sodhya Pinda -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <h2 data-i18n="sodhana_title">Sodhita Ashtakavarga & Sodhya Pinda</h2>
+          </div>
+          <p class="muted" data-i18n="sodhana_sub">Bindus after the Trikona and Ekadhipatya reductions, and the Rasi, Graha and Sodhya Pindas used for longevity and transit timing.</p>
+          <div class="table-responsive">
+            <table class="luxury-table">
+              <thead><tr id="sodhana-header"></tr></thead>
+              <tbody id="sodhana-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- VIEW 4: YOGAS & DOSHAS -->
@@ -604,6 +672,12 @@
           </button>
           <button type="button" class="view-mode-btn" id="btn-mode-yogini" data-mode="yogini">
             <span>🔱</span> <span data-i18n="yogini_mode">Yogini Dasa</span>
+          </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-ashtottari" data-mode="ashtottari">
+            <span>🕉️</span> <span data-i18n="ashtottari_mode">Ashtottari Dasa</span>
+          </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-chara" data-mode="chara">
+            <span>♈</span> <span data-i18n="chara_mode">Chara Dasa</span>
           </button>
         </div>
 
@@ -771,6 +845,35 @@
             <div id="yogini-accordion" class="dasa-accordion"></div>
           </div>
         </div>
+
+        <!-- ASHTOTTARI DASA VIEW -->
+        <div id="dasa-ashtottari-view" hidden>
+          <div class="cosmic-card">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="ashtottari_title">Ashtottari Dasa (108-Year Cycle)</h2>
+                <p class="card-subtitle" data-i18n="ashtottari_sub">Eight lords (Ketu excluded) from the birth star's group counted from Ardra; each Dasa has eight bhuktis starting from its own lord.</p>
+              </div>
+              <span class="card-badge">🕉️</span>
+            </div>
+            <p class="muted dasa-note" id="ashtottari-note"></p>
+            <div id="ashtottari-accordion" class="dasa-accordion"></div>
+          </div>
+        </div>
+
+        <!-- JAIMINI CHARA DASA VIEW -->
+        <div id="dasa-chara-view" hidden>
+          <div class="cosmic-card">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="chara_title">Jaimini Chara Dasa (K.N. Rao)</h2>
+                <p class="card-subtitle" data-i18n="chara_sub">Sign dasas from the Lagna, forward when the 9th sign is odd-footed; each sign runs for its distance to its lord. Twelve antardasas start from the next sign and end with the dasa sign.</p>
+              </div>
+              <span class="card-badge">♈</span>
+            </div>
+            <div id="chara-accordion" class="dasa-accordion"></div>
+          </div>
+        </div>
       </section>
 
       <!-- VIEW 6: LIFE PREDICTIONS -->
@@ -842,13 +945,29 @@
 
             <div class="cosmic-card reading-card">
               <div class="reading-header">
-                <span class="reading-icon">☀️</span>
+                <span class="reading-icon">📿</span>
                 <div>
-                  <h3 id="pred-sun-title">Sun Sign & Tithi Reading</h3>
-                  <small class="muted" id="pred-sun-sub">Soul Vitality & Lunar Day Virtues</small>
+                  <h3 id="pred-sun-title">Panchanga Phala</h3>
+                  <small class="muted" id="pred-sun-sub">Weekday, Tithi, Yoga & Karana at Birth</small>
                 </div>
               </div>
-              <p id="pred-sun-text" class="reading-body"></p>
+              <div id="pred-sun-text" class="reading-body"></div>
+            </div>
+          </div>
+
+          <div class="cosmic-card" style="margin-top:18px">
+            <div class="card-header">
+              <h3 data-i18n="h_sudarshana">Sudarshana Chakra</h3>
+              <span class="pill-badge" data-i18n="pill_sudarshana">Lagna · Moon · Sun</span>
+            </div>
+            <p id="sudarshana-reading" class="reading-body"></p>
+            <div class="table-responsive">
+              <table class="luxury-table" style="font-size:11.5px">
+                <thead>
+                  <tr><th data-i18n="th_bhava">Bhava</th><th data-i18n="th_from_lagna">From Lagna</th><th data-i18n="th_from_moon">From Moon</th><th data-i18n="th_from_sun">From Sun</th></tr>
+                </thead>
+                <tbody id="sudarshana-tbody"></tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -1030,6 +1149,7 @@
                 <p><strong data-i18n="gem_metal_label">Recommended Metal:</strong> <span id="gem-metal">—</span></p>
                 <p><strong data-i18n="gem_finger_label">Finger to Wear:</strong> <span id="gem-finger">—</span></p>
                 <p><strong data-i18n="gem_day_label">Auspicious Day:</strong> <span id="gem-day">—</span></p>
+                <p class="gem-basis muted" id="gem-basis"></p>
               </div>
             </div>
 
@@ -1067,6 +1187,8 @@
               <small data-i18n="soul_purpose">SOUL'S SUPREME PURPOSE (KARAKAMSHA IN NAVAMSA D-9)</small>
               <h2 id="jaimini-karakamsha-title">—</h2>
               <p id="jaimini-karakamsha-desc" class="reading-body" style="margin-top:10px"></p>
+              <div class="bhava-meta-strip" id="jaimini-arudha-strip" style="margin-top:10px"></div>
+              <ul class="bhava-factors" id="jaimini-arudha-notes"></ul>
             </div>
           </div>
 
@@ -1105,7 +1227,7 @@
               <h2 data-i18n="h_career">D-10 Dasamsa & Vocation Aptitude Analysis</h2>
               <span class="pill-badge" data-i18n="pill_bvb">BVB Tested Framework</span>
             </div>
-            <p class="muted" data-i18n="p_career">Cross-analysis of Rasi (D-1), Dasamsa (D-10), and Amatyakaraka (AmK) calculating objective aptitude scores across 5 proven career archetypes.</p>
+            <p class="muted" data-i18n="p_career">Varahamihira's Karmajeeva rule (Brihat Jataka ch. 10) read with the Dasamsa (D-10), scoring 5 career archetypes on the grahas that govern work.</p>
           </div>
 
           <!-- Top Calling Card -->
@@ -1115,6 +1237,7 @@
               <span class="status-pill success" id="career-top-badge">Aptitude Match</span>
             </div>
             <p id="career-top-narrative" class="reading-body"></p>
+            <div class="bhava-meta-strip" id="career-meta-strip"></div>
           </div>
 
           <div class="career-archetypes-container" id="career-archetypes-container"></div>
@@ -1152,6 +1275,7 @@
                 <div class="dosha-track"><div class="dosha-fill kapha-fill" id="kapha-fill" style="width:0%"></div></div>
               </div>
             </div>
+            <ul class="bhava-factors" id="ayur-factors"></ul>
           </div>
 
           <div class="readings-grid">
@@ -1164,6 +1288,7 @@
                 </div>
               </div>
               <p id="ayur-vulnerabilities-text" class="reading-body"></p>
+              <ul class="bhava-factors" id="ayur-health-watch"></ul>
             </div>
 
             <div class="cosmic-card reading-card">
@@ -1246,6 +1371,38 @@
             </div>
           </div>
           <div class="readings-grid" id="shadbala-cards-grid"></div>
+
+          <div class="cosmic-card" style="margin-top:20px">
+            <div class="card-header">
+              <h3 data-i18n="h_bhava_bala">Bhava Bala (House Strength)</h3>
+              <span class="pill-badge" data-i18n="pill_bhava_bala">Minimum 7 Rupas</span>
+            </div>
+            <p class="muted" data-i18n="p_bhava_bala">The strength of each Sripati bhava: the Shadbala of its lord, its directional strength and the aspects on its madhya.</p>
+            <div class="table-responsive">
+              <table class="luxury-table" style="font-size:11.5px">
+                <thead>
+                  <tr><th data-i18n="th_bhava">Bhava</th><th data-i18n="th_lord">Lord</th><th data-i18n="th_adhipati">Lord's Bala</th><th data-i18n="th_dig">Dig</th><th data-i18n="th_drishti">Drishti</th><th data-i18n="th_rupas">Rupas</th><th data-i18n="th_rank">Rank</th></tr>
+                </thead>
+                <tbody id="bhava-bala-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cosmic-card" style="margin-top:20px">
+            <div class="card-header">
+              <h3 data-i18n="h_vimsopaka">Vimsopaka Bala & Varga Bheda</h3>
+              <span class="pill-badge" data-i18n="pill_vimsopaka">Out of 20</span>
+            </div>
+            <p class="muted" data-i18n="p_vimsopaka">Strength from dignity across the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes. A graha in its own, exaltation or moolatrikona sign in two or more vargas earns a named Varga Bheda dignity.</p>
+            <div class="table-responsive">
+              <table class="luxury-table" style="font-size:11.5px">
+                <thead>
+                  <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_shadvarga">Shadvarga</th><th data-i18n="th_saptavarga">Saptavarga</th><th data-i18n="th_dasavarga">Dasavarga</th><th data-i18n="th_shodasavarga">Shodasavarga</th></tr>
+                </thead>
+                <tbody id="vimsopaka-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Chapter 13: Krishnamurti Paddhati (KP System) Sub-Lord Analysis -->
@@ -1256,6 +1413,7 @@
               <span class="pill-badge" data-i18n="pill_kp">Prof. K.S. Krishnamurti 249 Divisions</span>
             </div>
             <p class="muted" data-i18n="p_kp">The KP System subdivides each of the 27 nakshatras into 9 unequal sub-divisions based on Vimshottari Dasa proportions, pin-pointing life results with extraordinary mathematical precision.</p>
+            <div class="bhava-meta-strip" id="kp-ruling-strip" style="margin-top:10px"></div>
           </div>
 
           <div class="card-header" style="margin: 16px 0 10px;">
@@ -1285,7 +1443,7 @@
               <div class="table-responsive">
                 <table class="luxury-table" style="font-size:11px">
                   <thead>
-                    <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_degree">Degree</th><th data-i18n="th_sign">Sign</th><th data-i18n="th_sign_lord">Sign Lord</th><th data-i18n="th_star_lord">Star Lord</th><th data-i18n="th_sub_lord">Sub-Lord</th></tr>
+                    <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_degree">Degree</th><th data-i18n="th_sign">Sign</th><th data-i18n="th_sign_lord">Sign Lord</th><th data-i18n="th_star_lord">Star Lord</th><th data-i18n="th_sub_lord">Sub-Lord</th><th data-i18n="th_kp_house">House</th><th data-i18n="th_significations">Signified Houses</th></tr>
                   </thead>
                   <tbody id="kp-planets-tbody"></tbody>
                 </table>
@@ -1548,6 +1706,11 @@
             </div>
             <div class="tamil-day-facts">
               <div class="fact">
+                <small data-i18n="tamil_yogam">TAMIL YOGAM</small>
+                <strong id="panch-tamil-yogam">—</strong>
+                <span class="subtext" id="panch-tamil-yogam-next">—</span>
+              </div>
+              <div class="fact">
                 <small data-i18n="soolam">SOOLAM</small>
                 <strong id="panch-soolam">—</strong>
                 <span class="subtext" id="panch-parigaram">—</span>
@@ -1716,6 +1879,35 @@
           </div>
           <div class="hora-grid" id="gowri-grid"></div>
         </div>
+
+        <!-- Muhurtham finder -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="muhurtham_title">Muhurtham Finder</h2>
+              <p class="card-subtitle" data-i18n="muhurtham_sub">Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, Siddha or Amirtha Tamil yogam, a clean Lagna (no malefic in the 8th, Moon not in the 6th, 8th or 12th), clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.</p>
+            </div>
+            <span class="card-badge">💍</span>
+          </div>
+          <div class="muhurtham-controls">
+            <select id="muhurtham-event" aria-label="Event">
+              <option value="marriage" data-i18n="mh_marriage">Marriage</option>
+              <option value="griha_pravesam" data-i18n="mh_griha">House-warming (Griha Pravesam)</option>
+              <option value="business" data-i18n="mh_business">Opening a business</option>
+              <option value="vehicle" data-i18n="mh_vehicle">Buying a vehicle</option>
+              <option value="general" data-i18n="mh_general">Any auspicious beginning</option>
+            </select>
+            <select id="muhurtham-days" aria-label="Days">
+              <option value="30" data-i18n="mh_30">Next 30 days</option>
+              <option value="60" selected data-i18n="mh_60">Next 60 days</option>
+              <option value="90" data-i18n="mh_90">Next 90 days</option>
+            </select>
+            <button class="action-btn" id="muhurtham-btn" type="button" data-i18n="mh_find">Find Muhurthams</button>
+          </div>
+          <p class="muted" id="muhurtham-summary"></p>
+          <div class="muhurtham-list" id="muhurtham-list"></div>
+          <p class="muted" style="font-size:11.5px" data-i18n="mh_note">Published Tamil calendars also fix the Lagna and follow regional customs; confirm the final time with your family astrologer.</p>
+        </div>
       </section>
 
       <!-- VIEW 9: SAVED PROFILES -->
@@ -1777,6 +1969,43 @@
   <div id="toast" class="toast-popup" role="status" hidden></div>
 
   <!-- Scripts -->
+  <!-- Print / PDF dialog: choose a report preset, its sections and the language -->
+  <dialog id="print-dialog" class="print-dialog" aria-labelledby="print-dialog-title">
+    <form id="print-dialog-form" method="dialog">
+      <h2 id="print-dialog-title" data-i18n="print_dialog_title">Print or save as PDF</h2>
+      <fieldset class="print-presets" id="print-presets"></fieldset>
+      <details class="print-sections">
+        <summary data-i18n="print_sections">Choose sections</summary>
+        <div class="print-section-list" id="print-section-list"></div>
+      </details>
+      <label class="print-language">
+        <span data-i18n="print_language">Language</span>
+        <select id="print-language">
+          <option value="ta">தமிழ்</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <label class="print-language">
+        <span data-i18n="print_chart_style">Chart style</span>
+        <select id="print-chart-style"></select>
+      </label>
+      <p class="muted print-hint" data-i18n="print_pdf_hint">To make a PDF, choose "Save as PDF" as the destination in the print window.</p>
+      <div class="print-dialog-actions">
+        <button type="button" class="action-btn" id="print-dialog-cancel" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="action-btn primary-print" id="print-dialog-go" data-i18n="print_now">Print / PDF</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="i18n.js"></script>
+  <script src="profiles.js"></script>
   <script src="app.js"></script>
+  <script src="chart-views.js"></script>
+  <script src="dasa.js"></script>
+  <script src="readings.js"></script>
+  <script src="panchangam.js"></script>
+  <script src="matching.js"></script>
+  <script src="profiles-ui.js"></script>
+  <script src="print.js"></script>
 </body>
 </html>

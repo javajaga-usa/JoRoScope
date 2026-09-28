@@ -36,7 +36,7 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
             self.assertEqual(data.get("application"), "joroscope")
-            self.assertEqual(data.get("version"), "2.0.0")
+            self.assertEqual(data.get("version"), "2.1.0")
 
     def test_chart_endpoint(self):
         url = f"http://127.0.0.1:{self.port}/api/chart"
@@ -59,6 +59,29 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertIn("vargas", data)
             self.assertIn("predictions", data)
             self.assertIn("shadbala", data["predictions"])
+
+    def test_timeline_details_are_deferred_and_gzipped(self):
+        import gzip
+        payload = json.dumps({"name": "API Test", "date": "1990-01-01", "time": "12:00:00", "latitude": 13.0827,
+                              "longitude": 80.2707, "timezone": "Asia/Kolkata", "ayanamsa": "Lahiri"}).encode()
+        headers = {"Content-Type": "application/json", "Accept-Encoding": "gzip"}
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}/api/chart", data=payload, headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            self.assertEqual(resp.headers.get("Content-Encoding"), "gzip")
+            raw = gzip.decompress(resp.read())
+        chart = json.loads(raw)
+        self.assertLess(len(raw), 800_000)
+        periods = chart["predictions"]["timeline_predictions"]["periods"]
+        deferred = [p for p in periods if p.get("details_deferred")]
+        self.assertGreater(len(deferred), 70)
+        self.assertTrue(all("career_en" not in p for p in deferred))
+        req = urllib.request.Request(f"http://127.0.0.1:{self.port}/api/timeline", data=payload,
+                                     headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(req) as resp:
+            self.assertIsNone(resp.headers.get("Content-Encoding"))
+            details = json.loads(resp.read())["details"]
+        self.assertEqual(set(details), {p["id"] for p in periods})
+        self.assertTrue(all(d["remedy_ta"] and d["career_en"] for d in details.values()))
 
     def test_match_endpoint(self):
         url = f"http://127.0.0.1:{self.port}/api/match"

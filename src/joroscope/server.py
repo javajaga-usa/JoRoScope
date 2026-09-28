@@ -3,6 +3,7 @@ Serves the local SPA frontend and responds to JSON calculation endpoints.
 Zero external tracking — 100% private and offline capable.
 """
 
+import gzip
 import json
 import mimetypes
 import sys
@@ -16,6 +17,8 @@ from urllib.parse import urlsplit, unquote
 from . import __version__
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
+from .core.muhurtham import find_muhurthams
+from .core.timeline import defer_timeline_details, timeline_details
 
 MODULE_DIR = Path(__file__).resolve().parent
 # Locate web assets directory
@@ -32,8 +35,15 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
     def send(self, body, status=200, kind='application/json; charset=utf-8'):
+        compress = len(body) > 2048 and 'gzip' in self.headers.get('Accept-Encoding', '') and \
+            kind.split('/')[0] in ('application', 'text')
+        if compress:
+            body = gzip.compress(body, compresslevel=6)
         self.send_response(status)
         self.send_header('Content-Type', kind)
+        if compress:
+            self.send_header('Content-Encoding', 'gzip')
+            self.send_header('Vary', 'Accept-Encoding')
         self.send_header('Content-Length', str(len(body)))
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Cache-Control', 'no-store')
@@ -58,7 +68,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/match', '/api/panchangam', '/api/calendar'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham'):
             self.send(b'{}', 404)
             return
 
@@ -75,7 +85,13 @@ class Handler(BaseHTTPRequestHandler):
 
             if req_path == '/api/chart':
                 result = calculate(data)
+                timeline = (result.get('predictions') or {}).get('timeline_predictions')
+                if timeline:
+                    defer_timeline_details(timeline)
                 self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/timeline':
+                timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
+                self.send(json.dumps({'details': timeline_details(timeline)}, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/match':
                 boy = data.get('boy')
                 girl = data.get('girl')
@@ -108,6 +124,20 @@ class Handler(BaseHTTPRequestHandler):
                     natal_sign=None if natal_sign in (None, '') else int(natal_sign)
                 )
                 self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/muhurtham':
+                tz_str = data.get('timezone', 'Asia/Kolkata')
+                try:
+                    today = datetime.now(ZoneInfo(tz_str)).strftime('%Y-%m-%d')
+                except ZoneInfoNotFoundError:
+                    raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+                natal_star = data.get('natal_nakshatra_index')
+                natal_sign = data.get('natal_sign_index')
+                found = find_muhurthams(
+                    data.get('event', 'marriage'), data.get('start_date') or today, int(data.get('days', 60)), tz_str,
+                    float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
+                    natal_star=None if natal_star in (None, '') else int(natal_star),
+                    natal_sign=None if natal_sign in (None, '') else int(natal_sign))
+                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/calendar':
                 cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
                                      float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)))

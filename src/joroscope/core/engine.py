@@ -17,10 +17,7 @@ import swisseph as swe
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-try:
-    from .predictions import generate_comprehensive_predictions, PLANET_TAMIL
-except (ImportError, ValueError):
-    from predictions import generate_comprehensive_predictions, PLANET_TAMIL
+from .predictions import generate_comprehensive_predictions, PLANET_TAMIL
 
 SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 TAMIL = ['மேஷம்','ரிஷபம்','மிதுனம்','கடகம்','சிம்மம்','கன்னி','துலாம்','விருச்சிகம்','தனுசு','மகரம்','கும்பம்','மீனம்']
@@ -93,52 +90,12 @@ MATCH_VERDICT_TA = {
     'Inauspicious / Needs Remedies': 'பொருத்தம் குறைவு / பரிகாரம் தேவை'
 }
 
-# Tamil names and readings for the yogas detect_yogas reports, keyed by the English base name
-YOGA_TAMIL = {
-    'Ruchaka Yoga': ('ருசக யோகம்', 'வீரம், தலைமைப் பண்பு, போர்த்திறன் மற்றும் கம்பீரமான தோற்றம்.'),
-    'Bhadra Yoga': ('பத்ர யோகம்', 'கூர்மையான அறிவு, பேச்சுத் திறன், கல்வி மற்றும் அறிஞர் புகழ்.'),
-    'Hamsa Yoga': ('ஹம்ச யோகம்', 'ஞானம், அறநெறி, ஆன்மீக ஆழம் மற்றும் அரச குணம் கொண்ட கருணை.'),
-    'Malavya Yoga': ('மாளவ்ய யோகம்', 'அழகு, கலைத்திறன், சுக போகம் மற்றும் நிலைத்த அன்பு.'),
-    'Sasa Yoga': ('சச யோகம்', 'ஒழுக்கம், நிர்வாக அதிகாரம், மன உறுதி மற்றும் உழைப்பால் வரும் செல்வம்.'),
-    'Gaja Kesari Yoga': ('கஜகேசரி யோகம்', 'எதிரிகளை வெல்லுதல், நிலைத்த மதிப்பு, செல்வம், கூர்மையான அறிவு மற்றும் பெருந்தன்மை.'),
-    'Budhaditya Yoga': ('புதாதித்ய யோகம்', 'சிறந்த அறிவாற்றல், நிர்வாகத் திறன், தெளிவான சிந்தனை மற்றும் பேச்சு வன்மை.'),
-    'Chandra-Mangala Yoga': ('சந்திர மங்கள யோகம்', 'தொழில் முனைவு, வணிக ஆற்றல், பொருளீட்டும் ஊக்கம் மற்றும் சாதுர்யம்.'),
-    'Amala Yoga': ('அமல யோகம்', 'களங்கமற்ற புகழ், நேர்மையான நடத்தை, தொழிலில் சிறப்பு மற்றும் தான தர்மம்.'),
-    'Harsha Vipareeta Raja Yoga': ('ஹர்ஷ விபரீத ராஜ யோகம்', 'மறைமுக எதிரிகளிடமிருந்து பாதுகாப்பு, நெருக்கடியில் மன உறுதி, நல்ல உடல்நலம், துன்பங்களை வெல்லுதல்.'),
-    'Sarala Vipareeta Raja Yoga': ('சரள விபரீத ராஜ யோகம்', 'நீண்ட ஆயுள், அச்சமின்மை, திடீர் லாபம், வழக்குகளில் வெற்றி, சுயமாக உருவான அதிகாரம்.'),
-    'Vimala Vipareeta Raja Yoga': ('விமல விபரீத ராஜ யோகம்', 'பொருளாதாரச் சுதந்திரம், நற்செலவுகள், மன அமைதி மற்றும் ஆன்மீகப் பாதுகாப்பு.'),
-    'Neechabhanga Raja Yoga': ('நீசபங்க ராஜ யோகம்', None),
-    'Kemadruma Bhanga Yoga': ('கேமத்ரும பங்க யோகம்', 'கேந்திரங்களில் உள்ள சுப கிரகங்களால் கேமத்ரும தனிமை நீங்குகிறது.'),
-    'Kemadruma Yoga': ('கேமத்ரும யோகம்', 'தனிமை உணர்வு, ஏற்ற இறக்கமான பொருள் நிலை, மன சமநிலைக்கான ஏக்கம்.')
-}
-YOGA_CATEGORY_TA = {
-    'Pancha Mahapurusha': 'பஞ்ச மகாபுருஷ யோகம்', 'Raja Yoga': 'ராஜ யோகம்', 'Dhi / Intellect Yoga': 'அறிவு யோகம்',
-    'Dhana / Wealth Yoga': 'தன யோகம்', 'Virtue & Fame': 'அறநெறி & புகழ்', 'Vipareeta Yoga': 'விபரீத யோகம்',
-    'Elevation Yoga': 'உயர்வு யோகம்', 'Neutralized Challenge': 'நிவர்த்தியான சவால்', 'Mind & Solitude': 'மனம் & தனிமை'
-}
-YOGA_NATURE_TA = {
-    'Highly Auspicious': 'மிக்க சுபம்', 'Auspicious': 'சுபம்', 'Fortunate in Adversity': 'துன்பத்தில் வெற்றி',
-    'Neutralized': 'நிவர்த்தி', 'Challenging': 'சவாலானது'
-}
 KAAL_SARP_TYPES = [
     ('Anant', 'அனந்த'), ('Kulik', 'குளிக'), ('Vasuki', 'வாசுகி'), ('Shankhapal', 'சங்கபால'),
     ('Padma', 'பத்ம'), ('Mahapadma', 'மகாபத்ம'), ('Takshak', 'தக்ஷக'), ('Karkotak', 'கார்கோடக'),
     ('Shankhachur', 'சங்கசூட'), ('Ghatak', 'காதக'), ('Vishdhar', 'விஷதர'), ('Sheshnag', 'சேஷநாக')
 ]
 
-def add_yoga_tamil(yoga):
-    """Tamil name, category, nature and reading for a detected yoga."""
-    base, _, planet = yoga['name'].partition(' (')
-    name_ta, desc_ta = YOGA_TAMIL[base]
-    if planet:
-        name_ta = f"{name_ta} ({PLANET_TAMIL[planet.rstrip(')')]})"
-    if desc_ta is None:  # Neechabhanga: [debilitated planet, dispositor]
-        weak, lord = (PLANET_TAMIL[p] for p in yoga['planets'])
-        desc_ta = f'{weak} நீசம் பங்கமடைகிறது; கேந்திரத்தில் உள்ள அதிபதி {lord} மூலம் ராஜ யோகமாக உயர்கிறது.'
-    yoga.update(name_ta=name_ta, description_ta=desc_ta,
-                category_ta=YOGA_CATEGORY_TA[yoga['category']],
-                auspiciousness_ta=YOGA_NATURE_TA[yoga['auspiciousness']])
-    return yoga
 STAR_NADIS = [
     'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya',
     'Antya','Madhya','Aadi','Aadi','Madhya','Antya','Antya','Madhya','Aadi',
@@ -159,7 +116,7 @@ EKA_NAKSHATRA_GRADE = [
 ]
 
 NITYA_YOGAS = [
-    ('Vishkambha','Auspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
+    ('Vishkambha','Inauspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
     ('Shobhana','Auspicious'),('Atiganda','Inauspicious'),('Sukarma','Auspicious'),('Dhriti','Auspicious'),
     ('Shula','Inauspicious'),('Ganda','Inauspicious'),('Vriddhi','Auspicious'),('Dhruva','Auspicious'),
     ('Vyaghata','Inauspicious'),('Harshana','Auspicious'),('Vajra','Inauspicious'),('Siddhi','Auspicious'),
@@ -334,6 +291,7 @@ GOCHARA_GOOD_HOUSES = {
     'Mercury': (2, 4, 6, 8, 10, 11), 'Jupiter': (2, 5, 7, 9, 11),
     'Venus': (1, 2, 3, 4, 5, 8, 9, 11, 12), 'Saturn': (3, 6, 11), 'Rahu': (3, 6, 11), 'Ketu': (3, 6, 11)
 }
+SLOW_TRANSIT_YEARS = 6  # look-ahead for Saturn and Jupiter double-transit windows
 # Slow grahas whose sign changes (Peyarchi) are tracked, with a search horizon in days
 PEYARCHI_BODIES = [('Saturn', swe.SATURN, 1100), ('Jupiter', swe.JUPITER, 450), ('Rahu', swe.MEAN_NODE, 650)]
 
@@ -464,7 +422,17 @@ def calculate_gochara(jd, planets, ashtakavarga):
             peyarchi.append(dict(entry, planet='Ketu', from_sign=SIGNS[ketu_from], from_tamil=TAMIL[ketu_from],
                                  to_sign=SIGNS[ketu_to], to_tamil=TAMIL[ketu_to],
                                  house_from_moon=(ketu_to - moon_sign) % 12 + 1))
-    return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi)
+    # Saturn's and Jupiter's sign periods for the coming years, for double-transit timing
+    horizon = jd + SLOW_TRANSIT_YEARS * YEAR
+    slow_transits = {}
+    for name, body in (('Saturn', swe.SATURN), ('Jupiter', swe.JUPITER)):
+        edges = [jd] + [c[0] for c in sign_ingresses(body, jd, horizon)] + [horizon]
+        slow_transits[name] = [dict(sign_index=int(sidereal_position(start + 0.5 * (end - start), body)[0] // 30),
+                                    start=jd_to_utc(start).isoformat(timespec='seconds'),
+                                    end=jd_to_utc(end).isoformat(timespec='seconds'))
+                               for start, end in zip(edges, edges[1:]) if end > start]
+    return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi,
+                slow_transits=slow_transits)
 
 def sripati_bhavas(jd, lat, lon):
     """Sripati bhavas: madhyas trisect each quadrant (Porphyry cusps, the 1st being the
@@ -482,7 +450,7 @@ def bhava_of(lon, sandhi):
     return 1
 
 def calculate_vargas(lon):
-    """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
+    """The 16 Parashara divisional vargas (Shodasavarga, D1 - D60)."""
     lon = lon % 360
     sign = int(lon // 30)
     deg = lon % 30
@@ -557,6 +525,14 @@ def calculate_vargas(lon):
         elif deg < 20: vargas['D30'] = 11  # Pisces (Jupiter)
         elif deg < 25: vargas['D30'] = 9   # Capricorn (Saturn)
         else: vargas['D30'] = 7            # Scorpio (Mars)
+
+    # D40 - Khavedamsa: 45' parts from Aries (odd signs) or Libra (even signs)
+    k40 = min(int(deg / 0.75), 39)
+    vargas['D40'] = ((0 if is_odd else 6) + k40) % 12
+
+    # D45 - Akshavedamsa: 40' parts from Aries (movable), Leo (fixed) or Sagittarius (dual)
+    k45 = min(int(deg / (2 / 3)), 44)
+    vargas['D45'] = ((0 if movable else (4 if fixed else 8)) + k45) % 12
 
     # D60 - Shashtiamsa
     k60 = min(int(deg * 2), 59)
@@ -650,6 +626,36 @@ def calculate_dignity(planet_name, sign_idx, deg, planet_positions):
     if combined == -1: return 'Enemy'
     return 'Great Enemy'
 
+def varga_dignity(planet_name, varga_sign, planets):
+    """Dignity of a graha in a divisional sign: exaltation, debilitation or own sign, else its
+    compound relationship with the sign's lord, the temporal part taken from the Rasi chart."""
+    dignity = calculate_dignity(planet_name, varga_sign, -1, planets)  # -1: no Moolatrikona degrees in a varga
+    if dignity in ('Exalted', 'Debilitated', 'Own Sign') or planet_name in ('Rahu', 'Ketu', 'Ascendant'):
+        return dignity
+    lord = SIGN_LORDS[varga_sign]
+    natural = NATURAL_FRIENDS.get(planet_name, {}).get(lord, 0)
+    temporal = 1 if (planets[lord]['sign_index'] - planets[planet_name]['sign_index']) % 12 in (1, 2, 3, 9, 10, 11) else -1
+    return {2: 'Great Friend', 1: 'Friend', 0: 'Neutral', -1: 'Enemy', -2: 'Great Enemy'}[natural + temporal]
+
+# Pushkara navamsas (1-9 within the sign) by the sign's element: fire, earth, air, water
+PUSHKARA_NAVAMSAS = {0: (7, 9), 1: (3, 5), 2: (6, 8), 3: (1, 3)}
+
+
+def navamsa_table(planets):
+    """Each graha's Navamsa: sign and lord, dignity there, Vargottama and Pushkara Navamsa."""
+    rows = []
+    for name in ('Ascendant', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
+        p = planets[name]
+        d9 = p['vargas']['D9']
+        part = int(p['degree'] / (30 / 9)) + 1
+        rows.append(dict(
+            body=name, rasi=SIGNS[p['sign_index']], rasi_ta=TAMIL[p['sign_index']],
+            navamsa_index=d9, navamsa=SIGNS[d9], navamsa_ta=TAMIL[d9], navamsa_part=part,
+            lord=SIGN_LORDS[d9], dignity=None if name == 'Ascendant' else varga_dignity(name, d9, planets),
+            vargottama=d9 == p['sign_index'], pushkara=part in PUSHKARA_NAVAMSAS[p['sign_index'] % 4]
+        ))
+    return rows
+
 def calculate_aspects(planets):
     """Calculate Vedic Drishti (aspects) for all planets."""
     aspects = {name: {'casts_to_houses': [], 'aspects_received_from': []} for name in planets}
@@ -680,180 +686,86 @@ def calculate_ashtakavarga(planets):
     sav = [0] * 12
     classical = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
 
+    # Prastara: which contributor gave each bindu, the basis of Kakshya transit timing
+    prastara = {}
     for p_name in classical:
         bav[p_name] = [0] * 12
+        prastara[p_name] = {}
         rules = ASHTAKAVARGA_RULES.get(p_name, {})
         for ref_name, houses in rules.items():
             ref_sign = planets[ref_name]['sign_index']
+            row = prastara[p_name][ref_name] = [0] * 12
             for h in houses:
                 target_sign = (ref_sign + h - 1) % 12
                 bav[p_name][target_sign] += 1
+                row[target_sign] = 1
 
         for s in range(12):
             sav[s] += bav[p_name][s]
 
+    # Sodhana: Trikona then Ekadhipatya reduction, and the Sodhya Pinda from the reduced bindus.
+    # Checked against P.V.R. Narasimha Rao's worked Charts 7 and 11 (Vedic Astrology: An
+    # Integrated Approach, ch. 12): a sign counts as occupied when it holds a graha or the Lagna.
+    occupied = {planets[p]['sign_index'] for p in classical + ['Ascendant']}
+    sodhita, pindas = {}, {}
+    for p_name in classical:
+        reduced = _ekadhipatya_sodhana(_trikona_sodhana(bav[p_name]), occupied)
+        sodhita[p_name] = reduced
+        rasi = sum(b * m for b, m in zip(reduced, RASI_GUNAKARA))
+        graha = sum(GRAHA_GUNAKARA[q] * reduced[planets[q]['sign_index']] for q in classical)
+        pindas[p_name] = dict(rasi=rasi, graha=graha, sodhya=rasi + graha)
+
     return {
         'BAV': bav,
         'SAV': sav,
+        'prastara': prastara,
+        'sodhita': sodhita,
+        'pindas': pindas,
         'total_points': sum(sav)  # Guaranteed 337
     }
 
-def detect_yogas(planets):
-    """Detect prominent Vedic Yogas and Doshas."""
-    yogas = []
-    # Kendra houses: 1, 4, 7, 10
-    kendras = [1, 4, 7, 10]
 
-    # 1. Pancha Mahapurusha Yogas
-    pancha = [
-        ('Mars', 'Ruchaka Yoga', 'Courage, leadership, martial victory, and commanding presence.'),
-        ('Mercury', 'Bhadra Yoga', 'Sharp intellect, eloquence, learning, and scholarly prominence.'),
-        ('Jupiter', 'Hamsa Yoga', 'Wisdom, righteousness, spiritual depth, and regal benevolence.'),
-        ('Venus', 'Malavya Yoga', 'Grace, artistic beauty, material luxury, and enduring affection.'),
-        ('Saturn', 'Sasa Yoga', 'Discipline, administrative authority, enduring endurance, and wealth through perseverance.')
-    ]
-    for p_name, y_name, desc in pancha:
-        p = planets.get(p_name)
-        if p and p['house'] in kendras and p.get('dignity') in ('Exalted', 'Own Sign', 'Moolatrikona'):
-            yogas.append({
-                'name': y_name,
-                'category': 'Pancha Mahapurusha',
-                'auspiciousness': 'Highly Auspicious',
-                'description': desc,
-                'planets': [p_name]
-            })
+# Multipliers for the Sodhya Pinda: signs Aries-Pisces and the seven grahas
+RASI_GUNAKARA = [7, 10, 8, 4, 10, 5, 7, 8, 9, 5, 11, 12]
+GRAHA_GUNAKARA = {'Sun': 5, 'Moon': 5, 'Mars': 8, 'Mercury': 5, 'Jupiter': 10, 'Venus': 7, 'Saturn': 5}
+DUAL_LORDSHIPS = [(0, 7), (1, 6), (2, 5), (8, 11), (9, 10)]  # Mars, Venus, Mercury, Jupiter, Saturn
 
-    # 2. Gaja Kesari Yoga (Jupiter in Kendra from Moon)
-    moon = planets.get('Moon')
-    jupiter = planets.get('Jupiter')
-    if moon and jupiter:
-        diff = (jupiter['house'] - moon['house']) % 12 + 1
-        if diff in (1, 4, 7, 10):
-            yogas.append({
-                'name': 'Gaja Kesari Yoga',
-                'category': 'Raja Yoga',
-                'auspiciousness': 'Highly Auspicious',
-                'description': 'Overcoming adversaries, enduring respect, prosperity, sharp intellect, and nobility.',
-                'planets': ['Moon', 'Jupiter']
-            })
 
-    # 3. Budhaditya Yoga (Sun + Mercury conjunction)
-    sun = planets.get('Sun')
-    mercury = planets.get('Mercury')
-    if sun and mercury and sun['sign_index'] == mercury['sign_index']:
-        yogas.append({
-            'name': 'Budhaditya Yoga',
-            'category': 'Dhi / Intellect Yoga',
-            'auspiciousness': 'Auspicious',
-            'description': 'Enhanced intellectual prowess, executive acumen, analytical clarity, and eloquence.',
-            'planets': ['Sun', 'Mercury']
-        })
+def _trikona_sodhana(bindus):
+    """In each trine of signs, remove the smallest count from all three (all of it when the
+    three are equal); a trine holding a zero is left alone."""
+    b = list(bindus)
+    for r in range(4):
+        trine = (r, r + 4, r + 8)
+        values = [b[k] for k in trine]
+        if 0 not in values:
+            low = min(values)
+            for k in trine:
+                b[k] -= low
+    return b
 
-    # 4. Chandra-Mangala Yoga (Moon + Mars conjunction or mutual 7th aspect)
-    mars = planets.get('Mars')
-    if moon and mars:
-        if moon['sign_index'] == mars['sign_index'] or (mars['sign_index'] - moon['sign_index']) % 12 == 6:
-            yogas.append({
-                'name': 'Chandra-Mangala Yoga',
-                'category': 'Dhana / Wealth Yoga',
-                'auspiciousness': 'Auspicious',
-                'description': 'Enterprise, commercial vitality, financial drive, and high resourcefulness.',
-                'planets': ['Moon', 'Mars']
-            })
 
-    # 5. Amala Yoga (Benefic in 10th from Lagna or Moon)
-    benefics = ['Jupiter', 'Venus', 'Mercury']
-    for b in benefics:
-        bp = planets.get(b)
-        if bp and (bp['house'] == 10 or (bp['house'] - moon['house']) % 12 + 1 == 10):
-            yogas.append({
-                'name': f'Amala Yoga ({b})',
-                'category': 'Virtue & Fame',
-                'auspiciousness': 'Auspicious',
-                'description': 'Flawless reputation, stainless moral standing, professional distinction, and philanthropic influence.',
-                'planets': [b]
-            })
-            break
-
-    # 6. Vipareeta Raja Yogas (Harsha, Sarala, Vimala)
-    asc_sign = planets['Ascendant']['sign_index']
-    lord_6 = SIGN_LORDS[(asc_sign + 5) % 12]
-    lord_8 = SIGN_LORDS[(asc_sign + 7) % 12]
-    lord_12 = SIGN_LORDS[(asc_sign + 11) % 12]
-    trik_houses = [6, 8, 12]
-
-    p_6 = planets.get(lord_6)
-    if p_6 and p_6['house'] in trik_houses:
-        yogas.append({
-            'name': 'Harsha Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Immunity from secret enemies, resilience in crises, sound constitution, and triumph over hardship.',
-            'planets': [lord_6]
-        })
-    p_8 = planets.get(lord_8)
-    if p_8 and p_8['house'] in trik_houses:
-        yogas.append({
-            'name': 'Sarala Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Longevity, fearlessness, sudden gains, overcoming disputes, and self-made authority.',
-            'planets': [lord_8]
-        })
-    p_12 = planets.get(lord_12)
-    if p_12 and p_12['house'] in trik_houses:
-        yogas.append({
-            'name': 'Vimala Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Financial autonomy, virtuous expenditures, peace of mind, and inner spiritual security.',
-            'planets': [lord_12]
-        })
-
-    # 7. Neechabhanga Raja Yoga
-    for p_name, p_data in planets.items():
-        if p_data.get('dignity') == 'Debilitated':
-            deb_sign = p_data['sign_index']
-            disp_lord = SIGN_LORDS[deb_sign]
-            disp_p = planets.get(disp_lord)
-            if disp_p and disp_p['house'] in kendras:
-                yogas.append({
-                    'name': f'Neechabhanga Raja Yoga ({p_name})',
-                    'category': 'Elevation Yoga',
-                    'auspiciousness': 'Highly Auspicious',
-                    'description': f'Debilitation of {p_name} is cancelled and elevated to royal stature through dispositor {disp_lord} in Kendra.',
-                    'planets': [p_name, disp_lord]
-                })
-
-    # 8. Kemadruma Yoga (Moon has no planets in 2nd and 12th from it, excluding Sun/Rahu/Ketu)
-    moon_h = moon['house']
-    planets_in_2_12 = [
-        p_name for p_name, p in planets.items()
-        if p_name not in ('Moon', 'Sun', 'Rahu', 'Ketu', 'Ascendant')
-        and p['house'] in [(moon_h) % 12 + 1, (moon_h - 2) % 12 + 1]
-    ]
-    if not planets_in_2_12:
-        # Check cancellation (Kemadruma Bhanga): Kendra has benefics
-        kendra_planets = [
-            p_name for p_name, p in planets.items()
-            if p_name in benefics and p['house'] in kendras
-        ]
-        if kendra_planets:
-            yogas.append({
-                'name': 'Kemadruma Bhanga Yoga',
-                'category': 'Neutralized Challenge',
-                'auspiciousness': 'Neutralized',
-                'description': 'Kemadruma solitude is dissolved by natural benefics residing in Kendra angles.',
-                'planets': ['Moon'] + kendra_planets
-            })
+def _ekadhipatya_sodhana(bindus, occupied):
+    """Reduce the two signs of one lord: untouched if either is zero or both are occupied;
+    both empty: equal counts become zero, unequal both take the lower; one occupied: the
+    empty sign becomes zero unless it holds more, when it drops to the occupied sign's count."""
+    b = list(bindus)
+    for r1, r2 in DUAL_LORDSHIPS:
+        o1, o2 = r1 in occupied, r2 in occupied
+        if b[r1] == 0 or b[r2] == 0 or (o1 and o2):
+            continue
+        if not o1 and not o2:
+            b[r1] = b[r2] = 0 if b[r1] == b[r2] else min(b[r1], b[r2])
         else:
-            yogas.append({
-                'name': 'Kemadruma Yoga',
-                'category': 'Mind & Solitude',
-                'auspiciousness': 'Challenging',
-                'description': 'Solitary mindset, fluctuating material fortunes, and yearning for emotional equilibrium.',
-                'planets': ['Moon']
-            })
+            full, empty = (r1, r2) if o1 else (r2, r1)
+            b[empty] = b[full] if b[empty] > b[full] else 0
+    return b
+
+def detect_yogas(planets):
+    """Yogas (see yogas.py) and the Manglik and Kaal Sarp doshas."""
+    from .yogas import detect
+    yogas = detect(planets)
+    mars, jupiter = planets.get('Mars'), planets.get('Jupiter')
 
     # 9. Manglik / Kuja Dosha
     kuja_houses = [1, 2, 4, 7, 8, 12]
@@ -902,13 +814,13 @@ def detect_yogas(planets):
                 'description_ta': 'கிரகங்கள் ராகு-கேது அச்சின் இரு பக்கங்களிலும் பரவியுள்ளன.'
             }
 
-    return [add_yoga_tamil(y) for y in yogas], doshas
+    return yogas, doshas
 
-def dasha(moon, birth, now=None):
+def dasha(moon, birth, now=None, year=YEAR):
     """Calculate 3-Tier Vimshottari Dasa (Maha Dasa, Bhukti, Pratyantardasa)."""
     portion = moon / (40 / 3)
     index = int(portion) % 9
-    start = birth - timedelta(days=(portion % 1) * DASHA_YEARS[index] * YEAR)
+    start = birth - timedelta(days=(portion % 1) * DASHA_YEARS[index] * year)
     rows = []
     if now is None:
         now = datetime.now(timezone.utc)
@@ -916,20 +828,20 @@ def dasha(moon, birth, now=None):
     for k in range(9):
         i = (index + k) % 9
         d_years = DASHA_YEARS[i]
-        end = start + timedelta(days=d_years * YEAR)
+        end = start + timedelta(days=d_years * year)
         subs = []
         substart = start
         for m in range(9):
             j = (i + m) % 9
             b_years = DASHA_YEARS[j]
-            subend = substart + timedelta(days=d_years * b_years / 120 * YEAR)
+            subend = substart + timedelta(days=d_years * b_years / 120 * year)
             # Level 3: Pratyantardasa
             prats = []
             pstart = substart
             for n in range(9):
                 p_idx = (j + n) % 9
                 p_years = DASHA_YEARS[p_idx]
-                pend = pstart + timedelta(days=d_years * b_years * p_years / (120 * 120) * YEAR)
+                pend = pstart + timedelta(days=d_years * b_years * p_years / (120 * 120) * year)
                 is_p_active = (pstart <= now < pend)
                 prats.append(dict(
                     lord=DASHA_NAMES[p_idx],
@@ -965,22 +877,22 @@ YOGINIS = [('Mangala', 'மங்களா', 'Moon', 1), ('Pingala', 'பிங�
            ('Bhramari', 'பிராமரி', 'Mars', 4), ('Bhadrika', 'பத்ரிகா', 'Mercury', 5), ('Ulka', 'உல்கா', 'Saturn', 6),
            ('Siddha', 'சித்தா', 'Venus', 7), ('Sankata', 'சங்கடா', 'Rahu', 8)]
 
-def yogini_dasha(moon, birth, now=None, cycles=4):
+def yogini_dasha(moon, birth, now=None, cycles=4, year=YEAR):
     """Yogini Dasa periods from the birth-star balance, with bhuktis."""
     portion = moon / (40 / 3)
     first = (int(portion) + 1 + 3) % 8 - 1  # zero-based yogini, (star number + 3) mod 8
     first_years = YOGINIS[first][3]
-    start = birth - timedelta(days=(portion % 1) * first_years * YEAR)
+    start = birth - timedelta(days=(portion % 1) * first_years * year)
     now = now or datetime.now(timezone.utc)
     rows = []
     for k in range(8 * cycles):
         i = (first + k) % 8
         name, name_ta, lord, years = YOGINIS[i]
-        end = start + timedelta(days=years * YEAR)
+        end = start + timedelta(days=years * year)
         subs, sub_start = [], start
         for m in range(8):
             j = (i + m) % 8
-            sub_end = sub_start + timedelta(days=years * YOGINIS[j][3] / 36 * YEAR)
+            sub_end = sub_start + timedelta(days=years * YOGINIS[j][3] / 36 * year)
             subs.append(dict(yogini=YOGINIS[j][0], yogini_ta=YOGINIS[j][1], lord=YOGINIS[j][2],
                              start=sub_start.isoformat(), end=sub_end.isoformat(), is_active=sub_start <= now < sub_end))
             sub_start = sub_end
@@ -1387,7 +1299,7 @@ def synthesize_readings(planets, dasha_active, yogas):
     if dasha_active:
         active_summary = f"Currently traversing {dasha_active['dasa']} Maha Dasa, {dasha_active['bhukti']} Bhukti, and {dasha_active['pratyantar']} Pratyantardasa. Focus aligns with the qualities and house lordship of {dasha_active['bhukti']}."
 
-    yoga_titles = [y['name'] for y in yogas[:4]]
+    yoga_titles = [y['name'] for y in yogas if y.get('nature') == 'good'][:4]
     yoga_text = f"Empowered by auspicious yogas including {', '.join(yoga_titles)}." if yoga_titles else "A balanced natal configuration with dynamic potential across houses."
 
     return {
@@ -1431,12 +1343,21 @@ def calculate(data):
     # Ketu is opposite Rahu
     planets['Ketu'] = placement(planets['Rahu']['longitude'] + 180, planets['Rahu']['speed'])
 
-    # Ascendant (Lagna) & KP Placidus Cusps
-    kp_cusps_tuple, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
-    asc = ascmc[0]
+    # Ascendant (Lagna)
+    asc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)[1][0]
     planets['Ascendant'] = placement(asc)
-    # pyswisseph returns 12 cusps; the pysweph fork pads index 0 and returns 13.
-    kp_cusps = list(kp_cusps_tuple[-12:])
+
+    # Krishnamurti Paddhati works in its own (Krishnamurti) ayanamsa whatever the chart uses:
+    # sub-lords are arc-minutes wide, so a Lahiri or Raman offset would change them.
+    # Placidus cusps: pyswisseph returns 12, the pysweph fork pads index 0 and returns 13.
+    swe.set_sid_mode(swe.SIDM_KRISHNAMURTI)
+    kp = dict(
+        cusps=list(swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)[0][-12:]),
+        planets={name: swe.calc_ut(jd, number, flags)[0][0] for name, number in GRAHA_BODIES},
+        ayanamsa=swe.get_ayanamsa_ut(jd)
+    )
+    kp['planets']['Ketu'] = (kp['planets']['Rahu'] + 180) % 360
+    swe.set_sid_mode(AYAN[ayan])
 
     # Calculate whole-sign houses from Ascendant
     asc_sign = planets['Ascendant']['sign_index']
@@ -1481,9 +1402,14 @@ def calculate(data):
 
     # 3-Tier Vimshottari Dasa
     moon_lon = planets['Moon']['longitude']
-    dasha_rows = dasha(moon_lon, utc)
+    from .dasas import DASA_YEARS, year_days, ashtottari_dasha, ashtottari_applicable, chara_dasha
+    dasa_year_kind = data.get('dasa_year') or 'julian'
+    dasa_year = year_days(dasa_year_kind)
+    dasha_rows = dasha(moon_lon, utc, year=dasa_year)
     active_dasha = get_active_dasha(dasha_rows)
-    yogini_rows = yogini_dasha(moon_lon, utc)
+    yogini_rows = yogini_dasha(moon_lon, utc, year=dasa_year)
+    ashtottari_rows = ashtottari_dasha(moon_lon, utc, year=dasa_year)
+    chara_rows = chara_dasha(planets, utc, year=dasa_year)
 
     # Panchangam
     panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon, data['timezone'])
@@ -1491,7 +1417,7 @@ def calculate(data):
     # South Indian (Tamil) jathagam details and doshas. Imported here:
     # south_indian builds on this module's primitives.
     from .south_indian import build_south_indian_details, chevvai_dosham, rahu_ketu_dosham, vedic_day
-    from .shadbala import compute_shadbala
+    from .shadbala import compute_shadbala, compute_bhava_bala, compute_vimsopaka
     doshas['chevvai'] = chevvai_dosham(planets)
     doshas['rahu_ketu'] = rahu_ketu_dosham(planets)
     south_indian = build_south_indian_details(planets, utc, data['timezone'], lat, lon)
@@ -1504,6 +1430,14 @@ def calculate(data):
     vedic_date, day_events = vedic_day(jd, birth_tz, lat, lon)
     day_events['prev_sunset'] = sun_events(vedic_date - timedelta(days=1), birth_tz, lat, lon)['sunset']
     shadbala = compute_shadbala(planets, jd, day_events, vedic_date, bhava_madhya, ayanamsa_degrees)
+    bhava_bala = compute_bhava_bala(planets, bhava_madhya, shadbala)
+    vimsopaka = compute_vimsopaka(planets)
+    # Graha Yuddha: Mars to Saturn within a degree; the one Shadbala credits won
+    warriors = ['Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
+    south_indian['extras']['graha_yuddha'] = [
+        dict(winner=a, loser=b) if shadbala[a]['yuddha'] >= shadbala[b]['yuddha'] else dict(winner=b, loser=a)
+        for i, a in enumerate(warriors) for b in warriors[i + 1:]
+        if abs((planets[a]['longitude'] - planets[b]['longitude'] + 180) % 360 - 180) < 1]
 
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
@@ -1530,7 +1464,7 @@ def calculate(data):
 
     # Vargas quick map for frontend renderers
     vargas_map = {}
-    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D60', 'Bhava']
+    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60', 'Bhava']
     for v_key in varga_keys:
         vargas_map[v_key] = {
             p_name: p['vargas'][v_key]
@@ -1551,15 +1485,19 @@ def calculate(data):
         lat=lat,
         lon=lon,
         utc=utc,
-        kp_cusps=kp_cusps,
+        kp_cusps=kp['cusps'],
+        kp=kp,
         gochara=gochara,
         shadbala=shadbala,
+        bhava_bala=bhava_bala,
+        vimsopaka=vimsopaka,
+        vedic_weekday=south_indian['vaaram']['index'],
         timezone=data['timezone']
     )
     predictions = generate_comprehensive_predictions(chart_summary)
 
     return dict(
-        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold']},
+        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold', 'dasa_year']},
         utc=utc.isoformat(),
         julian_day=jd,
         ayanamsa_degrees=ayanamsa_degrees,
@@ -1567,6 +1505,10 @@ def calculate(data):
         dasha=dasha_rows,
         active_dasha=active_dasha,
         yogini_dasha=yogini_rows,
+        ashtottari_dasha=ashtottari_rows,
+        ashtottari_applicable=ashtottari_applicable(planets),
+        chara_dasha=chara_rows,
+        dasa_year=dict(key=dasa_year_kind, days=dasa_year, en=DASA_YEARS[dasa_year_kind][1], ta=DASA_YEARS[dasa_year_kind][2]),
         panchanga=panchangam,
         ashtakavarga=ashtakavarga,
         yogas=yogas,
@@ -1574,8 +1516,9 @@ def calculate(data):
         vargas=vargas_map,
         house_details=house_details,
         readings=readings,
-        kp_cusps=kp_cusps,
+        kp_cusps=kp['cusps'],
         gochara=gochara,
+        navamsa_table=navamsa_table(planets),
         bhava_chakra=dict(system='Sripati', madhya=bhava_madhya, sandhi=bhava_sandhi),
         south_indian=south_indian,
         predictions=predictions,
@@ -1585,7 +1528,7 @@ def calculate(data):
             ayanamsa=ayan,
             houses='Whole sign',
             nodes='Mean node',
-            dasha_year_days=YEAR,
+            dasha_year_days=dasa_year,
             ashtakavarga_standard='Parashara (337 points)',
             legacy_match='Enhanced high-precision Vedic & modern algorithms'
         )

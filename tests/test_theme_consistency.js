@@ -65,8 +65,8 @@ console.log('[PASS] Zero hardcoded rgba(255, 255, 255) in component rules!');
 
 // Check app.js for theme persistence & dynamic SVG contrast
 console.log('\n--- Verifying app.js Theme Functionality ---');
-const jsPath = path.join(__dirname, '..', 'src', 'joroscope', 'web', 'app.js');
-const jsContent = fs.readFileSync(jsPath, 'utf8');
+const webDir = path.join(__dirname, '..', 'src', 'joroscope', 'web');
+const jsContent = fs.readdirSync(webDir).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(webDir, f), 'utf8')).join('\n');
 
 assert(jsContent.includes("localStorage.setItem('joroscope_theme'"), 'localStorage persistence missing in app.js');
 console.log('[PASS] localStorage persistence implemented');
@@ -74,13 +74,13 @@ console.log('[PASS] localStorage persistence implemented');
 assert(jsContent.includes("localStorage.getItem('joroscope_theme')"), 'localStorage retrieval missing in app.js');
 console.log('[PASS] localStorage initialization implemented');
 
-assert(jsContent.includes("const isLight = document.documentElement.getAttribute('data-theme') === 'light'"), 'SVG dynamic theme detection missing in app.js');
-console.log('[PASS] Dynamic SVG theme detection verified in renderNorthChart');
+assert(/function chartPalette[\s\S]*?getAttribute\('data-theme'\) === 'light'/.test(jsContent), 'SVG dynamic theme detection missing in app.js');
+console.log('[PASS] Dynamic SVG theme detection verified in chartPalette');
 
-assert(jsContent.includes("signText.setAttribute('fill', signColor)"), 'Dynamic sign text color missing in SVG renderer');
+assert(jsContent.includes("signIdx + 1, print ? 20 : 14, pal.accent"), 'Dynamic sign text color missing in SVG renderer');
 console.log('[PASS] Dynamic sign text color applied to SVG');
 
-assert(jsContent.includes("planText.setAttribute('fill', planetColor)"), 'Dynamic planet text color missing in SVG renderer');
+assert(jsContent.includes("line, size, pal.text"), 'Dynamic planet text color missing in SVG renderer');
 console.log('[PASS] Dynamic planet text color applied to SVG');
 
 console.log('\nALL THEME CONSISTENCY CHECKS PASSED SUCCESSFULLY!');

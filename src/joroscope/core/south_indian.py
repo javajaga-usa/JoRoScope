@@ -15,11 +15,11 @@ from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .engine import (
-    swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS, TITHIS,
+    swe, AYAN, SIGNS, TAMIL, SIGN_LORDS, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS, TITHIS,
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
-from .predictions import PLANET_TAMIL
+from .readings.common import PLANET_TAMIL
 
 NAK_SPAN = 40 / 3
 
@@ -69,6 +69,30 @@ TARAS = [
     ('Naidhana', 'நைதன', 'bad'), ('Mitra', 'மித்ர', 'good'), ('Parama Mitra', 'பரம மித்ர', 'good')
 ]
 CHANDRA_BALAM_HOUSES = (1, 3, 6, 7, 10, 11)
+# Amirthathi (Tamil) yogam by weekday (Sunday first) and nakshatra (Ashwini first), as printed in
+# Tamil calendars: S Siddha, A Amirtha, M Marana, P Prabalarishta. Cross-checked with PyJHora's table;
+# Monday + Purattathi is Marana as in the Sringeri Tamil Panchangam.
+TAMIL_YOGAM_TABLE = (
+    'SPSSSSSSSMSASSSMMMASAAMSSAA',
+    'SSMASSASSMSSSPAMSSSMMASSMSS',
+    'SSSASMSSSSSASSSMSMASPSSMMAS',
+    'MSASSSSSSSAAMSSSSSMAASPSASM',
+    'ASMMMMASSASMSSASSPSSSSSMSSS',
+    'ASSMSSSMMMSSASSSSMAPSMSSSSS',
+    'SSSASSSSMASMMMSSSSSSSSSAMSP',
+)
+TAMIL_YOGAMS = {
+    'S': ('siddha', 'Siddha Yogam', 'சித்த யோகம்', True),
+    'A': ('amirtha', 'Amirtha Yogam', 'அமிர்த யோகம்', True),
+    'M': ('marana', 'Marana Yogam', 'மரண யோகம்', False),
+    'P': ('prabalarishta', 'Prabalarishta Yogam', 'பிரபலாரிஷ்ட யோகம்', False),
+}
+
+
+def tamil_yogam(weekday, star):
+    """Amirthathi yogam for a weekday (0 = Sunday) and nakshatra index (0 = Ashwini)."""
+    key, en, ta, good = TAMIL_YOGAMS[TAMIL_YOGAM_TABLE[weekday % 7][star % 27]]
+    return dict(key=key, en=en, ta=ta, good=good)
 
 # Hora lords run in descending Chaldean order; a day's first hora belongs to its weekday lord.
 HORA_SEQUENCE = ['Sun', 'Venus', 'Mercury', 'Moon', 'Saturn', 'Jupiter', 'Mars']
@@ -542,6 +566,48 @@ def next_star_birthday(jd, birth_star, birth_month, tz, lat, lon):
     return None
 
 
+# Dagdha (burnt) rasis of the birth tithi, by its number within the paksha (Muhurta Chintamani);
+# Pournami and Amavasai have none
+DAGDHA_RASIS = {1: (6, 9), 2: (8, 11), 3: (4, 9), 4: (1, 10), 5: (2, 5), 6: (0, 4), 7: (3, 8), 8: (2, 5),
+                9: (4, 7), 10: (4, 7), 11: (8, 11), 12: (6, 9), 13: (1, 4), 14: (2, 5, 8, 11)}
+COMBUSTION_ORBS = {'Moon': 12, 'Mars': 17, 'Mercury': 14, 'Jupiter': 11, 'Venus': 10, 'Saturn': 15}
+
+
+def birth_extras(planets):
+    """Birth-chart notes Tamil and Kerala horoscopes print: Yogi, Duplicate Yogi and Avayogi,
+    Dagdha Rasis, Chandra Avastha / Vela / Kriya and Moudhyam (combust grahas)."""
+    sun, moon = planets['Sun']['longitude'], planets['Moon']['longitude']
+    lords = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury']
+
+    def point(lon):
+        star = int(lon / NAK_SPAN) % 27
+        lord = lords[star % 9]
+        sign = int(lon // 30) % 12
+        return dict(longitude=round(lon, 4), sign=SIGNS[sign], tamil=TAMIL[sign], star=STARS[star], star_ta=TAMIL_STARS[star],
+                    planet=lord, planet_ta=PLANET_TAMIL[lord])
+
+    yogi_lon = (sun + moon + 93 + 20 / 60) % 360
+    yogi = point(yogi_lon)
+    duplicate = SIGN_LORDS[int(yogi_lon // 30)]
+    yogi.update(duplicate=duplicate, duplicate_ta=PLANET_TAMIL[duplicate])
+    avayogi = point((yogi_lon + 186 + 40 / 60) % 360)
+
+    tithi = int(((moon - sun) % 360) // 12) + 1
+    in_paksha = (tithi - 1) % 15 + 1
+    dagdha = [dict(en=SIGNS[s], ta=TAMIL[s]) for s in DAGDHA_RASIS.get(in_paksha, ())]
+
+    # Chandra Avastha, Vela and Kriya: the Moon's progress through its nakshatra in 12, 36 and 60 parts
+    progress = (moon % NAK_SPAN) / NAK_SPAN
+    chandra = dict(avastha=int(progress * 12) + 1, vela=int(progress * 36) + 1, kriya=int(progress * 60) + 1)
+
+    moudhyam = []
+    for name, orb in COMBUSTION_ORBS.items():
+        gap = abs((planets[name]['longitude'] - sun + 180) % 360 - 180)
+        if gap <= orb - (2 if name in ('Mercury', 'Venus') and planets[name].get('retrograde') else 0):
+            moudhyam.append(dict(planet=name, planet_ta=PLANET_TAMIL[name], distance=round(gap, 2)))
+    return dict(yogi=yogi, avayogi=avayogi, dagdha_rasis=dagdha, chandra=chandra, moudhyam=moudhyam)
+
+
 def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
     """Tamil Jathaga Kurippu (birth notes) and the person's upcoming almanac dates.
     Uses the ayanamsa mode already set by the engine."""
@@ -571,6 +637,7 @@ def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
         mandi=mandi,
         upagrahas=upagrahas(jd, events, weekday, lat, lon, planets),
         papa_points=papa_points(planets),
+        extras=birth_extras(planets),
         upcoming=dict(
             chandrashtamam=upcoming_chandrashtamam(now_jd, moon['sign_index'], tz),
             star_birthday=next_star_birthday(now_jd, birth_star, birth_calendar['month_index'], tz, lat, lon)
@@ -744,6 +811,11 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
     panch['gowri'] = gowri_panchangam(civil_events, weekday, tz, jd)
     panch['tamil_calendar'] = tamil_calendar(civil, tz, lat, lon)
     panch['vaaram'] = dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1])
+    # The Tamil yogam changes with the nakshatra (and the weekday at sunrise)
+    star_end = _next_boundary(jd, _moon, NAK_SPAN)
+    next_weekday = weekday + (1 if star_end >= sun_events(civil + timedelta(days=1), tz, lat, lon)['sunrise'] else 0)
+    panch['tamil_yogam'] = dict(tamil_yogam(weekday, star_idx), until_local=_local_iso(star_end, tz),
+                                next=tamil_yogam(next_weekday, star_idx + 1))
     direction, direction_ta, remedy, remedy_ta = SOOLAM[weekday]
     panch['soolam'] = dict(direction=direction, direction_ta=direction_ta, parigaram=remedy, parigaram_ta=remedy_ta)
     panch['moon_sign'] = dict(index=moon_sign, en=SIGNS[moon_sign], ta=TAMIL[moon_sign])
