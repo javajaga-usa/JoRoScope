@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Code structure
+- `core/predictions.py` (2,600 lines) is split into `core/readings/`: `common`, `life`, `jaimini`, `timing`, `career_health`, `strength_kp` and `classical`. `predictions.py` now only assembles the report and re-exports the old names, so existing imports keep working; the report output is byte-identical.
+- `web/app.js` (4,500 lines) is split into `i18n.js`, the core `app.js`, and one script per page: `chart-views.js`, `dasa.js`, `readings.js`, `panchangam.js`, `matching.js` and `profiles-ui.js`. CI syntax-checks every script in `web/`.
+
 ### Safer profile backups
 - Profile backups carry the app name, format version, export time and count. Import accepts these, older backups and bare lists of profiles.
 - Every imported profile is checked (name, a real calendar date, time, latitude and longitude) and reduced to the known fields; bad entries are skipped and named in the summary, which also counts new, updated and already-saved profiles.

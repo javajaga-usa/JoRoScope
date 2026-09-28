@@ -7,7 +7,7 @@ The Surya, Chandra and Nabhasa yogas use the seven grahas only; Rahu and Ketu en
 yogas that name them.
 """
 from .engine import SIGN_LORDS
-from .predictions import PLANET_TAMIL
+from .readings.common import PLANET_TAMIL
 from .shadbala import _benefics
 
 SEVEN = ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn')

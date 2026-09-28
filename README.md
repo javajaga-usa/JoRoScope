@@ -121,11 +121,20 @@ JoRoScope/
 ├── src/joroscope/
 │   ├── core/
 │   │   ├── engine.py            # Astronomical math & Swiss Ephemeris wrapper
-│   │   └── predictions.py       # 17 prediction chapters & classical rules
+│   │   ├── south_indian.py      # Tamil calendar, panchangam, doshas, Tamil yogam
+│   │   ├── shadbala.py          # Shadbala, Bhava Bala, Vimsopaka
+│   │   ├── yogas.py             # About 75 classical yogas
+│   │   ├── dasas.py             # Ashtottari & Chara Dasa, dasa year lengths
+│   │   ├── muhurtham.py         # Muhurtham finder
+│   │   ├── timeline.py          # Dasa-Bhukti timeline readings
+│   │   ├── predictions.py       # Assembles the life prediction report
+│   │   └── readings/            # The report's chapters, one module per theme
 │   ├── server.py                # Local REST API & static server
 │   ├── cli.py                   # Command-line interface
-│   └── web/                     # Single Page Application (HTML, CSS, JS, Cities)
-├── tests/                       # 23 automated unit and integration tests
+│   └── web/                     # Single Page Application: index.html, style.css, and
+│                                #   app.js (core) with one script per page (chart-views,
+│                                #   dasa, readings, panchangam, matching, profiles-ui, print)
+├── tests/                       # Python unittest and Node test suites
 ├── pyproject.toml               # PEP 621 package specification
 ├── requirements.txt             # Runtime dependencies
 └── README.md                    # This documentation

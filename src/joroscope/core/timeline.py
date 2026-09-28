@@ -896,7 +896,7 @@ def _period_assessment(d_lord, b_lord, planets):
     functional role from its lordships, its house and dignity, its position from the Dasa
     lord, and the two lords' natural friendship. Returns a -4..+5 score and the reasons."""
     from .engine import NATURAL_FRIENDS, SIGN_LORDS
-    from .predictions import _functional_role, _house_list, _ordinal, DIGNITY_SCORE, DIGNITY_PHRASE, HOUSE_THEMES
+    from .readings.common import _functional_role, _house_list, _ordinal, DIGNITY_SCORE, DIGNITY_PHRASE, HOUSE_THEMES
     asc_sign = planets['Ascendant']['sign_index']
     b = planets[b_lord]
     agent = b_lord

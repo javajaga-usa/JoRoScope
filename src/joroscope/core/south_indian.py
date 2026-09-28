@@ -19,7 +19,7 @@ from .engine import (
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
-from .predictions import PLANET_TAMIL
+from .readings.common import PLANET_TAMIL
 
 NAK_SPAN = 40 / 3
 

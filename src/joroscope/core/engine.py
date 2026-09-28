@@ -17,10 +17,7 @@ import swisseph as swe
 from datetime import datetime, timezone, timedelta
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-try:
-    from .predictions import generate_comprehensive_predictions, PLANET_TAMIL
-except (ImportError, ValueError):
-    from predictions import generate_comprehensive_predictions, PLANET_TAMIL
+from .predictions import generate_comprehensive_predictions, PLANET_TAMIL
 
 SIGNS = ['Aries','Taurus','Gemini','Cancer','Leo','Virgo','Libra','Scorpio','Sagittarius','Capricorn','Aquarius','Pisces']
 TAMIL = ['மேஷம்','ரிஷபம்','மிதுனம்','கடகம்','சிம்மம்','கன்னி','துலாம்','விருச்சிகம்','தனுசு','மகரம்','கும்பம்','மீனம்']

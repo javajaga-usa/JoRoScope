@@ -5,6 +5,8 @@ dasa-year lengths the Vimshottari, Yogini and these dasas can be counted in.
 from datetime import datetime, timedelta, timezone
 
 from .engine import SIGNS, TAMIL
+from .readings.common import SIGN_LORDS
+from .readings.jaimini import _jaimini_lord
 
 NAK_SPAN = 40 / 3
 
@@ -35,7 +37,6 @@ ASHTOTTARI_TOTAL = 108
 
 def ashtottari_applicable(planets):
     """Classical condition: Rahu in a kendra or trikona from the Lagna lord, but not in the Lagna."""
-    from .predictions import SIGN_LORDS
     asc = planets['Ascendant']['sign_index']
     lord_sign = planets[SIGN_LORDS[asc]]['sign_index']
     rahu = planets['Rahu']['sign_index']
@@ -84,7 +85,6 @@ def chara_dasa_years(sign, planets):
     """K.N. Rao: count from the sign to its lord (backward for even-footed signs), less one; 12
     when the lord is in the sign; otherwise a year more if the lord is in its exaltation sign and
     a year less in its debilitation sign. Scorpio and Aquarius take the stronger of their two lords."""
-    from .predictions import _jaimini_lord
     lord = _jaimini_lord(sign, planets)
     at = planets[lord]['sign_index']
     if at == sign:

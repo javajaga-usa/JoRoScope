@@ -20,7 +20,8 @@ if (!css.includes('.timeline-details-toggle.expanded')) {
 console.log('PASS: .timeline-details-toggle.expanded styling exists');
 
 // 2. Verify JS toggle implementation
-const js = fs.readFileSync(path.join(__dirname, '../src/joroscope/web/app.js'), 'utf-8');
+const webDir = path.join(__dirname, '../src/joroscope/web');
+const js = fs.readdirSync(webDir).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(webDir, f), 'utf-8')).join('\n');
 if (!js.includes("panel.style.display = 'grid'") || !js.includes("panel.style.display = 'none'")) {
     console.error('FAIL: JS does not explicitly manage style.display');
     process.exit(1);

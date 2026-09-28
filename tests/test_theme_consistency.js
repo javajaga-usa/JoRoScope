@@ -65,8 +65,8 @@ console.log('[PASS] Zero hardcoded rgba(255, 255, 255) in component rules!');
 
 // Check app.js for theme persistence & dynamic SVG contrast
 console.log('\n--- Verifying app.js Theme Functionality ---');
-const jsPath = path.join(__dirname, '..', 'src', 'joroscope', 'web', 'app.js');
-const jsContent = fs.readFileSync(jsPath, 'utf8');
+const webDir = path.join(__dirname, '..', 'src', 'joroscope', 'web');
+const jsContent = fs.readdirSync(webDir).filter(f => f.endsWith('.js')).map(f => fs.readFileSync(path.join(webDir, f), 'utf8')).join('\n');
 
 assert(jsContent.includes("localStorage.setItem('joroscope_theme'"), 'localStorage persistence missing in app.js');
 console.log('[PASS] localStorage persistence implemented');
