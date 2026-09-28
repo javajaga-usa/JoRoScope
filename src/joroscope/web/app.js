@@ -289,7 +289,18 @@ const I18N = {
     yamagandam: 'Yamagandam',
     yamagandam_sub: 'Inauspicious period ruled by Yama',
     kuligai: 'Kuligai (Gulika Kalam)',
-    kuligai_sub: "Saturn's segment: avoid beginnings that should not repeat"
+    kuligai_sub: "Saturn's segment: avoid beginnings that should not repeat",
+    peyarchi_title: 'Upcoming Peyarchi (Sign Changes)',
+    peyarchi_date: 'Date',
+    peyarchi_from_to: 'From → To',
+    house_from_moon: 'House from Moon',
+    gochara_table_title: 'Gochara Today with Ashtakavarga',
+    bindus: 'Bindus',
+    transit_result: 'Result',
+    next_chandrashtamam: 'NEXT CHANDRASHTAMAM',
+    star_birthday: 'NAKSHATRA BIRTHDAY',
+    hora_title: 'Hora (Orai) Timings',
+    hora_sub: 'Twelve day and twelve night horas from sunrise; Moon, Mercury, Jupiter and Venus horas are auspicious.'
   },
   ta: {
     workspace: 'பணிப் பகுதி',
@@ -418,7 +429,18 @@ const I18N = {
     yamagandam: 'எமகண்டம்',
     yamagandam_sub: 'எமனின் அசுப நேரம்',
     kuligai: 'குளிகை',
-    kuligai_sub: 'மீண்டும் நிகழக் கூடாத காரியங்களைத் தவிர்க்கவும்'
+    kuligai_sub: 'மீண்டும் நிகழக் கூடாத காரியங்களைத் தவிர்க்கவும்',
+    peyarchi_title: 'வரவிருக்கும் கிரகப் பெயர்ச்சிகள்',
+    peyarchi_date: 'தேதி',
+    peyarchi_from_to: 'ராசி மாற்றம்',
+    house_from_moon: 'சந்திரனிலிருந்து',
+    gochara_table_title: 'இன்றைய கோச்சாரம் & அஷ்டகவர்க்கப் பரல்கள்',
+    bindus: 'பரல்கள்',
+    transit_result: 'பலன்',
+    next_chandrashtamam: 'அடுத்த சந்திராஷ்டமம்',
+    star_birthday: 'நட்சத்திரப் பிறந்தநாள்',
+    hora_title: 'ஓரை நேரங்கள்',
+    hora_sub: 'சூரிய உதயம் முதல் 12 பகல், 12 இரவு ஓரைகள்; சந்திரன், புதன், குரு, சுக்கிர ஓரைகள் சுபம்.'
   }
 };
 
@@ -1882,7 +1904,18 @@ function renderLifeReadings() {
       $('#jupiter-transit-badge').className = `status-pill ${j.favorable ? 'success' : 'neutral'}`;
       $('#jupiter-transit-desc').textContent = isTa ? j.prediction_ta : j.prediction_en;
     }
+
+    const rk = transits.rahu_ketu;
+    if (rk) {
+      $('#rahuketu-transit-title').textContent = isTa ? 'ராகு-கேது பெயர்ச்சி பலன்' : 'Rahu-Ketu Transit';
+      $('#rahuketu-transit-badge').textContent = rk.favorable
+        ? (isTa ? 'சுப பலன்' : 'Favourable')
+        : (isTa ? 'கவனம் தேவை' : 'Caution');
+      $('#rahuketu-transit-badge').className = `status-pill ${rk.favorable ? 'success' : 'neutral'}`;
+      $('#rahuketu-transit-desc').textContent = isTa ? rk.prediction_ta : rk.prediction_en;
+    }
   }
+  renderGochara();
 
   // Chapter 6: Lucky Gemstones & Remedies
   const luck = pred.lucky_factors;
@@ -2441,7 +2474,90 @@ function populatePanchangamView(panch) {
     ? `${panch.timezone} · பகல் ${panch.day_length_hours} மணி`
     : `${panch.timezone} · day length ${panch.day_length_hours} h`;
 
+  renderHoraTable(panch.horas);
   renderPersonalBalam(panch.personal);
+}
+
+// Date and clock time of an ISO timestamp in the chart location's timezone, e.g. "3 Jun 2027, 05:28"
+function formatLocalDateTime(iso) {
+  return new Date(iso).toLocaleString(currentLang === 'ta' ? 'ta-IN' : 'en-GB', {
+    timeZone: currentChart?.profile?.timezone || undefined,
+    day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false
+  });
+}
+
+// Gochara (transits today) and upcoming Peyarchi, on the Predictions transit tab
+function renderGochara() {
+  const g = currentChart?.gochara;
+  if (!g) return;
+  const isTa = currentLang === 'ta';
+  const houseLabel = h => isTa ? `${h}-ம் இடம்` : `House ${h}`;
+  const planetLabel = n => isTa ? PLANET_NAMES[n].ta : PLANET_NAMES[n].en;
+
+  $('#peyarchi-tbody').innerHTML = g.peyarchi.map(pe => `
+    <tr>
+      <td><strong>${planetLabel(pe.planet)}</strong></td>
+      <td>${esc(formatLocalDateTime(pe.date))}</td>
+      <td>${esc(isTa ? `${pe.from_tamil} → ${pe.to_tamil}` : `${pe.from_sign} → ${pe.to_sign}`)}</td>
+      <td>${houseLabel(pe.house_from_moon)}</td>
+    </tr>
+  `).join('');
+
+  $('#gochara-computed-at').textContent = isTa
+    ? `${formatLocalDateTime(g.computed_at)} நிலவரப்படி · சந்திர ராசியிலிருந்து`
+    : `As of ${formatLocalDateTime(g.computed_at)} · counted from the Moon sign`;
+  $('#gochara-tbody').innerHTML = Object.entries(g.planets).map(([name, t]) => {
+    const bindus = t.bindus === null ? '—'
+      : `<span class="status-pill ${t.bindus >= 5 ? 'success' : (t.bindus >= 4 ? 'neutral' : 'danger')}">${t.bindus} / 8</span>`;
+    const result = t.favourable ? (isTa ? 'சுபம்' : 'Favourable') : (isTa ? 'அசுபம்' : 'Unfavourable');
+    const retro = t.retrograde ? (isTa ? ' (வ)' : ' ᴿ') : '';
+    return `
+      <tr>
+        <td><strong>${planetLabel(name)}${retro}</strong></td>
+        <td>${esc(isTa ? t.tamil : t.sign)}</td>
+        <td>${formatDegrees(t.degree)}</td>
+        <td>${houseLabel(t.house_from_moon)}</td>
+        <td>${bindus}</td>
+        <td><span class="status-pill ${t.favourable ? 'success' : 'neutral'}">${result}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+function renderHoraTable(horas) {
+  const grid = $('#hora-grid');
+  if (!grid || !horas) return;
+  const isTa = currentLang === 'ta';
+  grid.innerHTML = horas.map(h => `
+    <div class="hora-item ${h.auspicious ? 'auspicious' : 'inauspicious'}${h.current ? ' current' : ''}">
+      <span class="hora-time">${clockTime(h.start_local)}–${clockTime(h.end_local)}</span>
+      <strong>${esc(isTa ? `${h.lord_ta} ஓரை` : `${h.lord} Hora`)}</strong>
+      <small>${h.daytime ? (isTa ? 'பகல்' : 'Day') : (isTa ? 'இரவு' : 'Night')}${h.current ? (isTa ? ' · இப்போது' : ' · now') : ''}</small>
+    </div>
+  `).join('');
+}
+
+// Upcoming Chandrashtamam periods and the Nakshatra birthday from the loaded chart
+function renderUpcomingDates() {
+  const up = currentChart?.south_indian?.upcoming;
+  const isTa = currentLang === 'ta';
+  if (!up) return;
+  const ch = up.chandrashtamam;
+  $('#panch-next-chandrashtamam').innerHTML = ch.periods.map(pr => `
+    <div class="${pr.active ? 'upcoming-active' : ''}">${esc(formatLocalDateTime(pr.start_local))} → ${esc(formatLocalDateTime(pr.end_local))}</div>
+  `).join('');
+
+  const sb = up.star_birthday;
+  if (sb) {
+    $('#panch-star-birthday').textContent = sb.dates
+      .map(d => new Date(`${d}T00:00:00`).toLocaleDateString(isTa ? 'ta-IN' : 'en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))
+      .join(isTa ? ' மற்றும் ' : ' and ');
+    $('#panch-star-birthday-sub').textContent = isTa
+      ? `${sb.month_ta} மாதம், ${sb.star_ta} நட்சத்திரம் சூரிய உதயத்தில்`
+      : `${sb.star} at sunrise in the Tamil month of ${sb.month}`;
+  } else {
+    $('#panch-star-birthday').textContent = '—';
+    $('#panch-star-birthday-sub').textContent = '';
+  }
 }
 
 function renderPersonalBalam(personal) {
@@ -2472,6 +2588,7 @@ function renderPersonalBalam(personal) {
   status.className = `status-pill ${good ? 'success' : (bad ? 'danger' : 'neutral')}`;
   status.textContent = good ? (isTa ? 'சாதகமான நாள்' : 'Favourable day')
     : (bad ? (isTa ? 'கவனம் தேவை' : 'Take care') : (isTa ? 'கலப்பு' : 'Mixed'));
+  renderUpcomingDates();
 }
 
 // Horoscope Matching Tool

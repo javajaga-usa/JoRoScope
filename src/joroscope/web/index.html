@@ -876,6 +876,61 @@
               </div>
               <p id="jupiter-transit-desc" class="reading-body"></p>
             </div>
+
+            <div class="cosmic-card dosha-card" id="rahuketu-transit-card">
+              <div class="card-header">
+                <h3 id="rahuketu-transit-title">Rahu-Ketu Transit</h3>
+                <span class="status-pill" id="rahuketu-transit-badge">Analyzing...</span>
+              </div>
+              <p id="rahuketu-transit-desc" class="reading-body"></p>
+            </div>
+          </div>
+
+          <!-- Upcoming sign changes of the slow grahas -->
+          <div class="cosmic-card lower-space">
+            <div class="card-header">
+              <h2 data-i18n="peyarchi_title">Upcoming Peyarchi (Sign Changes)</h2>
+              <span class="card-badge">🔄</span>
+            </div>
+            <div class="table-responsive">
+              <table class="luxury-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="graha">Graha</th>
+                    <th data-i18n="peyarchi_date">Date</th>
+                    <th data-i18n="peyarchi_from_to">From → To</th>
+                    <th data-i18n="house_from_moon">House from Moon</th>
+                  </tr>
+                </thead>
+                <tbody id="peyarchi-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- All nine grahas today, with Ashtakavarga bindus -->
+          <div class="cosmic-card lower-space">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="gochara_table_title">Gochara Today with Ashtakavarga</h2>
+                <p class="card-subtitle" id="gochara-computed-at"></p>
+              </div>
+              <span class="card-badge">🌌</span>
+            </div>
+            <div class="table-responsive">
+              <table class="luxury-table">
+                <thead>
+                  <tr>
+                    <th data-i18n="graha">Graha</th>
+                    <th data-i18n="sign">Sign</th>
+                    <th data-i18n="degrees">Degree</th>
+                    <th data-i18n="house_from_moon">House from Moon</th>
+                    <th data-i18n="bindus">Bindus</th>
+                    <th data-i18n="transit_result">Result</th>
+                  </tr>
+                </thead>
+                <tbody id="gochara-tbody"></tbody>
+              </table>
+            </div>
           </div>
         </div>
 
@@ -1452,6 +1507,15 @@
               <strong id="panch-chandra">—</strong>
               <span class="subtext" id="panch-chandra-sub">—</span>
             </div>
+            <div class="anga-item">
+              <small data-i18n="next_chandrashtamam">NEXT CHANDRASHTAMAM</small>
+              <div id="panch-next-chandrashtamam" class="upcoming-list">—</div>
+            </div>
+            <div class="anga-item">
+              <small data-i18n="star_birthday">NAKSHATRA BIRTHDAY</small>
+              <strong id="panch-star-birthday">—</strong>
+              <span class="subtext" id="panch-star-birthday-sub">—</span>
+            </div>
           </div>
         </div>
 
@@ -1536,6 +1600,18 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Hora (Orai) table -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="hora_title">Hora (Orai) Timings</h2>
+              <p class="card-subtitle" data-i18n="hora_sub">Twelve day and twelve night horas from sunrise; Moon, Mercury, Jupiter and Venus horas are auspicious.</p>
+            </div>
+            <span class="card-badge">⏳</span>
+          </div>
+          <div class="hora-grid" id="hora-grid"></div>
         </div>
       </section>
 

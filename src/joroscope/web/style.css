@@ -1971,6 +1971,54 @@ input:focus, select:focus {
   margin-top: 6px;
 }
 
+/* Hora (Orai) grid */
+.hora-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.hora-item {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-deep);
+  border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
+}
+.hora-item.auspicious { border-left-color: var(--emerald); }
+.hora-item.inauspicious { border-left-color: var(--ruby); }
+.hora-item.current {
+  border-color: var(--gold);
+  box-shadow: 0 0 12px var(--gold-glow);
+}
+.hora-time {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--gold);
+}
+.hora-item strong {
+  font-size: 13px;
+  color: var(--text-primary);
+}
+.hora-item small {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.upcoming-list .upcoming-active {
+  color: var(--ruby);
+  font-weight: 700;
+}
+
 /* Daily Panchangam Grid */
 .panchangam-grid {
   display: grid;

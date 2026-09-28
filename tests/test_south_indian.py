@@ -11,11 +11,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from joroscope.core.engine import (
-    calculate, calculate_match, swe, AYAN, STARS, STAR_NADIS, VEDHA_GROUPS, EKA_NAKSHATRA_GRADE, utc_to_jd
+    calculate, calculate_match, calculate_gochara, sidereal_position, swe, AYAN, STARS, STAR_NADIS,
+    VEDHA_GROUPS, EKA_NAKSHATRA_GRADE, utc_to_jd, sun_events
 )
 from joroscope.core.south_indian import (
     tamil_calendar, dasa_irruppu, chevvai_dosham, rahu_ketu_dosham, papa_points,
-    compare_dosha_samyam, daily_panchangam
+    compare_dosha_samyam, daily_panchangam, build_south_indian_details, NAK_SPAN
 )
 
 CHENNAI = dict(tz=ZoneInfo('Asia/Kolkata'), lat=13.0827, lon=80.2707)
@@ -224,6 +225,90 @@ class DailyPanchangamTests(unittest.TestCase):
     def test_rejects_polar_latitude(self):
         with self.assertRaises(ValueError):
             daily_panchangam('2026-06-21', '12:00:00', 'Europe/Oslo', 78.2, 15.6)
+
+
+class GocharaTests(unittest.TestCase):
+    def chart(self, ayanamsa='Lahiri'):
+        return calculate(dict(name='T', date='1990-01-01', time='12:00', timezone='Asia/Kolkata',
+                              latitude='13.0827', longitude='80.2707', ayanamsa=ayanamsa))
+
+    def test_reported_ayanamsa_matches_chosen_system(self):
+        for ayanamsa in ('Lahiri', 'Raman', 'Krishnamurti', 'Fagan-Bradley'):
+            r = self.chart(ayanamsa)
+            swe.set_sid_mode(AYAN[ayanamsa])
+            self.assertAlmostEqual(r['ayanamsa_degrees'], swe.get_ayanamsa_ut(r['julian_day']), places=6)
+
+    def test_transit_chapter_uses_real_positions(self):
+        r = self.chart()
+        moon_sign = r['planets']['Moon']['sign_index']
+        saturn = r['gochara']['planets']['Saturn']
+        self.assertEqual(r['predictions']['transits']['saturn']['house_from_moon'],
+                         (saturn['sign_index'] - moon_sign) % 12 + 1)
+        self.assertEqual(saturn['bindus'], r['ashtakavarga']['BAV']['Saturn'][saturn['sign_index']])
+
+    def test_fixed_date_gochara_and_peyarchi(self):
+        r = self.chart()
+        swe.set_sid_mode(AYAN['Lahiri'])
+        jd = utc_to_jd(datetime(2026, 9, 28, 12, tzinfo=ZoneInfo('UTC')))
+        g = calculate_gochara(jd, r['planets'], r['ashtakavarga'])
+        self.assertEqual(g['planets']['Saturn']['sign'], 'Pisces')
+        self.assertEqual(g['planets']['Jupiter']['sign'], 'Cancer')
+        self.assertAlmostEqual((g['planets']['Ketu']['longitude'] - g['planets']['Rahu']['longitude']) % 360, 180)
+        peyarchi = {p['planet']: p for p in g['peyarchi']}
+        self.assertEqual((peyarchi['Saturn']['to_sign'], peyarchi['Saturn']['date'][:7]), ('Aries', '2027-06'))
+        self.assertEqual((peyarchi['Jupiter']['to_sign'], peyarchi['Jupiter']['date'][:7]), ('Leo', '2026-10'))
+        self.assertEqual(peyarchi['Rahu']['date'], peyarchi['Ketu']['date'])
+        # The sign really changes at the reported moment
+        when = utc_to_jd(datetime.fromisoformat(peyarchi['Jupiter']['date']))
+        self.assertEqual(int(sidereal_position(when - 0.01, swe.JUPITER)[0] // 30), 3)
+        self.assertEqual(int(sidereal_position(when + 0.01, swe.JUPITER)[0] // 30), 4)
+
+
+class PersonalAlmanacTests(unittest.TestCase):
+    def details(self, now):
+        r = calculate(dict(name='T', date='1990-01-01', time='12:00', timezone='Asia/Kolkata',
+                           latitude='13.0827', longitude='80.2707', ayanamsa='Lahiri'))
+        swe.set_sid_mode(AYAN['Lahiri'])
+        return r, build_south_indian_details(r['planets'], datetime.fromisoformat(r['utc']), 'Asia/Kolkata',
+                                             13.0827, 80.2707, now=now)
+
+    def test_hora_sequence(self):
+        p = daily_panchangam('2026-09-28', '10:30:00', 'Asia/Kolkata', 13.0827, 80.2707)
+        lords = [h['lord'] for h in p['horas']]
+        self.assertEqual(len(lords), 24)
+        self.assertEqual(lords[:8], ['Moon', 'Saturn', 'Jupiter', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon'])
+        self.assertEqual(lords[-1], 'Jupiter')  # so the next sunrise opens with Mars: Tuesday
+        self.assertEqual(sum(h['current'] for h in p['horas']), 1)
+        self.assertEqual(p['horas'][11]['end_local'][11:16], p['sunset_local'])
+
+    def test_upcoming_chandrashtamam(self):
+        now = datetime(2026, 9, 28, 12, tzinfo=ZoneInfo('UTC'))
+        r, si = self.details(now)
+        ch = si['upcoming']['chandrashtamam']
+        self.assertEqual((r['planets']['Moon']['sign_index'] + 7) % 12, ch['sign_index'])
+        for period in ch['periods']:
+            start = datetime.fromisoformat(period['start_local'])
+            end = datetime.fromisoformat(period['end_local'])
+            self.assertGreater(end, now)
+            self.assertTrue(1.8 < (end - start).total_seconds() / 86400 < 2.8)
+            mid = utc_to_jd(start + (end - start) / 2)
+            self.assertEqual(int(sidereal_position(mid, swe.MOON)[0] // 30), ch['sign_index'])
+
+    def test_star_birthday_is_birth_star_at_sunrise_in_birth_month(self):
+        now = datetime(2026, 9, 28, 12, tzinfo=ZoneInfo('UTC'))
+        r, si = self.details(now)
+        sb = si['upcoming']['star_birthday']
+        self.assertEqual(sb['month'], si['tamil_calendar']['month'])
+        birth_star = STARS.index(r['planets']['Moon']['nakshatra'])
+        for iso in sb['dates']:
+            d = date.fromisoformat(iso)
+            self.assertGreaterEqual(d, now.date())
+            self.assertEqual(self.cal_month(d), si['tamil_calendar']['month_index'])
+            sunrise = sun_events(d, CHENNAI['tz'], CHENNAI['lat'], CHENNAI['lon'])['sunrise']
+            self.assertEqual(int(sidereal_position(sunrise, swe.MOON)[0] / NAK_SPAN), birth_star)
+
+    def cal_month(self, d):
+        return tamil_calendar(d, CHENNAI['tz'], CHENNAI['lat'], CHENNAI['lon'])['month_index']
 
 
 if __name__ == '__main__':

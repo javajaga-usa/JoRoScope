@@ -9,15 +9,7 @@ Authoritative Vedic & Tamil astrological prediction generator providing:
 Available in both English and authentic Tamil (தமிழ்).
 """
 
-import sys, math
-from pathlib import Path
-from datetime import datetime, timezone
-
-sys.path.insert(0, str(Path(__file__).parent / 'vendor'))
-try:
-    import swisseph as swe
-except ImportError:
-    swe = None
+import math
 
 try:
     from .timeline import calculate_timeline_predictions
@@ -395,18 +387,14 @@ def generate_dasa_forecast(active_dasa, dasha_rows):
     }
 
 # 6. Gochara (Transit) Predictions (Saturn, Jupiter, Rahu-Ketu)
-def generate_transit_forecast(moon_sign_idx):
-    # Current Saturn transit (approximated for 2024-2026: Saturn in Aquarius / Pisces)
-    # Aquarius = 10, Pisces = 11
+def generate_transit_forecast(moon_sign_idx, gochara):
     # Sade Sati occurs when Saturn is in 12th, 1st, 2nd from Janma Rasi
     # Ashtama Sani is 8th from Janma Rasi; Kantaka Sani is 4th, 7th, 10th
-    saturn_transit_sign = 10  # Aquarius
-    jupiter_transit_sign = 1  # Taurus
-    rahu_transit_sign = 11    # Pisces
-    ketu_transit_sign = 5     # Virgo
-
-    saturn_diff = (saturn_transit_sign - moon_sign_idx) % 12 + 1
-    jupiter_diff = (jupiter_transit_sign - moon_sign_idx) % 12 + 1
+    transit = gochara['planets']
+    saturn_diff = (transit['Saturn']['sign_index'] - moon_sign_idx) % 12 + 1
+    jupiter_diff = (transit['Jupiter']['sign_index'] - moon_sign_idx) % 12 + 1
+    rahu_diff = (transit['Rahu']['sign_index'] - moon_sign_idx) % 12 + 1
+    ketu_diff = (transit['Ketu']['sign_index'] - moon_sign_idx) % 12 + 1
 
     # Sade Sati check
     is_sade_sati = saturn_diff in (12, 1, 2)
@@ -429,6 +417,7 @@ def generate_transit_forecast(moon_sign_idx):
         f"Saturn currently transits House {saturn_diff} from your Moon sign. "
         f"{'This marks the transformative period of Sade Sati; focus on disciplined labor, patience, and humility.' if is_sade_sati else ''}"
         f"{'This is Ashtama Sani; drive carefully, maintain health routines, and avoid speculative risks.' if is_ashtama else ''}"
+        f"{'This is Ardhashtama Sani; domestic matters, property and mother’s health need patient attention.' if is_ardhashtama else ''}"
         f"{'Saturn in an auspicious house brings career stability, solid professional foundations, and sustained growth.' if not (is_sade_sati or is_ashtama or is_ardhashtama) else ''}"
     )
 
@@ -436,6 +425,7 @@ def generate_transit_forecast(moon_sign_idx):
         f"சனி பகவான் உங்கள் சந்திர ராசிக்கு {saturn_diff}-ஆம் இடத்தில் சஞ்சரிக்கிறார். "
         f"{'இது ஏழரை நாட்டுச் சனியின் காலமாகும்; விவேகமும், பொறுமையும், கடுமையான உழைப்பும் உங்களை உயர்த்தும்.' if is_sade_sati else ''}"
         f"{'இது அஷ்டமத்துச் சனியாகும்; பயணங்களில் கவனமும், ஆரோக்கிய பராமரிப்பும், தர்ம சிந்தனையும் நலம் தரும்.' if is_ashtama else ''}"
+        f"{'இது அர்த்தாஷ்டமச் சனியாகும்; வீடு, சொத்து, தாயாரின் உடல்நலம் ஆகியவற்றில் பொறுமையான கவனம் தேவை.' if is_ardhashtama else ''}"
         f"{'சனி பகவான் அனுகூலமான இடத்தில் சஞ்சரிப்பதால் தொழில் வளர்ச்சி, பண வரவு, நிலையான முன்னேற்றம் கிட்டும்.' if not (is_sade_sati or is_ashtama or is_ardhashtama) else ''}"
     )
 
@@ -450,9 +440,22 @@ def generate_transit_forecast(moon_sign_idx):
         f"{'குரு பலம் சிறப்பாக உள்ளது; தன லாபம், சுப காரியங்கள், மங்கல நிகழ்வுகள், ஆன்மீக அருள் பூரணமாகக் கிட்டும்.' if is_guru_favorable else 'குருவின் சஞ்சாரம் புதிய திட்டங்களுக்கு அடித்தளம் அமைக்கும் காலமாகும்.'}"
     )
 
+    # Rahu-Ketu: favourable in the 3rd, 6th and 11th from the Moon
+    rk_favorable = rahu_diff in (3, 6, 11) or ketu_diff in (3, 6, 11)
+    rahu_ketu_pred_en = (
+        f"Rahu transits House {rahu_diff} and Ketu House {ketu_diff} from your Moon sign. "
+        f"{'The nodes support courage, victory over rivals and unexpected gains.' if rk_favorable else 'The nodes ask for caution with new ventures, health and hasty decisions.'}"
+    )
+    rahu_ketu_pred_ta = (
+        f"ராகு உங்கள் சந்திர ராசிக்கு {rahu_diff}-ஆம் இடத்திலும், கேது {ketu_diff}-ஆம் இடத்திலும் சஞ்சரிக்கின்றனர். "
+        f"{'துணிவு, எதிரிகளை வெல்லும் திறன், எதிர்பாராத லாபம் கிட்டும்.' if rk_favorable else 'புதிய முயற்சிகள், உடல்நலம், அவசர முடிவுகளில் கவனம் தேவை.'}"
+    )
+
     return {
         'saturn': {
             'house_from_moon': saturn_diff,
+            'sign': transit['Saturn']['sign'],
+            'tamil_sign': transit['Saturn']['tamil'],
             'title_en': saturn_title_en,
             'title_ta': saturn_title_ta,
             'prediction_en': saturn_pred_en,
@@ -460,10 +463,20 @@ def generate_transit_forecast(moon_sign_idx):
         },
         'jupiter': {
             'house_from_moon': jupiter_diff,
+            'sign': transit['Jupiter']['sign'],
+            'tamil_sign': transit['Jupiter']['tamil'],
             'favorable': is_guru_favorable,
             'prediction_en': jupiter_pred_en,
             'prediction_ta': jupiter_pred_ta
-        }
+        },
+        'rahu_ketu': {
+            'rahu_house_from_moon': rahu_diff,
+            'ketu_house_from_moon': ketu_diff,
+            'favorable': rk_favorable,
+            'prediction_en': rahu_ketu_pred_en,
+            'prediction_ta': rahu_ketu_pred_ta
+        },
+        'peyarchi': gochara.get('peyarchi', [])
     }
 
 # 7. Lucky Factors & Gemstones
@@ -705,19 +718,10 @@ def calculate_jaimini_karakas(planets, vargas=None):
     }
 
 # 9. K.N. Rao & BVB Double Transit (Dwi-Gochara) Engine
-def calculate_double_transit(chart, current_utc=None):
-    now = current_utc or datetime.now(timezone.utc)
-    sat_lon = 348.72
-    jup_lon = 111.85
-
-    if swe is not None:
-        try:
-            swe.set_sid_mode(swe.SIDM_LAHIRI)
-            jd = swe.julday(now.year, now.month, now.day, now.hour + now.minute/60.0 + now.second/3600.0)
-            sat_lon = swe.calc_ut(jd, swe.SATURN, swe.FLG_SIDEREAL)[0][0] % 360
-            jup_lon = swe.calc_ut(jd, swe.JUPITER, swe.FLG_SIDEREAL)[0][0] % 360
-        except Exception:
-            pass
+def calculate_double_transit(chart):
+    transit = chart['gochara']['planets']
+    sat_lon = transit['Saturn']['longitude']
+    jup_lon = transit['Jupiter']['longitude']
 
     sat_sign = int(sat_lon // 30)
     sat_deg = sat_lon % 30
@@ -850,7 +854,7 @@ def calculate_double_transit(chart, current_utc=None):
     ]
 
     return {
-        'calculation_date_utc': now.strftime('%Y-%m-%d %H:%M:%S UTC'),
+        'calculation_date_utc': chart['gochara']['computed_at'].replace('T', ' ').replace('+00:00', ' UTC'),
         'transit_saturn': {
             'sign': SIGNS[sat_sign],
             'tamil_sign': TAMIL_SIGNS[sat_sign],
@@ -1089,18 +1093,9 @@ def calculate_ayur_jyotish(chart):
 
 # 12. Ashtakavarga Kakshya Precision Transit System
 def calculate_kakshya_transits(chart):
-    now = datetime.now(timezone.utc)
-    sat_lon = 348.72
-    jup_lon = 111.85
-
-    if swe is not None:
-        try:
-            swe.set_sid_mode(swe.SIDM_LAHIRI)
-            jd = swe.julday(now.year, now.month, now.day, now.hour + now.minute/60.0 + now.second/3600.0)
-            sat_lon = swe.calc_ut(jd, swe.SATURN, swe.FLG_SIDEREAL)[0][0] % 360
-            jup_lon = swe.calc_ut(jd, swe.JUPITER, swe.FLG_SIDEREAL)[0][0] % 360
-        except Exception:
-            pass
+    transit = chart['gochara']['planets']
+    sat_lon = transit['Saturn']['longitude']
+    jup_lon = transit['Jupiter']['longitude']
 
     sat_sign = int(sat_lon // 30)
     sat_deg = sat_lon % 30
@@ -1872,7 +1867,7 @@ def generate_comprehensive_predictions(chart):
     bhavas = generate_bhava_predictions(house_details, planets)
     planets_in_houses = generate_planet_house_predictions(planets)
     dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows)
-    transits = generate_transit_forecast(moon['sign_index'])
+    transits = generate_transit_forecast(moon['sign_index'], chart['gochara'])
     luck = generate_lucky_factors(asc['sign_index'], moon['nakshatra'])
 
     # 5 Advanced Approved Astrological Research Modules

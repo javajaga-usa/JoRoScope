@@ -7,8 +7,15 @@
 - Chart API adds `south_indian` (Jathaga Kurippu) and `doshas.chevvai` / `doshas.rahu_ketu`; `/api/match` adds `dosha_samyam` when full birth details are sent.
 - South Indian chart: Tamil abbreviations, Lagna diagonal, Mandi, degrees, Dasa balance in the centre, and a Rasi + Navamsa view.
 - Daily Panchangam page now shows today's (or any date's) panchangam for the form location instead of the birth moment.
+- Hora (Orai) table with the current hora, upcoming Chandrashtamam periods, and the next Nakshatra birthday.
+
+### Gochara (Transits)
+- Transits are computed live from Swiss Ephemeris in the chart's ayanamsa (`gochara` in the chart API), with Ashtakavarga bindus and Phaladeepika house results for all nine grahas.
+- Upcoming Peyarchi (sign change) dates for Saturn, Jupiter and Rahu-Ketu, and a Rahu-Ketu transit reading.
 
 ### Fixes
+- The Gochara chapter used hard-coded 2024 positions for Saturn, Jupiter, Rahu and Ketu, so Sade Sati, Ashtama Sani and Guru Balam were wrong.
+- Prediction modules reset the global ayanamsa to Lahiri, so the reported ayanamsa was Lahiri's for Raman, KP and Fagan-Bradley charts.
 - Charts crashed with the PyPI `pyswisseph` build, which returns 12 house cusps instead of 13.
 - Panchangam used the UTC weekday and an approximate sunrise; it now uses the local date and Swiss Ephemeris rise/set, and reports local times.
 - Vedha Porutham pairs (8 of 13 were wrong), Dina Porutham counts and same-star rules, Nadi and Varna tables in Guna Milan.

@@ -6,16 +6,17 @@ Tamil-tradition calculations layered on the core engine:
 - Mandi (Maandhi) rising per the Prasna Marga ghatika rule
 - Chevvai Dosham from Lagna, Moon and Venus with classical exemptions
 - Rahu-Ketu Dosham, Papa Samyam points and Dosha Samyam for matching
-- Daily Tamil Panchangam: anga end times, Soolam, Chandrashtamam, Tara/Chandra Balam
+- Daily Tamil Panchangam: anga end times, Hora, Soolam, Chandrashtamam, Tara/Chandra Balam
+- Personal almanac: upcoming Chandrashtamam periods and the Nakshatra birthday
 """
 import math
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .engine import (
     swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS,
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS,
-    placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, calculate_panchangam
+    placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
 from .predictions import PLANET_TAMIL
 
@@ -68,6 +69,14 @@ TARAS = [
 ]
 CHANDRA_BALAM_HOUSES = (1, 3, 6, 7, 10, 11)
 
+# Hora lords run in descending Chaldean order; a day's first hora belongs to its weekday lord.
+HORA_SEQUENCE = ['Sun', 'Venus', 'Mercury', 'Moon', 'Saturn', 'Jupiter', 'Mars']
+WEEKDAY_LORDS = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']  # Sunday first
+SUBHA_HORAS = ('Moon', 'Mercury', 'Jupiter', 'Venus')
+
+# Mean daily motions (degrees) used to seed the Newton searches
+SUN_RATE, MOON_RATE = 0.9856, 13.176
+
 GANA_TA = {'Deva': 'தேவ கணம்', 'Manushya': 'மனுஷ கணம்', 'Rakshasa': 'ராட்சச கணம்'}
 RAJJU_TA = {'Siro': 'சிரசு', 'Kantha': 'கண்டம்', 'Udara': 'உதரம்', 'Ooru': 'தொடை', 'Pada': 'பாதம்'}
 NADI_TA = {'Aadi': 'ஆதி', 'Madhya': 'மத்திய', 'Antya': 'அந்திய'}
@@ -101,18 +110,12 @@ def _house_from(sign_idx, ref_sign_idx):
     return (sign_idx - ref_sign_idx) % 12 + 1
 
 
-def _sidereal(jd, body):
-    """Sidereal longitude and daily speed; the caller sets the ayanamsa mode."""
-    pos = swe.calc_ut(jd, body, swe.FLG_MOSEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED)[0]
-    return pos[0], pos[3]
-
-
 def _sun(jd):
-    return _sidereal(jd, swe.SUN)
+    return sidereal_position(jd, swe.SUN)
 
 
 def _moon(jd):
-    return _sidereal(jd, swe.MOON)
+    return sidereal_position(jd, swe.MOON)
 
 
 def _elongation(jd):
@@ -137,6 +140,12 @@ def _solve_crossing(jd, value_fn, target):
     return t
 
 
+def _next_entry(jd, value_fn, target, rate):
+    """First moment after jd when a longitude advancing at about rate deg/day reaches target."""
+    guess = jd + ((target - value_fn(jd)[0]) % 360) / rate
+    return _solve_crossing(guess, value_fn, target)
+
+
 def _next_boundary(jd, value_fn, span):
     """Moment after jd when value_fn next crosses a multiple of span (an anga ends)."""
     value, _ = value_fn(jd)
@@ -154,17 +163,21 @@ def vedic_day(moment_jd, tz, lat, lon):
     return civil, events
 
 
+def _month_first_day(ingress, tz, lat, lon):
+    """A Tamil month begins on the day the Sun enters the sign if the sankranti
+    falls before sunset, otherwise on the following day."""
+    ingress_day = jd_to_utc(ingress).astimezone(tz).date()
+    if ingress >= sun_events(ingress_day, tz, lat, lon)['sunset']:
+        return ingress_day + timedelta(days=1)
+    return ingress_day
+
+
 def tamil_calendar(day, tz, lat, lon):
-    """Tamil solar date for a day. A month begins on the day the Sun enters the
-    sign if the sankranti falls before sunset, otherwise on the following day."""
+    """Tamil solar date for a day, by the sunset rule for the month's first day."""
     sunset = sun_events(day, tz, lat, lon)['sunset']
     month = int(_sun(sunset)[0] // 30)
     ingress = _solve_crossing(sunset, _sun, month * 30.0)
-    ingress_day = jd_to_utc(ingress).astimezone(tz).date()
-    if ingress >= sun_events(ingress_day, tz, lat, lon)['sunset']:
-        first_day = ingress_day + timedelta(days=1)
-    else:
-        first_day = ingress_day
+    first_day = _month_first_day(ingress, tz, lat, lon)
     # Margazhi (in January) through Panguni belong to the year that began the previous April
     start_year = day.year - 1 if month >= 8 and day.month <= 4 else day.year
     year_idx = (start_year - TAMIL_CYCLE_EPOCH) % 60
@@ -333,8 +346,75 @@ def birth_star_attributes(star_idx):
     )
 
 
-def build_south_indian_details(planets, utc, tz_name, lat, lon):
-    """Tamil Jathaga Kurippu (birth notes). Uses the ayanamsa mode already set by the engine."""
+def hora_table(events, weekday, tz, moment_jd=None):
+    """24 horas from sunrise: twelve equal parts of the day, then twelve of the night."""
+    first = HORA_SEQUENCE.index(WEEKDAY_LORDS[weekday])
+    day_hora = (events['sunset'] - events['sunrise']) / 12
+    night_hora = (events['next_sunrise'] - events['sunset']) / 12
+    rows = []
+    for i in range(24):
+        daytime = i < 12
+        start = events['sunrise'] + i * day_hora if daytime else events['sunset'] + (i - 12) * night_hora
+        end = start + (day_hora if daytime else night_hora)
+        lord = HORA_SEQUENCE[(first + i) % 7]
+        rows.append(dict(
+            number=i + 1, lord=lord, lord_ta=PLANET_TAMIL[lord], daytime=daytime,
+            auspicious=lord in SUBHA_HORAS,
+            start_local=_local_iso(start, tz), end_local=_local_iso(end, tz),
+            current=moment_jd is not None and start <= moment_jd < end
+        ))
+    return rows
+
+
+def upcoming_chandrashtamam(jd, natal_sign, tz, count=3):
+    """The next periods when the Moon transits the 8th sign from the natal Moon."""
+    sign = (natal_sign + 7) % 12
+    moon_lon = _moon(jd)[0]
+    if int(moon_lon // 30) == sign:  # already running: find when it began
+        start = _solve_crossing(jd - (moon_lon - sign * 30) / MOON_RATE, _moon, sign * 30.0)
+    else:
+        start = _next_entry(jd, _moon, sign * 30.0, MOON_RATE)
+    periods = []
+    for _ in range(count):
+        end = _next_entry(start + 0.5, _moon, ((sign + 1) % 12) * 30.0, MOON_RATE)
+        periods.append(dict(start_local=_local_iso(start, tz), end_local=_local_iso(end, tz),
+                            active=start <= jd < end))
+        start = _next_entry(end + 20, _moon, sign * 30.0, MOON_RATE)
+    return dict(sign_index=sign, sign=SIGNS[sign], sign_ta=TAMIL[sign], periods=periods)
+
+
+def next_star_birthday(jd, birth_star, birth_month, tz, lat, lon):
+    """Nakshatra birthday: the day(s) in the Tamil birth month on which the birth star
+    prevails at sunrise. A star that begins and ends between two sunrises (kshaya)
+    is assigned to the day it begins."""
+    today = jd_to_utc(jd).astimezone(tz).date()
+    search_from = jd - 32  # also catches a birth month that is already running
+    for _ in range(2):
+        ingress = _next_entry(search_from, _sun, birth_month * 30.0, SUN_RATE)
+        first = _month_first_day(ingress, tz, lat, lon)
+        following = _next_entry(ingress + 20, _sun, ((birth_month + 1) % 12) * 30.0, SUN_RATE)
+        last = _month_first_day(following, tz, lat, lon) - timedelta(days=1)
+
+        span = [first + timedelta(days=i) for i in range((last - first).days + 2)]
+        star_at_sunrise = {d: int(_moon(sun_events(d, tz, lat, lon)['sunrise'])[0] / NAK_SPAN) for d in span}
+        month_days = span[:-1]
+        matches = [d for d in month_days if star_at_sunrise[d] == birth_star]
+        if not matches:
+            matches = [d for d in month_days
+                       if star_at_sunrise[d] == (birth_star - 1) % 27
+                       and star_at_sunrise[d + timedelta(days=1)] == (birth_star + 1) % 27]
+        upcoming = [d for d in matches if d >= today]
+        if upcoming:
+            return dict(dates=[d.isoformat() for d in upcoming],
+                        month=TAMIL_MONTHS[birth_month], month_ta=TAMIL_MONTHS_TA[birth_month],
+                        star=STARS[birth_star], star_ta=TAMIL_STARS[birth_star])
+        search_from = ingress + 300
+    return None
+
+
+def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
+    """Tamil Jathaga Kurippu (birth notes) and the person's upcoming almanac dates.
+    Uses the ayanamsa mode already set by the engine."""
     tz = _zone(tz_name)
     jd = utc_to_jd(utc)
     day, events = vedic_day(jd, tz, lat, lon)
@@ -346,17 +426,24 @@ def build_south_indian_details(planets, utc, tz_name, lat, lon):
     mandi['rises_local'] = _local_iso(mandi_jd, tz)
 
     moon = planets['Moon']
+    birth_star = int(moon['longitude'] / NAK_SPAN)
+    birth_calendar = tamil_calendar(day, tz, lat, lon)
+    now_jd = utc_to_jd(now or datetime.now(timezone.utc))
     return dict(
         vedic_date=day.isoformat(),
         vaaram=dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1]),
-        tamil_calendar=tamil_calendar(day, tz, lat, lon),
+        tamil_calendar=birth_calendar,
         sunrise_local=_local_iso(events['sunrise'], tz),
         sunset_local=_local_iso(events['sunset'], tz),
         nazhigai=udayadi_nazhigai(jd, events),
         dasa_irruppu=dasa_irruppu(moon['longitude']),
-        birth_star=birth_star_attributes(int(moon['longitude'] / NAK_SPAN)),
+        birth_star=birth_star_attributes(birth_star),
         mandi=mandi,
-        papa_points=papa_points(planets)
+        papa_points=papa_points(planets),
+        upcoming=dict(
+            chandrashtamam=upcoming_chandrashtamam(now_jd, moon['sign_index'], tz),
+            star_birthday=next_star_birthday(now_jd, birth_star, birth_calendar['month_index'], tz, lat, lon)
+        )
     )
 
 
@@ -398,6 +485,7 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
         karana=_local_iso(_next_boundary(jd, _elongation, 6), tz)
     )
     panch['moment_local'] = utc.astimezone(tz).isoformat(timespec='seconds')
+    panch['horas'] = hora_table(sun_events(civil, tz, lat, lon), weekday, tz, jd)
     panch['tamil_calendar'] = tamil_calendar(civil, tz, lat, lon)
     panch['vaaram'] = dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1])
     direction, direction_ta, remedy, remedy_ta = SOOLAM[weekday]

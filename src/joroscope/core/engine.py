@@ -258,6 +258,84 @@ def sun_events(civil_date, tz, lat, lon):
         events.append(jd)
     return dict(sunrise=events[0], sunset=events[1], next_sunrise=events[2])
 
+GRAHA_BODIES = [
+    ('Sun', swe.SUN), ('Moon', swe.MOON), ('Mars', swe.MARS),
+    ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER),
+    ('Venus', swe.VENUS), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE)
+]
+# Houses from the natal Moon where a transiting graha gives good results (Phaladeepika)
+GOCHARA_GOOD_HOUSES = {
+    'Sun': (3, 6, 10, 11), 'Moon': (1, 3, 6, 7, 10, 11), 'Mars': (3, 6, 11),
+    'Mercury': (2, 4, 6, 8, 10, 11), 'Jupiter': (2, 5, 7, 9, 11),
+    'Venus': (1, 2, 3, 4, 5, 8, 9, 11, 12), 'Saturn': (3, 6, 11), 'Rahu': (3, 6, 11), 'Ketu': (3, 6, 11)
+}
+# Slow grahas whose sign changes (Peyarchi) are tracked, with a search horizon in days
+PEYARCHI_BODIES = [('Saturn', swe.SATURN, 1100), ('Jupiter', swe.JUPITER, 450), ('Rahu', swe.MEAN_NODE, 650)]
+
+def sidereal_position(jd, body):
+    """Sidereal longitude and daily speed; the caller sets the ayanamsa mode."""
+    pos = swe.calc_ut(jd, body, swe.FLG_MOSEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED)[0]
+    return pos[0], pos[3]
+
+def next_sign_change(jd, body, max_days):
+    """First moment after jd when a graha enters another sign (retrograde re-entries included)."""
+    sign = int(sidereal_position(jd, body)[0] // 30)
+    t = jd
+    while t - jd < max_days:
+        if int(sidereal_position(t + 1, body)[0] // 30) != sign:
+            lo, hi = t, t + 1
+            for _ in range(30):  # ~0.1 s resolution
+                mid = (lo + hi) / 2
+                if int(sidereal_position(mid, body)[0] // 30) == sign:
+                    lo = mid
+                else:
+                    hi = mid
+            return hi, int(sidereal_position(hi, body)[0] // 30)
+        t += 1
+    return None, None
+
+def calculate_gochara(jd, planets, ashtakavarga):
+    """Current transits (Gochara) against the natal chart, with Ashtakavarga bindus
+    and the next sign change (Peyarchi) of Saturn, Jupiter and Rahu-Ketu."""
+    moon_sign = planets['Moon']['sign_index']
+    asc_sign = planets['Ascendant']['sign_index']
+    bav = ashtakavarga['BAV']
+    positions = {name: sidereal_position(jd, body) for name, body in GRAHA_BODIES}
+    rahu_lon, rahu_speed = positions['Rahu']
+    positions['Ketu'] = ((rahu_lon + 180) % 360, rahu_speed)
+
+    rows = {}
+    for name, (lon, speed) in positions.items():
+        sign = int(lon // 30)
+        house = (sign - moon_sign) % 12 + 1
+        row = dict(
+            longitude=lon, sign_index=sign, sign=SIGNS[sign], tamil=TAMIL[sign], degree=lon % 30,
+            retrograde=speed < 0 and name not in ('Rahu', 'Ketu'),
+            house_from_moon=house,
+            house_from_lagna=(sign - asc_sign) % 12 + 1,
+            favourable=house in GOCHARA_GOOD_HOUSES[name],
+            bindus=bav[name][sign] if name in bav else None
+        )
+        rows[name] = row
+
+    peyarchi = []
+    for name, body, horizon in PEYARCHI_BODIES:
+        when, to_sign = next_sign_change(jd, body, horizon)
+        if when is None:
+            continue
+        from_sign = rows[name]['sign_index']
+        entry = dict(planet=name, date=jd_to_utc(when).isoformat(timespec='seconds'),
+                     from_sign=SIGNS[from_sign], from_tamil=TAMIL[from_sign],
+                     to_sign=SIGNS[to_sign], to_tamil=TAMIL[to_sign],
+                     house_from_moon=(to_sign - moon_sign) % 12 + 1)
+        peyarchi.append(entry)
+        if name == 'Rahu':
+            ketu_from, ketu_to = (from_sign + 6) % 12, (to_sign + 6) % 12
+            peyarchi.append(dict(entry, planet='Ketu', from_sign=SIGNS[ketu_from], from_tamil=TAMIL[ketu_from],
+                                 to_sign=SIGNS[ketu_to], to_tamil=TAMIL[ketu_to],
+                                 house_from_moon=(ketu_to - moon_sign) % 12 + 1))
+    return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi)
+
 def calculate_vargas(lon):
     """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
     lon = lon % 360
@@ -1125,14 +1203,10 @@ def calculate(data):
     flags = swe.FLG_MOSEPH | swe.FLG_SIDEREAL | swe.FLG_SPEED
 
     planets = {}
-    swe_map = [
-        ('Sun', swe.SUN), ('Moon', swe.MOON), ('Mars', swe.MARS),
-        ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER),
-        ('Venus', swe.VENUS), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE)
-    ]
-    for name, number in swe_map:
+    for name, number in GRAHA_BODIES:
         pos = swe.calc_ut(jd, number, flags)[0]
         planets[name] = placement(pos[0], pos[3])
+    ayanamsa_degrees = swe.get_ayanamsa_ut(jd)
 
     # Ketu is opposite Rahu
     planets['Ketu'] = placement(planets['Rahu']['longitude'] + 180, planets['Rahu']['speed'])
@@ -1171,6 +1245,9 @@ def calculate(data):
 
     # Ashtakavarga
     ashtakavarga = calculate_ashtakavarga(planets)
+
+    # Current transits (Gochara), in this chart's ayanamsa
+    gochara = calculate_gochara(utc_to_jd(datetime.now(timezone.utc)), planets, ashtakavarga)
 
     # Yogas and Doshas
     yogas, doshas = detect_yogas(planets)
@@ -1236,7 +1313,8 @@ def calculate(data):
         lat=lat,
         lon=lon,
         utc=utc,
-        kp_cusps=kp_cusps
+        kp_cusps=kp_cusps,
+        gochara=gochara
     )
     predictions = generate_comprehensive_predictions(chart_summary)
 
@@ -1244,7 +1322,7 @@ def calculate(data):
         profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold']},
         utc=utc.isoformat(),
         julian_day=jd,
-        ayanamsa_degrees=swe.get_ayanamsa_ut(jd),
+        ayanamsa_degrees=ayanamsa_degrees,
         planets=planets,
         dasha=dasha_rows,
         active_dasha=active_dasha,
@@ -1256,6 +1334,7 @@ def calculate(data):
         house_details=house_details,
         readings=readings,
         kp_cusps=kp_cusps,
+        gochara=gochara,
         south_indian=south_indian,
         predictions=predictions,
         method=dict(
