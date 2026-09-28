@@ -841,7 +841,7 @@ def calculate_jaimini_karakas(planets, vargas=None):
         ('BK', 'Bhratrikaraka', 'பிராத்ரு காரகன்', 'Mentors, Gurus, Guidance & Siblings'),
         ('MK', 'Matrikaraka', 'மாத்ரு காரகன்', 'Mother, Domestic Peace, Land & Fixed Assets'),
         ('PK', 'Putrakaraka', 'புத்ர காரகன்', 'Intellectual Genius, Progeny & Purva Punya'),
-        ('GK', 'Gnatikaraka', 'ஞானாதி காரகன்', 'Karmic Obstacles, Resilience & Competitive Victory'),
+        ('GK', 'Gnatikaraka', 'ஞாதி காரகன்', 'Karmic Obstacles, Resilience & Competitive Victory'),
         ('DK', 'Darakaraka', 'தார காரகன்', 'Spouse Characteristics & Sacred Partnerships')
     ]
 
