@@ -55,6 +55,16 @@
 - **Jaimini:** results for grahas in the Karakamsa (Upadesa Sutras) and for Ketu in the 12th from it.
 - The Ashtakavarga tables were checked against BPHS and B.V. Raman: Moon from Mars 2, 3, 5, 6, 9, 10, 11 and Venus from Mars 3, 5, 6, 9, 11, 12, with totals 48/49/39/54/56/52/39. Unchanged.
 
+### Print and PDF, restructured
+- A print dialog offers three presets modelled on current tools; every section can also be switched on or off, and the report prints in Tamil or English whatever language the app shows.
+  - **Traditional Jathagam** (about 3 pages, like Prokerala's basic report and the sheet Tamil families share).
+  - **Detailed Horoscope**, which adds the tables AstroSage's PDF carries: Navamsa and Shodasavarga charts and tables, the Sripati Bhava table, Shadbala, Bhava Bala and Vimsopaka, Ashtakavarga with Sodhya Pinda, and KP.
+  - **Complete Report**, which adds the readings, as Astro-Vision's reports do: Panchanga Phala, birth star and Lagna, the running dasa, Sudarshana, transits, career, health and the twelve bhavas.
+- A4 layout: a formal header with a contents line, numbered section bands, every major section on a fresh page, repeating table headers, and charts that fit the page in both languages. A running header and page numbers print where the browser supports CSS page margin boxes (Chrome and Edge 131+). Colours are tuned for paper.
+- The header Print button prints the Porutham report on the matching page and the page itself on the Panchangam and Profiles pages. Elsewhere it opens the report dialog instead of printing the web interface.
+- The Porutham report shares the new layout.
+- `esc()` now turns `<` into `&lt;`; it was being shown as `>`.
+
 ### Printable Jathagam
 - One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.
 - Dasa-Bhukti dates everywhere are calendar dates at the birthplace; they were UTC dates, a day early for boundaries after 18:30 UTC in India.

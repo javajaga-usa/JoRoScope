@@ -84,6 +84,9 @@ Double-click `Start JoRoScope.cmd` or run with PowerShell:
 .\Launch.ps1
 ```
 
+### Print & PDF
+Use **Print / PDF** to choose a Traditional Jathagam, a Detailed Horoscope or a Complete Report, pick sections and the language, then print or choose "Save as PDF" in the print window.
+
 ### 3. Launch on macOS (1-Click)
 Double-click `Start JoRoScope.command` in Finder, or run it from Terminal:
 ```bash

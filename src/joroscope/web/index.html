@@ -1911,6 +1911,31 @@
   <div id="toast" class="toast-popup" role="status" hidden></div>
 
   <!-- Scripts -->
+  <!-- Print / PDF dialog: choose a report preset, its sections and the language -->
+  <dialog id="print-dialog" class="print-dialog" aria-labelledby="print-dialog-title">
+    <form id="print-dialog-form" method="dialog">
+      <h2 id="print-dialog-title" data-i18n="print_dialog_title">Print or save as PDF</h2>
+      <fieldset class="print-presets" id="print-presets"></fieldset>
+      <details class="print-sections">
+        <summary data-i18n="print_sections">Choose sections</summary>
+        <div class="print-section-list" id="print-section-list"></div>
+      </details>
+      <label class="print-language">
+        <span data-i18n="print_language">Language</span>
+        <select id="print-language">
+          <option value="ta">தமிழ்</option>
+          <option value="en">English</option>
+        </select>
+      </label>
+      <p class="muted print-hint" data-i18n="print_pdf_hint">To make a PDF, choose "Save as PDF" as the destination in the print window.</p>
+      <div class="print-dialog-actions">
+        <button type="button" class="action-btn" id="print-dialog-cancel" data-i18n="cancel">Cancel</button>
+        <button type="submit" class="action-btn primary-print" id="print-dialog-go" data-i18n="print_now">Print / PDF</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="app.js"></script>
+  <script src="print.js"></script>
 </body>
 </html>

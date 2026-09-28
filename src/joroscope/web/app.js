@@ -6,7 +6,7 @@
 // Helper utilities
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&gt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 // Constants
 const SIGNS_EN = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
@@ -534,6 +534,12 @@ const I18N = {
     th_result: "Result",
     h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
     h_bhava_bala: "Bhava Bala (House Strength)",
+    print_dialog_title: "Print or save as PDF",
+    print_sections: "Choose sections",
+    print_language: "Language",
+    print_pdf_hint: "To make a PDF, choose \"Save as PDF\" as the destination in the print window.",
+    cancel: "Cancel",
+    print_now: "Print / PDF",
     navamsa_table: "Navamsa (D9) Table",
     navamsa_table_sub: "Each graha's Navamsa sign and lord, its dignity there, and Vargottama and Pushkara Navamsa",
     th_rasi: "Rasi",
@@ -938,6 +944,12 @@ const I18N = {
     th_result: "பலன்",
     h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
     h_bhava_bala: "பாவ பலம்",
+    print_dialog_title: "அச்சிடுக அல்லது PDF ஆகச் சேமிக்கவும்",
+    print_sections: "பகுதிகளைத் தேர்ந்தெடுக்கவும்",
+    print_language: "மொழி",
+    print_pdf_hint: "PDF உருவாக்க, அச்சு சாளரத்தில் \"Save as PDF\" என்பதைத் தேர்ந்தெடுக்கவும்.",
+    cancel: "ரத்து",
+    print_now: "அச்சு / PDF",
     navamsa_table: "நவாம்ச (D9) அட்டவணை",
     navamsa_table_sub: "ஒவ்வொரு கிரகத்தின் நவாம்ச ராசி, அதிபதி, அங்கு பெறும் நிலை, வர்கோத்தமம் மற்றும் புஷ்கர நவாம்சம்",
     th_rasi: "ராசி",
@@ -1105,9 +1117,10 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#geo-btn').addEventListener('click', detectCurrentLocation);
 
   // Print buttons
-  $('#print-btn').addEventListener('click', () => window.print());
-  $('#quick-print-btn').addEventListener('click', () => window.print());
-  $('#print-jathagam-btn').addEventListener('click', printJathagam);
+  // Printing: the report dialog (print.js) for charts, the Porutham report for matches
+  $('#print-btn').addEventListener('click', () => printCurrentView());
+  $('#quick-print-btn').addEventListener('click', () => openPrintDialog('detailed'));
+  $('#print-jathagam-btn').addEventListener('click', () => openPrintDialog('jathagam'));
   $('#print-porutham-btn').addEventListener('click', printPorutham);
   window.addEventListener('afterprint', () => document.body.classList.remove('printing-jathagam'));
 
@@ -1675,160 +1688,6 @@ function kurippuRows() {
     );
   }
   return rows;
-}
-
-// Printable Jathagam: the sheet a Tamil family prints and shares for marriage matching
-function buildJathagamSheet() {
-  const c = currentChart;
-  const prof = c.profile;
-  const d = c.doshas;
-  const bodies = chartBodies();
-
-  const details = [
-    [txt('Name', 'பெயர்'), prof.name || '—'],
-    [txt('Date & Time of Birth', 'பிறந்த தேதி & நேரம்'), `${prof.date} · ${prof.time}`],
-    [txt('Place', 'பிறந்த ஊர்'), `${prof.city || '—'} (${Number(prof.latitude).toFixed(2)}°, ${Number(prof.longitude).toFixed(2)}°)`],
-    [txt('Timezone · Ayanamsa', 'நேர வலயம் · அயனாம்சம்'), `${prof.timezone} · ${ayanamsaLabel(prof.ayanamsa)} (${formatDegrees(c.ayanamsa_degrees)})`],
-    ...kurippuRows()
-  ];
-
-  const planetRows = bodies.map(([name, pl]) => {
-    const flags = [
-      pl.retrograde && !['Rahu', 'Ketu'].includes(name) ? txt('Retrograde', 'வக்ரம்') : '',
-      pl.combust ? txt('Combust', 'அஸ்தங்கம்') : ''
-    ].filter(Boolean).join(', ');
-    return `<tr>
-      <td><strong>${esc(grahaName(name))}</strong></td>
-      <td>${esc(signName(pl.sign_index))}</td>
-      <td>${formatDegrees(pl.degree)}</td>
-      <td>${esc(starName(pl.nakshatra))} · ${pl.pada}</td>
-      <td>${esc(grahaName(pl.nakshatra_lord))}</td>
-      <td>${pl.dignity ? esc(dignityLabel(pl.dignity)) : '—'}</td>
-      <td>${esc(flags || '—')}</td>
-    </tr>`;
-  }).join('');
-
-  const status = (present, cancelled) => !present ? txt('Not present', 'இல்லை')
-    : (cancelled ? txt('Present, cancelled', 'உண்டு, நிவர்த்தி') : txt('Present', 'உண்டு'));
-  const doshaRows = [
-    [txt('Chevvai Dosham', 'செவ்வாய் தோஷம்'), status(d.chevvai.present, d.chevvai.cancelled)],
-    [txt('Rahu-Ketu Dosham', 'ராகு-கேது தோஷம்'), status(d.rahu_ketu.present, false)],
-    [txt('Kaal Sarp Dosham', 'கால சர்ப்ப தோஷம்'), d.kaal_sarp.present ? txt(d.kaal_sarp.type, d.kaal_sarp.type_ta) : txt('Not present', 'இல்லை')],
-    [txt('Yogas', 'யோகங்கள்'), (c.yogas || []).map(y => txt(y.name, y.name_ta)).join(', ') || '—']
-  ];
-
-  const dasaBlocks = c.dasha.map(md => `
-    <div class="pj-dasa-block${md.is_active ? ' active' : ''}">
-      <strong>${esc(txt(`${md.lord} Dasa`, `${grahaName(md.lord)} தசை`))}</strong>
-      <span>${localDate(md.start)} → ${localDate(md.end)}</span>
-      <ul>${md.subperiods.map(b => `<li class="${b.is_active ? 'active' : ''}">${esc(grahaName(b.lord))} <em>${localDate(b.start)}</em></li>`).join('')}</ul>
-    </div>`).join('');
-
-  const kv = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
-  $('#print-jathagam').innerHTML = `
-    <header class="pj-header">
-      <span class="pj-om">ௐ</span>
-      <h1>${txt('Horoscope', 'ஜாதகம்')}</h1>
-      <p>${esc(prof.name || '')}</p>
-    </header>
-    <section class="pj-section"><h2>${txt('Birth Details', 'பிறப்பு விவரங்கள்')}</h2><div class="pj-grid">${kv(details)}</div></section>
-    <section class="pj-charts">
-      <div id="pj-rasi" class="south-chart-grid compact"></div>
-      <div id="pj-amsa" class="south-chart-grid compact"></div>
-    </section>
-    <section class="pj-section">
-      <h2>${txt('Planetary Positions', 'கிரக நிலைகள்')}</h2>
-      <table class="pj-table">
-        <thead><tr>
-          <th>${txt('Graha', 'கிரகம்')}</th><th>${txt('Rasi', 'ராசி')}</th><th>${txt('Degree', 'பாகை')}</th>
-          <th>${txt('Star · Pada', 'நட்சத்திரம் · பாதம்')}</th><th>${txt('Star Lord', 'நட்சத்திர அதிபதி')}</th>
-          <th>${txt('Dignity', 'நிலை')}</th><th>${txt('Motion', 'கதி')}</th>
-        </tr></thead>
-        <tbody>${planetRows}</tbody>
-      </table>
-    </section>
-    <section class="pj-section"><h2>${txt('Doshas & Yogas', 'தோஷங்கள் & யோகங்கள்')}</h2><div class="pj-grid">${kv(doshaRows)}</div></section>
-    <section class="pj-section pj-dasa">
-      <h2>${txt('Vimshottari Dasa-Bhukti Periods (local dates)', 'விம்சோத்தரி தசா புக்தி காலங்கள்')}</h2>
-      <div class="pj-dasa-grid">${dasaBlocks}</div>
-    </section>
-    <footer class="pj-footer">${esc(txt(
-      `Calculated by JoRoScope with the Swiss Ephemeris · ${ayanamsaLabel(prof.ayanamsa)} ayanamsa · printed ${new Date().toLocaleDateString('en-GB')}`,
-      `ஜோரோஸ்கோப் சுவிஸ் எபிமெரிஸ் கணிதம் · ${ayanamsaLabel(prof.ayanamsa)} அயனாம்சம் · அச்சிட்ட நாள் ${new Date().toLocaleDateString('ta-IN')}`))}</footer>
-  `;
-  renderSouthChart($('#pj-rasi'), 'D1', true);
-  renderSouthChart($('#pj-amsa'), 'D9', true);
-}
-
-function printJathagam() {
-  if (!currentChart) {
-    notify(txt('Generate a chart first.', 'முதலில் ஜாதகம் கணிக்கவும்.'));
-    return;
-  }
-  buildJathagamSheet();
-  document.body.classList.add('printing-jathagam');
-  window.print();
-}
-
-// Printable Porutham report: both stars, the 10 Poruthams, Guna Milan and Dosha Samyam
-function buildPoruthamSheet(match) {
-  const kv = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${v}</strong></div>`).join('');
-  const person = p => [
-    [txt('Name', 'பெயர்'), esc(p.name || '—')],
-    [txt('Nakshatra', 'நட்சத்திரம்'), esc(txt(p.nakshatra, p.nakshatra_ta) + (p.pada ? ` · ${txt('Pada', 'பாதம்')} ${p.pada}` : ''))],
-    [txt('Rasi', 'ராசி'), esc(txt(p.sign, p.sign_ta))],
-    [txt('Lagna', 'லக்னம்'), esc(p.lagna ? txt(p.lagna, p.lagna_ta) : '—')],
-    [txt('Gana · Yoni', 'கணம் · யோனி'), esc(`${txt(p.gana, p.gana_ta)} · ${txt(p.yoni, p.yoni_ta)}`)],
-    [txt('Rajju · Nadi', 'ரஜ்ஜு · நாடி'), esc(`${txt(p.rajju, p.rajju_ta)} · ${txt(p.nadi, p.nadi_ta)}`)]
-  ];
-  const poruthams = match.poruthams.map(p => `
-    <tr>
-      <td><strong>${esc(txt(p.name, p.tamil))}</strong></td>
-      <td>${esc(txt(p.description, p.description_ta))}</td>
-      <td>${p.passed ? txt('Yes ✔', 'உண்டு ✔') : txt('No ✖', 'இல்லை ✖')}</td>
-      <td>${p.points} / ${p.max_points}</td>
-    </tr>`).join('');
-  const g = match.guna_milan;
-  const gunas = GUNA_LABELS.map(([key, max, en, ta]) => [txt(en, ta), `${g[key]} / ${max}`]);
-  const ds = match.dosha_samyam;
-  const samyam = ds ? `
-    <section class="pj-section"><h2>${txt('Dosha Samyam', 'தோஷ சாம்யம்')}</h2>
-      <table class="pj-table">
-        <thead><tr><th>${txt('Dosha', 'தோஷம்')}</th><th>${txt('Bride', 'பெண்')}</th><th>${txt('Groom', 'ஆண்')}</th><th>${txt('Samyam', 'சாம்யம்')}</th></tr></thead>
-        <tbody>${$('#dosha-samyam-tbody').innerHTML}</tbody>
-      </table>
-    </section>` : '';
-
-  $('#print-jathagam').innerHTML = `
-    <header class="pj-header">
-      <span class="pj-om">ௐ</span>
-      <h1>${txt('Marriage Compatibility Report', 'திருமணப் பொருத்த அறிக்கை')}</h1>
-      <p>${esc(txt(match.verdict, match.verdict_ta))} · ${txt(`${match.passed_count} of 10 Poruthams`, `10-ல் ${match.passed_count} பொருத்தங்கள்`)} · ${txt('Guna', 'குணம்')} ${g.total_score} / 36</p>
-      ${(match.verdict_notes || []).map(n => `<p><small>⚠ ${esc(txt(n.en, n.ta))}</small></p>`).join('')}
-    </header>
-    <section class="pj-charts">
-      <div><h2>${txt('Bride', 'மணமகள்')}</h2>${kv(person(match.bride))}</div>
-      <div><h2>${txt('Groom', 'மணமகன்')}</h2>${kv(person(match.groom))}</div>
-    </section>
-    <section class="pj-section"><h2>${txt('10 Poruthams', '10 பொருத்தங்கள்')}</h2>
-      <table class="pj-table">
-        <thead><tr><th>${txt('Porutham', 'பொருத்தம்')}</th><th>${txt('Significance', 'பலன்')}</th><th>${txt('Result', 'முடிவு')}</th><th>${txt('Points', 'மதிப்பெண்')}</th></tr></thead>
-        <tbody>${poruthams}</tbody>
-      </table>
-    </section>
-    ${samyam}
-    <section class="pj-section"><h2>${txt('Ashta Koota (36 Gunas)', 'அஷ்ட கூடம் (36 குணங்கள்)')}</h2><div class="pj-grid">${kv(gunas)}</div></section>
-    <footer class="pj-footer">${esc(txt(
-      `Calculated by JoRoScope · printed ${new Date().toLocaleDateString('en-GB')} · Rules differ between traditions; consult an astrologer before deciding.`,
-      `ஜோரோஸ்கோப் கணிதம் · அச்சிட்ட நாள் ${new Date().toLocaleDateString('ta-IN')} · மரபுக்கு மரபு விதிகள் வேறுபடும்; முடிவெடுக்கும் முன் ஜோதிடரை அணுகவும்.`))}</footer>
-  `;
-}
-
-function printPorutham() {
-  if (!lastMatch) return;
-  buildPoruthamSheet(lastMatch);
-  document.body.classList.add('printing-jathagam');
-  window.print();
 }
 
 // Chart Style & Varga Switching
