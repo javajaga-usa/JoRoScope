@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Faster chart loading
+- The chart response keeps the six detailed readings (career, wealth, health, family, milestones, remedy) only for the running Dasa-Bhukti; the other 80 periods' readings load from the new `/api/timeline` endpoint the first time a card is opened.
+- JSON responses are gzip-compressed when the browser accepts it. A chart now transfers about 80 KB instead of about 950 KB.
+
 ### Ashtottari and Jaimini Chara Dasa, and the dasa year
 - Ashtottari Dasa (108 years, eight lords counted from Ardra) with bhuktis from the Dasa lord, and whether its classical condition (Rahu in a kendra or trikona from the Lagna lord) holds. Dates match PyJHora.
 - Jaimini Chara Dasa by K.N. Rao's method: signs from the Lagna in the direction the 9th sign sets, each sign's years from its distance to its lord (the stronger lord for Scorpio and Aquarius), a second round of 12 less the first, and twelve antardasas ending with the dasa sign. It matches PyJHora on 35,548 of 36,000 random sign periods; the differences are Mercury in Virgo (counted as exalted here) and the choice of the stronger co-lord (P.V.R. Narasimha Rao's rules, as for the arudhas).

@@ -1182,3 +1182,24 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
         'active_spotlight': active_spotlight,
         'annual_projections': annual_projections
     }
+
+
+# The six reading texts of each period. The chart response keeps them only for the running
+# period; the rest come from /api/timeline when a card is opened, as they are most of its size.
+DETAIL_FIELDS = tuple(f"{part}_{lang}" for part in ('career', 'wealth', 'health', 'family', 'milestones', 'remedy')
+                      for lang in ('en', 'ta'))
+
+
+def timeline_details(timeline: Dict[str, Any]) -> Dict[str, Dict[str, str]]:
+    """Reading texts of every period, by period id."""
+    return {p['id']: {k: p[k] for k in DETAIL_FIELDS} for p in timeline.get('periods', [])}
+
+
+def defer_timeline_details(timeline: Dict[str, Any]) -> None:
+    """Drop the reading texts from all but the running period, marking the rest as deferred."""
+    for p in timeline.get('periods', []):
+        if not p.get('is_active'):
+            for k in DETAIL_FIELDS:
+                p.pop(k, None)
+            p['details_deferred'] = True
+

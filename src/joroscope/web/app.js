@@ -148,6 +148,8 @@ const ZODIAC_SYMBOLS = ['♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', 
 
 // State
 let currentChart = null;
+let currentChartPayload = null;  // the birth details behind currentChart, for /api/timeline
+let timelineDetailsLoad = null;   // pending or finished fetch of the deferred period readings
 let currentVarga = 'D1';
 let currentStyle = 'south';
 let currentLang = 'en';
@@ -1517,6 +1519,8 @@ async function handleFormSubmit(e) {
     if (!resp.ok) throw new Error(result.error || 'Calculation failed.');
 
     currentChart = result;
+    currentChartPayload = payload;
+    timelineDetailsLoad = null;
     $('#chart-empty').hidden = true;
     $('#chart-results').hidden = false;
 
@@ -2633,30 +2637,7 @@ function renderTimelineStream(periods, isTa) {
       </button>
 
       <div class="timeline-details-panel" ${p.is_active ? '' : 'hidden'} style="display: ${p.is_active ? 'grid' : 'none'};">
-        <div class="timeline-dim-card">
-          <h4>💼 ${isTa ? 'தொழில் & உத்தியோகம்' : 'Career & Profession'}</h4>
-          <p>${esc(isTa ? p.career_ta : p.career_en)}</p>
-        </div>
-        <div class="timeline-dim-card">
-          <h4>💰 ${isTa ? 'தனம் & முதலீடு' : 'Wealth & Assets'}</h4>
-          <p>${esc(isTa ? p.wealth_ta : p.wealth_en)}</p>
-        </div>
-        <div class="timeline-dim-card">
-          <h4>🌿 ${isTa ? 'உடல்நலம் & உணவு' : 'Health & Vitality'}</h4>
-          <p>${esc(isTa ? p.health_ta : p.health_en)}</p>
-        </div>
-        <div class="timeline-dim-card">
-          <h4>🏡 ${isTa ? 'குடும்பம் & இல்லறம்' : 'Family & Relationships'}</h4>
-          <p>${esc(isTa ? p.family_ta : p.family_en)}</p>
-        </div>
-        <div class="timeline-dim-card">
-          <h4>🎯 ${isTa ? 'முக்கிய மைல்கல்' : 'Key Milestones'}</h4>
-          <p>${esc(isTa ? p.milestones_ta : p.milestones_en)}</p>
-        </div>
-        <div class="timeline-dim-card">
-          <h4>🕉️ ${isTa ? 'வேத பரிகாரம் & வழிபாடு' : 'Remedy & Mantra'}</h4>
-          <p>${esc(isTa ? p.remedy_ta : p.remedy_en)}</p>
-        </div>
+        ${timelineDetailHtml(p)}
       </div>
     `;
 
@@ -2666,6 +2647,9 @@ function renderTimelineStream(periods, isTa) {
       toggleBtn.addEventListener('click', (e) => {
         e.preventDefault();
         const willOpen = panel.hidden || panel.style.display === 'none' || panel.hasAttribute('hidden');
+        if (willOpen && p.details_deferred) {
+          loadTimelineDetails().then(() => { panel.innerHTML = timelineDetailHtml(p); });
+        }
         if (willOpen) {
           panel.hidden = false;
           panel.removeAttribute('hidden');
@@ -2692,6 +2676,53 @@ function renderTimelineStream(periods, isTa) {
 
     container.append(card);
   });
+}
+
+// The six reading cards of a timeline period; a placeholder while its texts are still loading
+function timelineDetailHtml(p) {
+  if (p.details_deferred) {
+    return `<p class="muted">${txt('Loading the detailed reading…', 'விரிவான பலன் ஏற்றப்படுகிறது…')}</p>`;
+  }
+  const isTa = currentLang === 'ta';
+  const dims = [
+    ['💼', 'Career & Profession', 'தொழில் & உத்தியோகம்', 'career'],
+    ['💰', 'Wealth & Assets', 'தனம் & முதலீடு', 'wealth'],
+    ['🌿', 'Health & Vitality', 'உடல்நலம் & உணவு', 'health'],
+    ['🏡', 'Family & Relationships', 'குடும்பம் & இல்லறம்', 'family'],
+    ['🎯', 'Key Milestones', 'முக்கிய மைல்கல்', 'milestones'],
+    ['🕉️', 'Remedy & Mantra', 'வேத பரிகாரம் & வழிபாடு', 'remedy']
+  ];
+  return dims.map(([icon, en, ta, key]) => `
+        <div class="timeline-dim-card">
+          <h4>${icon} ${isTa ? ta : en}</h4>
+          <p>${esc(isTa ? p[`${key}_ta`] : p[`${key}_en`])}</p>
+        </div>`).join('');
+}
+
+// The chart response carries the reading texts only for the running period; the rest are
+// fetched once, when a card is first opened, and merged into the chart
+function loadTimelineDetails() {
+  if (!timelineDetailsLoad) {
+    const chart = currentChart;
+    timelineDetailsLoad = fetch('/api/timeline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(currentChartPayload)
+    }).then(resp => resp.json().then(data => {
+      if (!resp.ok) throw new Error(data.error || 'Timeline details failed.');
+      (chart.predictions.timeline_predictions.periods || []).forEach(p => {
+        const details = data.details[p.id];
+        if (details) {
+          Object.assign(p, details);
+          delete p.details_deferred;
+        }
+      });
+    })).catch(err => {
+      timelineDetailsLoad = null;
+      notify(errorText(err.message));
+    });
+  }
+  return timelineDetailsLoad;
 }
 
 // Life Predictions Multi-Chapter Comprehensive Renderer
