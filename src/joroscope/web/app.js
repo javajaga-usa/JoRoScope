@@ -294,7 +294,7 @@ const I18N = {
     bav_title: 'Bhinnashtakavarga (BAV) Table',
     sodhana_title: 'Sodhita Ashtakavarga & Sodhya Pinda',
     sodhana_sub: 'Bindus after the Trikona and Ekadhipatya reductions, and the Rasi, Graha and Sodhya Pindas used for longevity and transit timing.',
-    detected_yogas: 'Detected Planetary Yogas',
+    detected_yogas: 'Yogas in the Chart',
     current_running_period: 'CURRENT ACTIVE PERIOD TODAY',
     lagna_path: 'Ascendant & Life Path',
     moon_mind: 'Moon & Emotional Blueprint',
@@ -704,7 +704,7 @@ const I18N = {
     bav_title: 'பின்னாஷ்டகவர்க்க அட்டவணை',
     sodhana_title: 'சோதித அஷ்டகவர்க்கம் & சோத்ய பிண்டம்',
     sodhana_sub: 'திரிகோண, ஏகாதிபத்ய சோதனைகளுக்குப் பிறகான பரல்கள், மற்றும் ஆயுள், கோச்சாரக் காலக் கணிப்புக்குப் பயன்படும் ராசி, கிரக, சோத்ய பிண்டங்கள்.',
-    detected_yogas: 'அமைந்துள்ள சுப யோகங்கள்',
+    detected_yogas: 'ஜாதகத்தில் அமைந்துள்ள யோகங்கள்',
     current_running_period: 'தற்போதைய தசா-புக்தி-அந்தரம்',
     lagna_path: 'லக்னம் & உடல் அமைப்பு',
     moon_mind: 'சந்திரன் & மன இயல்பு',
@@ -2229,10 +2229,10 @@ function renderYogasAndDoshas() {
       card.className = 'yoga-card';
       card.innerHTML = `
         <h3>${esc(txt(y.name, y.name_ta))}</h3>
-        <div class="yoga-meta">${esc(txt(y.category, y.category_ta))} · <span style="color:var(--emerald)">${esc(txt(y.auspiciousness, y.auspiciousness_ta))}</span></div>
+        <div class="yoga-meta">${esc(txt(y.category, y.category_ta))} · <span style="color:${{ good: 'var(--emerald)', mixed: 'var(--gold)', bad: 'var(--ruby)' }[y.nature] || 'var(--text-muted)'}">${esc(txt(y.auspiciousness, y.auspiciousness_ta))}</span></div>
         <p class="yoga-desc">${esc(txt(y.description, y.description_ta))}</p>
         <div class="pill-list" style="margin-top:8px">
-          ${(y.planets || []).map(p => `<span class="planet-badge benefic">${grahaName(p)}</span>`).join('')}
+          ${(y.planets || []).map(p => `<span class="planet-badge ${y.nature === 'bad' ? 'malefic' : 'benefic'}">${grahaName(p)}</span>`).join('')}
         </div>
       `;
       grid.append(card);

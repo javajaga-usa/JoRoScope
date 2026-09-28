@@ -55,6 +55,19 @@
 - **Jaimini:** results for grahas in the Karakamsa (Upadesa Sutras) and for Ketu in the 12th from it.
 - The Ashtakavarga tables were checked against BPHS and B.V. Raman: Moon from Mars 2, 3, 5, 6, 9, 10, 11 and Venus from Mars 3, 5, 6, 9, 11, 12, with totals 48/49/39/54/56/52/39. Unchanged.
 
+### Yogas: about 75 classical combinations
+- A new `yogas.py` covers:
+  - the Pancha Mahapurusha yogas;
+  - the Chandra yogas (Sunapha, Anapha, Durudhara, Kemadruma and its cancellation, Adhi, Gaja Kesari with Raman's conditions, Chandra-Mangala, Sakata, Vasumati);
+  - the Surya yogas (Vesi, Vasi, Ubhayachari, Budhaditya, noting a combust Mercury);
+  - Raja yogas from kendra and trikona lords, the Yogakaraka, Dharma-Karmadhipati and Dhana yogas;
+  - the named yogas: Lakshmi, Saraswati, Parvata, Kahala, Chamara, Sankha, Bheri, Guru-Mangala, Amala, Lagnadhi, and Shubha and Papa Kartari;
+  - Maha, Khala and Dainya Parivartana, the three Vipareeta Raja yogas, and Neechabhanga with all its classical cancellations named;
+  - the challenging combinations: Guru Chandala, Grahana, Angaraka, Punarphoo and Daridra;
+  - all 32 Nabhasa yogas.
+- Every yoga has Tamil and English names and readings, a category, and a nature (auspicious, mixed, challenging or cancelled). The yogas are ordered and coloured by nature.
+- Checked against PyJHora on 3,000 random charts. Where they differ it is by documented convention: we exclude the nodes from the Surya, Chandra and Nabhasa yogas as BPHS does; Sunapha, Anapha and Durudhara are mutually exclusive; and we follow Raman's text where PyJHora departs from its own documentation.
+
 ### Print and PDF, restructured
 - A print dialog offers three presets modelled on current tools; every section can also be switched on or off, and the report prints in Tamil or English whatever language the app shows.
   - **Traditional Jathagam** (about 3 pages, like Prokerala's basic report and the sheet Tamil families share).

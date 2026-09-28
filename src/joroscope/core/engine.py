@@ -93,52 +93,12 @@ MATCH_VERDICT_TA = {
     'Inauspicious / Needs Remedies': 'பொருத்தம் குறைவு / பரிகாரம் தேவை'
 }
 
-# Tamil names and readings for the yogas detect_yogas reports, keyed by the English base name
-YOGA_TAMIL = {
-    'Ruchaka Yoga': ('ருசக யோகம்', 'வீரம், தலைமைப் பண்பு, போர்த்திறன் மற்றும் கம்பீரமான தோற்றம்.'),
-    'Bhadra Yoga': ('பத்ர யோகம்', 'கூர்மையான அறிவு, பேச்சுத் திறன், கல்வி மற்றும் அறிஞர் புகழ்.'),
-    'Hamsa Yoga': ('ஹம்ச யோகம்', 'ஞானம், அறநெறி, ஆன்மீக ஆழம் மற்றும் அரச குணம் கொண்ட கருணை.'),
-    'Malavya Yoga': ('மாளவ்ய யோகம்', 'அழகு, கலைத்திறன், சுக போகம் மற்றும் நிலைத்த அன்பு.'),
-    'Sasa Yoga': ('சச யோகம்', 'ஒழுக்கம், நிர்வாக அதிகாரம், மன உறுதி மற்றும் உழைப்பால் வரும் செல்வம்.'),
-    'Gaja Kesari Yoga': ('கஜகேசரி யோகம்', 'எதிரிகளை வெல்லுதல், நிலைத்த மதிப்பு, செல்வம், கூர்மையான அறிவு மற்றும் பெருந்தன்மை.'),
-    'Budhaditya Yoga': ('புதாதித்ய யோகம்', 'சிறந்த அறிவாற்றல், நிர்வாகத் திறன், தெளிவான சிந்தனை மற்றும் பேச்சு வன்மை.'),
-    'Chandra-Mangala Yoga': ('சந்திர மங்கள யோகம்', 'தொழில் முனைவு, வணிக ஆற்றல், பொருளீட்டும் ஊக்கம் மற்றும் சாதுர்யம்.'),
-    'Amala Yoga': ('அமல யோகம்', 'களங்கமற்ற புகழ், நேர்மையான நடத்தை, தொழிலில் சிறப்பு மற்றும் தான தர்மம்.'),
-    'Harsha Vipareeta Raja Yoga': ('ஹர்ஷ விபரீத ராஜ யோகம்', 'மறைமுக எதிரிகளிடமிருந்து பாதுகாப்பு, நெருக்கடியில் மன உறுதி, நல்ல உடல்நலம், துன்பங்களை வெல்லுதல்.'),
-    'Sarala Vipareeta Raja Yoga': ('சரள விபரீத ராஜ யோகம்', 'நீண்ட ஆயுள், அச்சமின்மை, திடீர் லாபம், வழக்குகளில் வெற்றி, சுயமாக உருவான அதிகாரம்.'),
-    'Vimala Vipareeta Raja Yoga': ('விமல விபரீத ராஜ யோகம்', 'பொருளாதாரச் சுதந்திரம், நற்செலவுகள், மன அமைதி மற்றும் ஆன்மீகப் பாதுகாப்பு.'),
-    'Neechabhanga Raja Yoga': ('நீசபங்க ராஜ யோகம்', None),
-    'Kemadruma Bhanga Yoga': ('கேமத்ரும பங்க யோகம்', 'கேந்திரங்களில் உள்ள சுப கிரகங்களால் கேமத்ரும தனிமை நீங்குகிறது.'),
-    'Kemadruma Yoga': ('கேமத்ரும யோகம்', 'தனிமை உணர்வு, ஏற்ற இறக்கமான பொருள் நிலை, மன சமநிலைக்கான ஏக்கம்.')
-}
-YOGA_CATEGORY_TA = {
-    'Pancha Mahapurusha': 'பஞ்ச மகாபுருஷ யோகம்', 'Raja Yoga': 'ராஜ யோகம்', 'Dhi / Intellect Yoga': 'அறிவு யோகம்',
-    'Dhana / Wealth Yoga': 'தன யோகம்', 'Virtue & Fame': 'அறநெறி & புகழ்', 'Vipareeta Yoga': 'விபரீத யோகம்',
-    'Elevation Yoga': 'உயர்வு யோகம்', 'Neutralized Challenge': 'நிவர்த்தியான சவால்', 'Mind & Solitude': 'மனம் & தனிமை'
-}
-YOGA_NATURE_TA = {
-    'Highly Auspicious': 'மிக்க சுபம்', 'Auspicious': 'சுபம்', 'Fortunate in Adversity': 'துன்பத்தில் வெற்றி',
-    'Neutralized': 'நிவர்த்தி', 'Challenging': 'சவாலானது'
-}
 KAAL_SARP_TYPES = [
     ('Anant', 'அனந்த'), ('Kulik', 'குளிக'), ('Vasuki', 'வாசுகி'), ('Shankhapal', 'சங்கபால'),
     ('Padma', 'பத்ம'), ('Mahapadma', 'மகாபத்ம'), ('Takshak', 'தக்ஷக'), ('Karkotak', 'கார்கோடக'),
     ('Shankhachur', 'சங்கசூட'), ('Ghatak', 'காதக'), ('Vishdhar', 'விஷதர'), ('Sheshnag', 'சேஷநாக')
 ]
 
-def add_yoga_tamil(yoga):
-    """Tamil name, category, nature and reading for a detected yoga."""
-    base, _, planet = yoga['name'].partition(' (')
-    name_ta, desc_ta = YOGA_TAMIL[base]
-    if planet:
-        name_ta = f"{name_ta} ({PLANET_TAMIL[planet.rstrip(')')]})"
-    if desc_ta is None:  # Neechabhanga: [debilitated planet, dispositor]
-        weak, lord = (PLANET_TAMIL[p] for p in yoga['planets'])
-        desc_ta = f'{weak} நீசம் பங்கமடைகிறது; கேந்திரத்தில் உள்ள அதிபதி {lord} மூலம் ராஜ யோகமாக உயர்கிறது.'
-    yoga.update(name_ta=name_ta, description_ta=desc_ta,
-                category_ta=YOGA_CATEGORY_TA[yoga['category']],
-                auspiciousness_ta=YOGA_NATURE_TA[yoga['auspiciousness']])
-    return yoga
 STAR_NADIS = [
     'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya',
     'Antya','Madhya','Aadi','Aadi','Madhya','Antya','Antya','Madhya','Aadi',
@@ -805,161 +765,10 @@ def _ekadhipatya_sodhana(bindus, occupied):
     return b
 
 def detect_yogas(planets):
-    """Detect prominent Vedic Yogas and Doshas."""
-    yogas = []
-    # Kendra houses: 1, 4, 7, 10
-    kendras = [1, 4, 7, 10]
-
-    # 1. Pancha Mahapurusha Yogas
-    pancha = [
-        ('Mars', 'Ruchaka Yoga', 'Courage, leadership, martial victory, and commanding presence.'),
-        ('Mercury', 'Bhadra Yoga', 'Sharp intellect, eloquence, learning, and scholarly prominence.'),
-        ('Jupiter', 'Hamsa Yoga', 'Wisdom, righteousness, spiritual depth, and regal benevolence.'),
-        ('Venus', 'Malavya Yoga', 'Grace, artistic beauty, material luxury, and enduring affection.'),
-        ('Saturn', 'Sasa Yoga', 'Discipline, administrative authority, enduring endurance, and wealth through perseverance.')
-    ]
-    for p_name, y_name, desc in pancha:
-        p = planets.get(p_name)
-        if p and p['house'] in kendras and p.get('dignity') in ('Exalted', 'Own Sign', 'Moolatrikona'):
-            yogas.append({
-                'name': y_name,
-                'category': 'Pancha Mahapurusha',
-                'auspiciousness': 'Highly Auspicious',
-                'description': desc,
-                'planets': [p_name]
-            })
-
-    # 2. Gaja Kesari Yoga (Jupiter in Kendra from Moon)
-    moon = planets.get('Moon')
-    jupiter = planets.get('Jupiter')
-    if moon and jupiter:
-        diff = (jupiter['house'] - moon['house']) % 12 + 1
-        if diff in (1, 4, 7, 10):
-            yogas.append({
-                'name': 'Gaja Kesari Yoga',
-                'category': 'Raja Yoga',
-                'auspiciousness': 'Highly Auspicious',
-                'description': 'Overcoming adversaries, enduring respect, prosperity, sharp intellect, and nobility.',
-                'planets': ['Moon', 'Jupiter']
-            })
-
-    # 3. Budhaditya Yoga (Sun + Mercury conjunction)
-    sun = planets.get('Sun')
-    mercury = planets.get('Mercury')
-    if sun and mercury and sun['sign_index'] == mercury['sign_index']:
-        yogas.append({
-            'name': 'Budhaditya Yoga',
-            'category': 'Dhi / Intellect Yoga',
-            'auspiciousness': 'Auspicious',
-            'description': 'Enhanced intellectual prowess, executive acumen, analytical clarity, and eloquence.',
-            'planets': ['Sun', 'Mercury']
-        })
-
-    # 4. Chandra-Mangala Yoga (Moon + Mars conjunction or mutual 7th aspect)
-    mars = planets.get('Mars')
-    if moon and mars:
-        if moon['sign_index'] == mars['sign_index'] or (mars['sign_index'] - moon['sign_index']) % 12 == 6:
-            yogas.append({
-                'name': 'Chandra-Mangala Yoga',
-                'category': 'Dhana / Wealth Yoga',
-                'auspiciousness': 'Auspicious',
-                'description': 'Enterprise, commercial vitality, financial drive, and high resourcefulness.',
-                'planets': ['Moon', 'Mars']
-            })
-
-    # 5. Amala Yoga (Benefic in 10th from Lagna or Moon)
-    benefics = ['Jupiter', 'Venus', 'Mercury']
-    for b in benefics:
-        bp = planets.get(b)
-        if bp and (bp['house'] == 10 or (bp['house'] - moon['house']) % 12 + 1 == 10):
-            yogas.append({
-                'name': f'Amala Yoga ({b})',
-                'category': 'Virtue & Fame',
-                'auspiciousness': 'Auspicious',
-                'description': 'Flawless reputation, stainless moral standing, professional distinction, and philanthropic influence.',
-                'planets': [b]
-            })
-            break
-
-    # 6. Vipareeta Raja Yogas (Harsha, Sarala, Vimala)
-    asc_sign = planets['Ascendant']['sign_index']
-    lord_6 = SIGN_LORDS[(asc_sign + 5) % 12]
-    lord_8 = SIGN_LORDS[(asc_sign + 7) % 12]
-    lord_12 = SIGN_LORDS[(asc_sign + 11) % 12]
-    trik_houses = [6, 8, 12]
-
-    p_6 = planets.get(lord_6)
-    if p_6 and p_6['house'] in trik_houses:
-        yogas.append({
-            'name': 'Harsha Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Immunity from secret enemies, resilience in crises, sound constitution, and triumph over hardship.',
-            'planets': [lord_6]
-        })
-    p_8 = planets.get(lord_8)
-    if p_8 and p_8['house'] in trik_houses:
-        yogas.append({
-            'name': 'Sarala Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Longevity, fearlessness, sudden gains, overcoming disputes, and self-made authority.',
-            'planets': [lord_8]
-        })
-    p_12 = planets.get(lord_12)
-    if p_12 and p_12['house'] in trik_houses:
-        yogas.append({
-            'name': 'Vimala Vipareeta Raja Yoga',
-            'category': 'Vipareeta Yoga',
-            'auspiciousness': 'Fortunate in Adversity',
-            'description': 'Financial autonomy, virtuous expenditures, peace of mind, and inner spiritual security.',
-            'planets': [lord_12]
-        })
-
-    # 7. Neechabhanga Raja Yoga
-    for p_name, p_data in planets.items():
-        if p_data.get('dignity') == 'Debilitated':
-            deb_sign = p_data['sign_index']
-            disp_lord = SIGN_LORDS[deb_sign]
-            disp_p = planets.get(disp_lord)
-            if disp_p and disp_p['house'] in kendras:
-                yogas.append({
-                    'name': f'Neechabhanga Raja Yoga ({p_name})',
-                    'category': 'Elevation Yoga',
-                    'auspiciousness': 'Highly Auspicious',
-                    'description': f'Debilitation of {p_name} is cancelled and elevated to royal stature through dispositor {disp_lord} in Kendra.',
-                    'planets': [p_name, disp_lord]
-                })
-
-    # 8. Kemadruma Yoga (Moon has no planets in 2nd and 12th from it, excluding Sun/Rahu/Ketu)
-    moon_h = moon['house']
-    planets_in_2_12 = [
-        p_name for p_name, p in planets.items()
-        if p_name not in ('Moon', 'Sun', 'Rahu', 'Ketu', 'Ascendant')
-        and p['house'] in [(moon_h) % 12 + 1, (moon_h - 2) % 12 + 1]
-    ]
-    if not planets_in_2_12:
-        # Check cancellation (Kemadruma Bhanga): Kendra has benefics
-        kendra_planets = [
-            p_name for p_name, p in planets.items()
-            if p_name in benefics and p['house'] in kendras
-        ]
-        if kendra_planets:
-            yogas.append({
-                'name': 'Kemadruma Bhanga Yoga',
-                'category': 'Neutralized Challenge',
-                'auspiciousness': 'Neutralized',
-                'description': 'Kemadruma solitude is dissolved by natural benefics residing in Kendra angles.',
-                'planets': ['Moon'] + kendra_planets
-            })
-        else:
-            yogas.append({
-                'name': 'Kemadruma Yoga',
-                'category': 'Mind & Solitude',
-                'auspiciousness': 'Challenging',
-                'description': 'Solitary mindset, fluctuating material fortunes, and yearning for emotional equilibrium.',
-                'planets': ['Moon']
-            })
+    """Yogas (see yogas.py) and the Manglik and Kaal Sarp doshas."""
+    from .yogas import detect
+    yogas = detect(planets)
+    mars, jupiter = planets.get('Mars'), planets.get('Jupiter')
 
     # 9. Manglik / Kuja Dosha
     kuja_houses = [1, 2, 4, 7, 8, 12]
@@ -1008,7 +817,7 @@ def detect_yogas(planets):
                 'description_ta': 'கிரகங்கள் ராகு-கேது அச்சின் இரு பக்கங்களிலும் பரவியுள்ளன.'
             }
 
-    return [add_yoga_tamil(y) for y in yogas], doshas
+    return yogas, doshas
 
 def dasha(moon, birth, now=None):
     """Calculate 3-Tier Vimshottari Dasa (Maha Dasa, Bhukti, Pratyantardasa)."""
@@ -1493,7 +1302,7 @@ def synthesize_readings(planets, dasha_active, yogas):
     if dasha_active:
         active_summary = f"Currently traversing {dasha_active['dasa']} Maha Dasa, {dasha_active['bhukti']} Bhukti, and {dasha_active['pratyantar']} Pratyantardasa. Focus aligns with the qualities and house lordship of {dasha_active['bhukti']}."
 
-    yoga_titles = [y['name'] for y in yogas[:4]]
+    yoga_titles = [y['name'] for y in yogas if y.get('nature') == 'good'][:4]
     yoga_text = f"Empowered by auspicious yogas including {', '.join(yoga_titles)}." if yoga_titles else "A balanced natal configuration with dynamic potential across houses."
 
     return {
