@@ -740,7 +740,8 @@ LUCKY_TAMIL = {
 FINGER_TAMIL = {
     'Ring Finger': 'மோதிர விரல்', 'Middle Finger': 'நடு விரல்', 'Little Finger': 'சுண்டு விரல்',
     'Index Finger': 'ஆள்காட்டி விரல்', 'Middle / Little Finger': 'நடு / சுண்டு விரல்',
-    'Little / Ring Finger': 'சுண்டு / மோதிர விரல்'
+    'Little / Ring Finger': 'சுண்டு / மோதிர விரல்', 'Little / Index Finger': 'சுண்டு / ஆள்காட்டி விரல்',
+    'Index / Ring Finger': 'ஆள்காட்டி / மோதிர விரல்'
 }
 
 def generate_lucky_factors(asc_sign_idx):
@@ -748,15 +749,15 @@ def generate_lucky_factors(asc_sign_idx):
         0: ('Red Coral (சிவப்பு பவளம்)', 'Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Tuesday / Thursday', 'Gold / Copper', 'Ring Finger'),
         1: ('Diamond (வைரம்)', 'Blue Sapphire (நீலக்கல்)', 'Friday / Saturday', 'Platinum / Silver', 'Middle / Little Finger'),
         2: ('Emerald (மரகதப் பச்சை)', 'Blue Sapphire (நீலக்கல்)', 'Wednesday / Saturday', 'Gold / Silver', 'Little Finger'),
-        3: ('Natural Pearl (முத்து)', 'Red Coral (சிவப்பு பவளம்)', 'Monday / Tuesday', 'Silver / Gold', 'Little / Ring Finger'),
-        4: ('Ruby (மாணிக்கம்)', 'Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Sunday / Thursday', 'Gold / Copper', 'Ring Finger'),
+        3: ('Natural Pearl (முத்து)', 'Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Monday / Thursday', 'Silver / Gold', 'Little / Index Finger'),
+        4: ('Ruby (மாணிக்கம்)', 'Red Coral (சிவப்பு பவளம்)', 'Sunday / Tuesday', 'Gold / Copper', 'Ring Finger'),
         5: ('Emerald (மரகதப் பச்சை)', 'Diamond (வைரம்)', 'Wednesday / Friday', 'Gold / Silver', 'Little Finger'),
         6: ('Diamond (வைரம்)', 'Emerald (மரகதப் பச்சை)', 'Friday / Wednesday', 'Platinum / Silver', 'Middle / Little Finger'),
         7: ('Red Coral (சிவப்பு பவளம்)', 'Natural Pearl (முத்து)', 'Tuesday / Monday', 'Gold / Copper', 'Ring Finger'),
         8: ('Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Ruby (மாணிக்கம்)', 'Thursday / Sunday', 'Gold', 'Index Finger'),
         9: ('Blue Sapphire (நீலக்கல்)', 'Emerald (மரகதப் பச்சை)', 'Saturday / Wednesday', 'Silver / Iron', 'Middle Finger'),
         10: ('Blue Sapphire (நீலக்கல்)', 'Diamond (வைரம்)', 'Saturday / Friday', 'Silver / Iron', 'Middle Finger'),
-        11: ('Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Natural Pearl (முத்து)', 'Thursday / Monday', 'Gold', 'Index Finger')
+        11: ('Yellow Sapphire (மஞ்சள் புஷ்பராகம்)', 'Red Coral (சிவப்பு பவளம்)', 'Thursday / Tuesday', 'Gold / Copper', 'Index / Ring Finger')
     }
 
     lucky_days_map = {
@@ -817,6 +818,12 @@ def generate_lucky_factors(asc_sign_idx):
         'lucky_numbers': lucky_numbers_map[asc_sign_idx],
         'lucky_colors': lucky_colors_map[asc_sign_idx],
         'lucky_colors_ta': [LUCKY_TAMIL[c] for c in lucky_colors_map[asc_sign_idx]],
+        'gem_basis_en': (f"Life stone for the Lagna lord {SIGN_LORDS[asc_sign_idx]}; fortune stone for the 9th lord "
+                         f"{SIGN_LORDS[(asc_sign_idx + 8) % 12]}. Wear a gem only after checking these lords' strength in your chart; "
+                         f"stones of the 6th, 8th and 12th lords are best avoided."),
+        'gem_basis_ta': (f"ஜீவ ரத்தினம்: லக்னாதிபதி {PLANET_TAMIL[SIGN_LORDS[asc_sign_idx]]}; பாக்கிய ரத்தினம்: 9-ஆம் அதிபதி "
+                         f"{PLANET_TAMIL[SIGN_LORDS[(asc_sign_idx + 8) % 12]]}. ஜாதகத்தில் இந்த அதிபதிகளின் பலத்தைச் "
+                         f"சரிபார்த்த பின்னரே அணியவும்; 6, 8, 12-ஆம் அதிபதிகளின் ரத்தினங்களைத் தவிர்ப்பது நலம்."),
         'deity_worship_en': 'Lord Ganesha, Lord Shiva, and Goddess Mahalakshmi',
         'deity_worship_ta': 'விநாயகர், சிவபெருமான் மற்றும் மஹாலக்ஷ்மி தாயார்'
     }

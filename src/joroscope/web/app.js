@@ -2838,6 +2838,7 @@ function renderLifeReadings() {
     $('#gem-metal').textContent = txt(luck.metal, luck.metal_ta) || '—';
     $('#gem-finger').textContent = txt(luck.finger, luck.finger_ta) || '—';
     $('#gem-day').textContent = txt(luck.wearing_day, luck.wearing_day_ta) || '—';
+    $('#gem-basis').textContent = txt(luck.gem_basis_en, luck.gem_basis_ta) || '';
 
     $('#luck-numbers').textContent = luck.lucky_numbers ? luck.lucky_numbers.join(', ') : '—';
     $('#luck-days').textContent = (txt(luck.lucky_days, luck.lucky_days_ta) || []).join(', ') || '—';

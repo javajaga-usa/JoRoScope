@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Chart-specific Dasa-Bhukti timeline
+- Each Dasa-Bhukti rating now weighs the two lords' house lordships in this chart (kendra/trikona against dusthana, with Vipareeta cases), their dignity and their natural relationship; Rahu and Ketu act through their dispositors. The reason opens every reading in Tamil and English.
+- The ten-year view scores each year from its running period, less a little under Sade Sati or Ashtama Sani, instead of a year-based variation; the icon follows the Bhukti lord.
+- Swabhukti periods are named as such instead of repeating the lord.
+- Gemstones: the fortune stone is now always the 9th lord's (corrected for Cancer, Leo and Pisces Lagnas, with their days and fingers), and the card states the basis and cautions against stones of the 6th, 8th and 12th lords.
+
 ### macOS launcher
 - `Start JoRoScope.command` starts the app with a double-click on macOS: it finds Python 3.11+, sets up a private `.venv` with the Swiss Ephemeris on first run, and opens the browser.
 
