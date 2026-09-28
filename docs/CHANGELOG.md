@@ -35,6 +35,8 @@
 - **Vimsopaka Bala and Varga Bheda** in the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes (BPHS weights), with dignity names from Parijatamsa to Sri Vallabhamsa.
 - **Sodhita Ashtakavarga and Sodhya Pinda:** Trikona and Ekadhipatya reductions with Rasi, Graha and Sodhya Pindas. These reproduce P.V.R. Narasimha Rao's worked Charts 7 and 11 exactly. PyJHora misses Chart 7 because of a Virgo multiplier of 6 (the classical value is 5) and its rule for equal counts.
 - **Jathaga Kurippu** additions: Yogi, Duplicate Yogi and Avayogi; Dagdha Rasi; Chandra Avastha, Vela and Kriya; Moudhyam; and Graha Yuddha. These also appear on the printed Jathagam.
+- **Panchanga Phala:** readings for the birth weekday (day lord), tithi (Nanda, Bhadra, Jaya, Rikta or Purna class and presiding deity, with Tamil observances such as Pradosham, Ekadasi and Amavasai tarpanam), nitya yoga (meaning, and the nine difficult yogas) and karana. This replaces a generic Sun-and-tithi paragraph. Vishkambha is now correctly listed among the difficult yogas.
+- **Sudarshana Chakra:** the houses counted from the Lagna, the Moon and the Sun, and the house the current year of life activates.
 - **Jaimini Arudha padas** (A1–A12, AL and UL) with PVR's stronger co-lord rules for Scorpio and Aquarius. They agree with PyJHora on every chart once two PyJHora bugs are reproduced. Adds readings for gains and losses from the AL and marital continuity from the UL.
 
 ### Prediction chapters audited for accuracy

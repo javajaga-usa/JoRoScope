@@ -128,6 +128,42 @@ class BirthExtrasTests(unittest.TestCase):
         self.assertEqual(chart['south_indian']['extras']['graha_yuddha'], [{'winner': 'Jupiter', 'loser': 'Mercury'}])
 
 
+class PanchangaPhalaTests(unittest.TestCase):
+    def test_four_limbs(self):
+        chart = calculate(BIRTH)
+        phala = {item['key']: item for item in chart['predictions']['panchanga_phala']}
+        self.assertEqual(list(phala), ['vaara', 'tithi', 'yoga', 'karana'])
+        self.assertIn('Monday', phala['vaara']['reading_en'])            # 1 Jan 1990, after sunrise
+        self.assertIn('Purna', phala['tithi']['reading_en'])             # Shukla Panchami
+        self.assertIn('the Nagas', phala['tithi']['reading_en'])
+        self.assertIn('Siddhi', phala['yoga']['reading_en'])
+        self.assertIn('movable karana', phala['karana']['reading_en'])   # Bava
+        for item in phala.values():
+            self.assertTrue(item['reading_ta'])
+
+    def test_tamil_observances(self):
+        from joroscope.core.predictions import generate_panchanga_phala
+        def tithi_text(t):
+            chart = {'panchanga': {'tithi': t, 'tithi_name': 'X', 'yoga_name': 'Vishkambha', 'yoga_auspiciousness': 'Inauspicious',
+                                   'karana_name': 'Vishti', 'weekday': 'Sunday'}, 'vedic_weekday': 0}
+            return generate_panchanga_phala(chart)
+        self.assertIn('Pradosham', tithi_text(28)[1]['reading_en'])
+        self.assertIn('Ekadasi', tithi_text(11)[1]['reading_en'])
+        self.assertIn('Tarpanam', tithi_text(30)[1]['reading_en'])
+        self.assertIn('nine difficult', tithi_text(1)[2]['reading_en'])  # Vishkambha is one of the nine
+
+
+class SudarshanaTests(unittest.TestCase):
+    def test_houses_and_progression(self):
+        chart = calculate(BIRTH)
+        sd = chart['predictions']['sudarshana']
+        planets = chart['planets']
+        self.assertEqual(sd['rows'][0]['lagna']['sign'], planets['Ascendant']['sign'])
+        self.assertEqual(sd['rows'][0]['moon']['sign'], planets['Moon']['sign'])
+        self.assertIn('Moon', sd['rows'][0]['moon']['planets'])
+        self.assertEqual(sd['active_house'], sd['age'] % 12 + 1)
+
+
 class ArudhaTests(unittest.TestCase):
     def test_rasi_drishti(self):
         self.assertEqual(_rasi_drishti(0), {4, 7, 10})    # Aries: fixed signs but Taurus

@@ -534,6 +534,11 @@ const I18N = {
     th_result: "Result",
     h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
     h_bhava_bala: "Bhava Bala (House Strength)",
+    h_sudarshana: "Sudarshana Chakra",
+    pill_sudarshana: "Lagna · Moon · Sun",
+    th_from_lagna: "From Lagna",
+    th_from_moon: "From Moon",
+    th_from_sun: "From Sun",
     h_vimsopaka: "Vimsopaka Bala & Varga Bheda",
     pill_vimsopaka: "Out of 20",
     p_vimsopaka: "Strength from dignity across the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes. A graha in its own, exaltation or moolatrikona sign in two or more vargas earns a named Varga Bheda dignity.",
@@ -911,6 +916,11 @@ const I18N = {
     th_result: "பலன்",
     h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
     h_bhava_bala: "பாவ பலம்",
+    h_sudarshana: "சுதர்சன சக்கரம்",
+    pill_sudarshana: "லக்னம் · சந்திரன் · சூரியன்",
+    th_from_lagna: "லக்னத்திலிருந்து",
+    th_from_moon: "சந்திரனிலிருந்து",
+    th_from_sun: "சூரியனிலிருந்து",
     h_vimsopaka: "விம்சோபக பலம் & வர்க்க பேதம்",
     pill_vimsopaka: "20-க்கு",
     p_vimsopaka: "ஷட்வர்க்கம், சப்தவர்க்கம், தசவர்க்கம், ஷோடசவர்க்கம் ஆகியவற்றில் கிரகத்தின் கௌரவத்தால் வரும் பலம். இரண்டு அல்லது அதற்கு மேற்பட்ட வர்க்கங்களில் ஆட்சி, உச்சம் அல்லது மூலத்திரிகோணம் பெற்ற கிரகம் பெயர் பெற்ற வர்க்க பேத கௌரவத்தை அடைகிறது.",
@@ -2707,16 +2717,22 @@ function renderLifeReadings() {
       ? `சந்திர பகவான் உங்கள் மனோகாரகனாக ${ov.tamil_moon_sign} ராசியில் அமைந்து, சிந்தனைத் தெளிவையும் உணர்ச்சிப் பெருக்கையும் நிர்வகிக்கிறார். கற்பனை வளம், தாய்வழி ஆசிகள், சூழலுக்கு ஏற்ப பொருந்தும் நெகிழ்வுத்தன்மை இயல்பாகவே அமையும்.`
       : `The Moon placed in ${ov.moon_sign} governs your subconscious temperament, empathy, and intuitive reactions. It provides emotional adaptability, imaginative clarity, maternal grace, and domestic prosperity.`;
 
-    // Sun & Tithi
-    $('#pred-sun-title').textContent = isTa
-      ? `சூரியன் & திதி: ${tithiLabel(ov.tithi_name)} (யோகம்: ${nityaYogaLabel(ov.yoga_name)})`
-      : `Sun & Tithi: ${ov.tithi_name} (${ov.yoga_name} Yoga)`;
-    $('#pred-sun-sub').textContent = isTa
-      ? 'ஆன்ம பலம், கௌரவம் மற்றும் நித்திய சுப யோகம்'
-      : 'Soul Vitality, Integrity & Auspicious Alignment';
-    $('#pred-sun-text').textContent = isTa
-      ? `நீங்கள் ${tithiLabel(ov.tithi_name)} திதியிலும், ${nityaYogaLabel(ov.yoga_name)} யோகத்திலும் அவதரித்துள்ளீர்கள். ஆன்ம காரகனான சூரியனின் ஆதிக்கத்தால் சமூக அந்தஸ்து, கடமை உணர்வு, தர்ம சிந்தனை மற்றும் அசைக்க முடியாத தன்னம்பிக்கை உங்களை முன்னிறுத்தும்.`
-      : `Born under the sacred lunar day ${ov.tithi_name} and soli-lunar combination ${ov.yoga_name}. Sun governs your core vital spark and moral resolve, bestowing natural authority, honorable ambition, and perseverance in duty.`;
+    // Sudarshana Chakra: houses from Lagna, Moon and Sun, with this year's activated house
+    const sd = pred.sudarshana;
+    if (sd) {
+      $('#sudarshana-reading').textContent = txt(sd.reading_en, sd.reading_ta);
+      const cell = c => `${esc(txt(c.sign, c.sign_ta))}${c.planets.length ? ` <small style="color:var(--gold)">${grahaNames(c.planets, ', ')}</small>` : ''}`;
+      $('#sudarshana-tbody').innerHTML = sd.rows.map(r => `
+        <tr${r.house === sd.active_house ? ' style="background:var(--gold-glow, rgba(212,175,55,0.12))"' : ''}>
+          <td><strong>${r.house}</strong></td><td>${cell(r.lagna)}</td><td>${cell(r.moon)}</td><td>${cell(r.sun)}</td>
+        </tr>`).join('');
+    }
+
+    // Panchanga Phala: birth weekday, tithi, nitya yoga and karana
+    $('#pred-sun-title').textContent = txt('Panchanga Phala', 'பஞ்சாங்க பலன்');
+    $('#pred-sun-sub').textContent = txt('Weekday, Tithi, Yoga & Karana at Birth', 'பிறந்த கிழமை, திதி, யோகம் & கரணம்');
+    $('#pred-sun-text').innerHTML = (pred.panchanga_phala || []).map(item => `
+      <p style="margin:0 0 8px"><strong style="color:var(--gold)">${esc(txt(item.title_en, item.title_ta))}:</strong> ${esc(txt(item.reading_en, item.reading_ta))}</p>`).join('');
   }
 
   // Chapter 2: 12 Bhavas Comprehensive Life Path

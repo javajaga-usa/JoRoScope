@@ -2392,6 +2392,154 @@ def calculate_sahams(chart):
         'sahams': sahams_list
     }
 
+# PANCHANGA PHALA: the birth weekday, tithi, nitya yoga and karana
+VAARA_PHALA = [
+    ('Born on a Sunday, ruled by the Sun: self-respecting, courageous and ambitious, with a strong sense of duty and leadership; pride and a quick temper need watching.',
+     'ஞாயிற்றுக்கிழமை பிறந்தவர் (சூரியன் ஆதிக்கம்): சுயமரியாதை, துணிவு, லட்சியம், கடமை உணர்வு மற்றும் தலைமைப் பண்பு உடையவர்; கர்வத்தையும் முன்கோபத்தையும் கவனிக்க வேண்டும்.'),
+    ('Born on a Monday, ruled by the Moon: gentle, sensitive and imaginative, caring and sociable, fond of travel and comfort; moods can change quickly.',
+     'திங்கட்கிழமை பிறந்தவர் (சந்திரன் ஆதிக்கம்): மென்மை, உணர்திறன், கற்பனைத் திறன் கொண்டவர்; அன்பும் அக்கறையும், பயணம் மற்றும் சுகங்களில் விருப்பம்; மனநிலை விரைவில் மாறக்கூடும்.'),
+    ('Born on a Tuesday, ruled by Mars: energetic, bold and enterprising, a natural fighter who stands up for others; haste and anger need restraint.',
+     'செவ்வாய்க்கிழமை பிறந்தவர் (செவ்வாய் ஆதிக்கம்): சுறுசுறுப்பு, துணிச்சல், முயற்சி உடையவர்; பிறருக்காகப் போராடும் இயல்பு; அவசரமும் கோபமும் கட்டுப்படுத்த வேண்டும்.'),
+    ('Born on a Wednesday, ruled by Mercury: intelligent, articulate and witty, quick to learn, and skilled in trade, writing and calculation.',
+     'புதன்கிழமை பிறந்தவர் (புதன் ஆதிக்கம்): அறிவுக்கூர்மை, பேச்சுத்திறன், நகைச்சுவை உணர்வு; விரைவாகக் கற்பவர்; வணிகம், எழுத்து, கணக்கில் திறமைசாலி.'),
+    ('Born on a Thursday, ruled by Jupiter: wise, principled and generous, respected as a teacher or counsellor, with a spiritual bent.',
+     'வியாழக்கிழமை பிறந்தவர் (குரு ஆதிக்கம்): ஞானம், நேர்மை, தாராள மனம் கொண்டவர்; ஆசிரியராக அல்லது ஆலோசகராக மதிக்கப்படுபவர்; ஆன்மீக நாட்டம் உண்டு.'),
+    ('Born on a Friday, ruled by Venus: charming and artistic, fond of beauty, comfort and harmony, blessed with a happy family life.',
+     'வெள்ளிக்கிழமை பிறந்தவர் (சுக்கிரன் ஆதிக்கம்): வசீகரம், கலை ரசனை கொண்டவர்; அழகு, சுகம், இணக்கத்தை விரும்புபவர்; மகிழ்ச்சியான குடும்ப வாழ்க்கை அமையும்.'),
+    ('Born on a Saturday, ruled by Saturn: patient, disciplined and hardworking; success comes steadily through perseverance, often after early struggles.',
+     'சனிக்கிழமை பிறந்தவர் (சனி ஆதிக்கம்): பொறுமை, ஒழுக்கம், கடின உழைப்பு உடையவர்; தொடக்கத்தில் போராட்டங்கள் இருந்தாலும் விடாமுயற்சியால் படிப்படியாக வெற்றி பெறுவார்.')
+]
+# Tithi classes (Nanda, Bhadra, Jaya, Rikta, Purna) by the tithi's number within its paksha
+TITHI_CLASSES = [
+    ('Nanda (joy)', 'நந்தா (மகிழ்ச்சி)', 'a cheerful nature that brings joy to others', 'பிறருக்கு மகிழ்ச்சி தரும் உற்சாக இயல்பு'),
+    ('Bhadra (well-being)', 'பத்ரா (நலம்)', 'a steady, dependable nature that builds lasting things', 'நிலையான, நம்பகமான, நீடித்த காரியங்களைக் கட்டியெழுப்பும் இயல்பு'),
+    ('Jaya (victory)', 'ஜயா (வெற்றி)', 'a competitive spirit that wins through effort', 'முயற்சியால் வெற்றி பெறும் போட்டி மனப்பான்மை'),
+    ('Rikta (emptiness)', 'ரிக்தா (வெறுமை)', 'results that come through extra effort, and strength in overcoming obstacles', 'கூடுதல் முயற்சியால் கிடைக்கும் பலன்களும் தடைகளை வெல்லும் ஆற்றலும்'),
+    ('Purna (fullness)', 'பூர்ணா (நிறைவு)', 'contentment and completeness in what one undertakes', 'மேற்கொள்ளும் காரியங்களில் நிறைவும் மனத்திருப்தியும்')
+]
+# Presiding deity of each tithi of the paksha; the 15th is the Moon's (Pournami) or the Pitrs' (Amavasai)
+TITHI_DEITIES = [('Agni', 'அக்னி'), ('Brahma', 'பிரம்மா'), ('Gauri', 'கௌரி'), ('Ganapati', 'விநாயகர்'), ('the Nagas', 'நாகர்கள்'),
+                 ('Murugan (Skanda)', 'முருகன்'), ('Surya', 'சூரியன்'), ('Shiva', 'சிவன்'), ('Durga', 'துர்க்கை'), ('Yama', 'யமன்'),
+                 ('the Vishvedevas', 'விஸ்வதேவர்கள்'), ('Vishnu', 'விஷ்ணு'), ('Kama (Manmatha)', 'மன்மதன்'), ('Shiva', 'சிவன்')]
+# Where Tamil observance differs from worshipping the presiding deity (paksha tithi number; 30 = Amavasai)
+TITHI_OBSERVANCE = {
+    10: None,
+    11: ('The Ekadasi fast, devoted to Vishnu, is the traditional observance.', 'விஷ்ணுவுக்கு உரிய ஏகாதசி விரதம் பாரம்பரிய அனுஷ்டானம்.'),
+    13: ('This is Pradosham, when Shiva is worshipped at dusk.', 'இது பிரதோஷ நாள்; மாலை வேளையில் சிவ வழிபாடு பாரம்பரியம்.'),
+    30: ('Tarpanam to the ancestors on Amavasai is the traditional observance.', 'அமாவாசையில் பித்ருக்களுக்குத் தர்ப்பணம் செய்வது பாரம்பரிய அனுஷ்டானம்.')
+}
+NITYA_YOGA_MEANINGS = {
+    'Vishkambha': ('the pillar', 'விஷ்கம்பம்', 'தூண்'), 'Priti': ('affection', 'ப்ரீதி', 'அன்பு'),
+    'Ayushman': ('long life', 'ஆயுஷ்மான்', 'நீண்ட ஆயுள்'), 'Saubhagya': ('good fortune', 'சௌபாக்கியம்', 'நல்லதிர்ஷ்டம்'),
+    'Shobhana': ('splendour', 'சோபனம்', 'பொலிவு'), 'Atiganda': ('great danger', 'அதிகண்டம்', 'பெரும் ஆபத்து'),
+    'Sukarma': ('good deeds', 'சுகர்மம்', 'நற்செயல்'), 'Dhriti': ('steadiness', 'திருதி', 'உறுதி'),
+    'Shula': ('the spear', 'சூலம்', 'ஈட்டி'), 'Ganda': ('danger', 'கண்டம்', 'ஆபத்து'),
+    'Vriddhi': ('growth', 'விருத்தி', 'வளர்ச்சி'), 'Dhruva': ('constancy', 'துருவம்', 'நிலைத்தன்மை'),
+    'Vyaghata': ('the blow', 'வியாகாதம்', 'அடி'), 'Harshana': ('delight', 'ஹர்ஷணம்', 'மகிழ்ச்சி'),
+    'Vajra': ('the thunderbolt', 'வஜ்ரம்', 'இடி'), 'Siddhi': ('accomplishment', 'சித்தி', 'காரிய சித்தி'),
+    'Vyatipata': ('calamity', 'வியதீபாதம்', 'பேரிடர்'), 'Variyan': ('comfort', 'வரீயான்', 'சுகம்'),
+    'Parigha': ('the barrier', 'பரிகம்', 'தடை'), 'Shiva': ('auspiciousness', 'சிவம்', 'மங்களம்'),
+    'Siddha': ('perfection', 'சித்தம்', 'நிறைவு'), 'Sadhya': ('attainment', 'சாத்தியம்', 'அடைதல்'),
+    'Shubha': ('goodness', 'சுபம்', 'நன்மை'), 'Shukla': ('brightness', 'சுக்லம்', 'ஒளி'),
+    'Brahma': ('the creator', 'பிரம்மம்', 'படைப்பு'), 'Indra': ('leadership', 'ஐந்திரம்', 'தலைமை'),
+    'Vaidhriti': ('discord', 'வைதிருதி', 'பிணக்கு')
+}
+KARANA_TAMIL = {'Bava': 'பவம்', 'Balava': 'பாலவம்', 'Kaulava': 'கௌலவம்', 'Taitila': 'தைதுலம்', 'Gara': 'கரசை',
+                'Vanija': 'வணிசை', 'Vishti': 'பத்திரை (விஷ்டி)', 'Shakuni': 'சகுனி', 'Chatushpada': 'சதுஷ்பாதம்',
+                'Naga': 'நாகவம்', 'Kimstughna': 'கிம்ஸ்துக்னம்'}
+
+
+def generate_panchanga_phala(chart):
+    """Readings from the four limbs of the birth panchangam besides the nakshatra."""
+    panch = chart['panchanga']
+    weekday = chart.get('vedic_weekday')
+    weekday = weekday if weekday is not None else ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].index(panch['weekday'])
+    items = []
+    en, ta = VAARA_PHALA[weekday]
+    items.append(dict(key='vaara', title_en='Weekday (Vaara)', title_ta='கிழமை (வாரம்)', reading_en=en, reading_ta=ta))
+
+    tithi = panch['tithi']
+    in_paksha = (tithi - 1) % 15 + 1
+    class_en, class_ta, trait_en, trait_ta = TITHI_CLASSES[(in_paksha - 1) % 5]
+    if in_paksha == 15:
+        deity_en, deity_ta = ('the Moon', 'சந்திரன்') if tithi == 15 else ('the ancestors (Pitrs)', 'பித்ருக்கள்')
+    else:
+        deity_en, deity_ta = TITHI_DEITIES[in_paksha - 1]
+    from .south_indian import TITHI_TA
+    tithi_ta = TITHI_TA[in_paksha - 1] if in_paksha < 15 else ('பௌர்ணமி' if tithi == 15 else 'அமாவாசை')
+    observance = TITHI_OBSERVANCE.get(30 if tithi == 30 else in_paksha, (
+        f"Worshipping {deity_en} on this tithi each month is traditionally recommended.",
+        f"ஒவ்வொரு மாதமும் இத்திதியில் {deity_ta} வழிபாடு பாரம்பரியமாகப் பரிந்துரைக்கப்படுகிறது.")) or ('', '')
+    paksha_en = 'waxing (Shukla)' if tithi <= 15 else 'waning (Krishna)'
+    paksha_ta = 'வளர்பிறை' if tithi <= 15 else 'தேய்பிறை'
+    items.append(dict(
+        key='tithi', title_en='Tithi', title_ta='திதி',
+        reading_en=(f"Born on {panch['tithi_name']} of the {paksha_en} fortnight, a {class_en} tithi: {trait_en}. "
+                    f"Presiding deity: {deity_en}. {observance[0]}".rstrip()),
+        reading_ta=(f"{paksha_ta} {tithi_ta} திதியில் பிறந்தவர்; இது {class_ta} திதி: {trait_ta}. "
+                    f"இதன் அதிதேவதை {deity_ta}. {observance[1]}".rstrip())))
+
+    yoga = panch['yoga_name']
+    meaning_en, yoga_ta, meaning_ta = NITYA_YOGA_MEANINGS.get(yoga, (yoga, yoga, yoga))
+    if panch.get('yoga_auspiciousness') == 'Auspicious':
+        yoga_en_text = f"Born in {yoga} yoga ('{meaning_en}'), an auspicious nitya yoga that supports well-being and success in undertakings."
+        yoga_ta_text = f"{yoga_ta} யோகத்தில் ('{meaning_ta}') பிறந்தவர்; இது சுப நித்ய யோகம் என்பதால் நலமும் காரிய வெற்றியும் உண்டு."
+    else:
+        yoga_en_text = (f"Born in {yoga} yoga ('{meaning_en}'), one of the nine difficult nitya yogas: obstacles are overcome through "
+                        f"patience, and prayer on the birth star day is traditionally advised.")
+        yoga_ta_text = (f"{yoga_ta} யோகத்தில் ('{meaning_ta}') பிறந்தவர்; இது ஒன்பது கடினமான நித்ய யோகங்களில் ஒன்று: பொறுமையால் "
+                        f"தடைகள் நீங்கும்; ஜன்ம நட்சத்திர நாளில் இறை வழிபாடு செய்வது பாரம்பரியமாகப் பரிந்துரைக்கப்படுகிறது.")
+    items.append(dict(key='yoga', title_en='Nitya Yoga', title_ta='நித்ய யோகம்', reading_en=yoga_en_text, reading_ta=yoga_ta_text))
+
+    karana = panch['karana_name']
+    karana_ta = KARANA_TAMIL.get(karana, karana)
+    if karana == 'Vishti':
+        k_en = ("Born in Vishti (Bhadra) karana, traditionally a difficult karana: energy is strong but needs direction; "
+                "worship of Ganapati is advised.")
+        k_ta = "பத்திரை (விஷ்டி) கரணத்தில் பிறந்தவர்; இது கடினமான கரணம்: ஆற்றல் அதிகம், அதை நல்வழியில் செலுத்த வேண்டும்; விநாயகர் வழிபாடு நலம்."
+    elif karana in ('Shakuni', 'Chatushpada', 'Naga', 'Kimstughna'):
+        k_en = f"Born in {karana} karana, one of the four fixed karanas: a steady, determined temperament that prefers stability to change."
+        k_ta = f"{karana_ta} கரணத்தில் பிறந்தவர்; இது நான்கு ஸ்திர கரணங்களில் ஒன்று: மாற்றத்தை விட நிலைத்தன்மையை விரும்பும் உறுதியான இயல்பு."
+    else:
+        k_en = f"Born in {karana} karana, a movable karana: an active, adaptable temperament that does well with travel and new ventures."
+        k_ta = f"{karana_ta} கரணத்தில் பிறந்தவர்; இது சர கரணம்: சுறுசுறுப்பான, எந்தச் சூழலுக்கும் ஏற்றுக்கொள்ளும் இயல்பு; பயணங்களும் புதிய முயற்சிகளும் நலம் தரும்."
+    items.append(dict(key='karana', title_en='Karana', title_ta='கரணம்', reading_en=k_en, reading_ta=k_ta))
+    return items
+
+
+# SUDARSHANA CHAKRA: the houses counted together from the Lagna, the Moon and the Sun, with the
+# yearly progression of BPHS (each year of life activates the next house from all three)
+def calculate_sudarshana_chakra(chart):
+    planets = chart['planets']
+    grahas = ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu')
+    refs = [('Lagna', 'லக்னம்', planets['Ascendant']['sign_index']), ('Moon', 'சந்திரன்', planets['Moon']['sign_index']),
+            ('Sun', 'சூரியன்', planets['Sun']['sign_index'])]
+    rows = []
+    for house in range(1, 13):
+        row = dict(house=house)
+        for name, _, start in refs:
+            sign = (start + house - 1) % 12
+            row[name.lower()] = dict(sign=SIGNS[sign], sign_ta=TAMIL_SIGNS[sign],
+                                     planets=[g for g in grahas if planets[g]['sign_index'] == sign])
+        rows.append(row)
+    tz = ZoneInfo(chart.get('timezone') or 'UTC')
+    birth = chart['utc'] if isinstance(chart['utc'], datetime) else datetime.fromisoformat(chart['utc'])
+    birth = birth.astimezone(tz)
+    now = datetime.fromisoformat(chart['gochara']['computed_at']).astimezone(tz)
+    age = now.year - birth.year - ((now.month, now.day) < (birth.month, birth.day))
+    active = age % 12 + 1
+    themes_en, themes_ta = HOUSE_THEMES[active]
+    return dict(
+        rows=rows, age=age, active_house=active,
+        reading_en=(f"In your {_ordinal(age + 1)} year the Sudarshana Chakra activates the {_ordinal(active)} house from the Lagna, "
+                    f"the Moon and the Sun at once ({rows[active - 1]['lagna']['sign']}, {rows[active - 1]['moon']['sign']} and "
+                    f"{rows[active - 1]['sun']['sign']}): matters of {themes_en} come to the fore this year."),
+        reading_ta=(f"உங்கள் {age + 1}-வது வயதில் சுதர்சன சக்கரம் லக்னம், சந்திரன், சூரியன் மூன்றிலிருந்தும் {active}-ஆம் பாவத்தை "
+                    f"({rows[active - 1]['lagna']['sign_ta']}, {rows[active - 1]['moon']['sign_ta']}, {rows[active - 1]['sun']['sign_ta']}) "
+                    f"இயக்குகிறது: இந்த ஆண்டு {themes_ta} தொடர்பான விஷயங்கள் முன்னிலை பெறும்.")
+    )
+
+
 # Master Generator
 def generate_comprehensive_predictions(chart):
     planets = chart['planets']
@@ -2444,6 +2592,8 @@ def generate_comprehensive_predictions(chart):
             'tithi_name': panch['tithi_name'],
             'yoga_name': panch['yoga_name']
         },
+        'panchanga_phala': generate_panchanga_phala(chart),
+        'sudarshana': calculate_sudarshana_chakra(chart),
         'bhavas': bhavas,
         'planets_in_houses': planets_in_houses,
         'dasa_forecast': dasa_forecast,

@@ -159,7 +159,7 @@ EKA_NAKSHATRA_GRADE = [
 ]
 
 NITYA_YOGAS = [
-    ('Vishkambha','Auspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
+    ('Vishkambha','Inauspicious'),('Priti','Auspicious'),('Ayushman','Auspicious'),('Saubhagya','Auspicious'),
     ('Shobhana','Auspicious'),('Atiganda','Inauspicious'),('Sukarma','Auspicious'),('Dhriti','Auspicious'),
     ('Shula','Inauspicious'),('Ganda','Inauspicious'),('Vriddhi','Auspicious'),('Dhruva','Auspicious'),
     ('Vyaghata','Inauspicious'),('Harshana','Auspicious'),('Vajra','Inauspicious'),('Siddhi','Auspicious'),
