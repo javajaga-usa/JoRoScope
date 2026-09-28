@@ -334,6 +334,7 @@ GOCHARA_GOOD_HOUSES = {
     'Mercury': (2, 4, 6, 8, 10, 11), 'Jupiter': (2, 5, 7, 9, 11),
     'Venus': (1, 2, 3, 4, 5, 8, 9, 11, 12), 'Saturn': (3, 6, 11), 'Rahu': (3, 6, 11), 'Ketu': (3, 6, 11)
 }
+SLOW_TRANSIT_YEARS = 6  # look-ahead for Saturn and Jupiter double-transit windows
 # Slow grahas whose sign changes (Peyarchi) are tracked, with a search horizon in days
 PEYARCHI_BODIES = [('Saturn', swe.SATURN, 1100), ('Jupiter', swe.JUPITER, 450), ('Rahu', swe.MEAN_NODE, 650)]
 
@@ -464,7 +465,17 @@ def calculate_gochara(jd, planets, ashtakavarga):
             peyarchi.append(dict(entry, planet='Ketu', from_sign=SIGNS[ketu_from], from_tamil=TAMIL[ketu_from],
                                  to_sign=SIGNS[ketu_to], to_tamil=TAMIL[ketu_to],
                                  house_from_moon=(ketu_to - moon_sign) % 12 + 1))
-    return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi)
+    # Saturn's and Jupiter's sign periods for the coming years, for double-transit timing
+    horizon = jd + SLOW_TRANSIT_YEARS * YEAR
+    slow_transits = {}
+    for name, body in (('Saturn', swe.SATURN), ('Jupiter', swe.JUPITER)):
+        edges = [jd] + [c[0] for c in sign_ingresses(body, jd, horizon)] + [horizon]
+        slow_transits[name] = [dict(sign_index=int(sidereal_position(start + 0.5 * (end - start), body)[0] // 30),
+                                    start=jd_to_utc(start).isoformat(timespec='seconds'),
+                                    end=jd_to_utc(end).isoformat(timespec='seconds'))
+                               for start, end in zip(edges, edges[1:]) if end > start]
+    return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi,
+                slow_transits=slow_transits)
 
 def sripati_bhavas(jd, lat, lon):
     """Sripati bhavas: madhyas trisect each quadrant (Porphyry cusps, the 1st being the
@@ -680,14 +691,19 @@ def calculate_ashtakavarga(planets):
     sav = [0] * 12
     classical = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
 
+    # Prastara: which contributor gave each bindu, the basis of Kakshya transit timing
+    prastara = {}
     for p_name in classical:
         bav[p_name] = [0] * 12
+        prastara[p_name] = {}
         rules = ASHTAKAVARGA_RULES.get(p_name, {})
         for ref_name, houses in rules.items():
             ref_sign = planets[ref_name]['sign_index']
+            row = prastara[p_name][ref_name] = [0] * 12
             for h in houses:
                 target_sign = (ref_sign + h - 1) % 12
                 bav[p_name][target_sign] += 1
+                row[target_sign] = 1
 
         for s in range(12):
             sav[s] += bav[p_name][s]
@@ -695,6 +711,7 @@ def calculate_ashtakavarga(planets):
     return {
         'BAV': bav,
         'SAV': sav,
+        'prastara': prastara,
         'total_points': sum(sav)  # Guaranteed 337
     }
 
@@ -1431,12 +1448,21 @@ def calculate(data):
     # Ketu is opposite Rahu
     planets['Ketu'] = placement(planets['Rahu']['longitude'] + 180, planets['Rahu']['speed'])
 
-    # Ascendant (Lagna) & KP Placidus Cusps
-    kp_cusps_tuple, ascmc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)
-    asc = ascmc[0]
+    # Ascendant (Lagna)
+    asc = swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)[1][0]
     planets['Ascendant'] = placement(asc)
-    # pyswisseph returns 12 cusps; the pysweph fork pads index 0 and returns 13.
-    kp_cusps = list(kp_cusps_tuple[-12:])
+
+    # Krishnamurti Paddhati works in its own (Krishnamurti) ayanamsa whatever the chart uses:
+    # sub-lords are arc-minutes wide, so a Lahiri or Raman offset would change them.
+    # Placidus cusps: pyswisseph returns 12, the pysweph fork pads index 0 and returns 13.
+    swe.set_sid_mode(swe.SIDM_KRISHNAMURTI)
+    kp = dict(
+        cusps=list(swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)[0][-12:]),
+        planets={name: swe.calc_ut(jd, number, flags)[0][0] for name, number in GRAHA_BODIES},
+        ayanamsa=swe.get_ayanamsa_ut(jd)
+    )
+    kp['planets']['Ketu'] = (kp['planets']['Rahu'] + 180) % 360
+    swe.set_sid_mode(AYAN[ayan])
 
     # Calculate whole-sign houses from Ascendant
     asc_sign = planets['Ascendant']['sign_index']
@@ -1551,9 +1577,11 @@ def calculate(data):
         lat=lat,
         lon=lon,
         utc=utc,
-        kp_cusps=kp_cusps,
+        kp_cusps=kp['cusps'],
+        kp=kp,
         gochara=gochara,
         shadbala=shadbala,
+        vedic_weekday=south_indian['vaaram']['index'],
         timezone=data['timezone']
     )
     predictions = generate_comprehensive_predictions(chart_summary)
@@ -1574,7 +1602,7 @@ def calculate(data):
         vargas=vargas_map,
         house_details=house_details,
         readings=readings,
-        kp_cusps=kp_cusps,
+        kp_cusps=kp['cusps'],
         gochara=gochara,
         bhava_chakra=dict(system='Sripati', madhya=bhava_madhya, sandhi=bhava_sandhi),
         south_indian=south_indian,

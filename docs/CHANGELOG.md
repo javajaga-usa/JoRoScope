@@ -29,6 +29,19 @@
 - The Shadbala chapter adds Ishta and Kashta Phala, the reasons behind each graha's strength, and a full component breakdown in Tamil and English.
 - Replaces the earlier approximation: sign-distance Saptavargaja, a wrong Mercury/Saturn Ojayugma, Kaala Bala with only three parts, speed-bucket Cheshta and ±15 aspect Drik.
 
+### Prediction chapters audited for accuracy
+- **KP:** positions and Placidus cusps now always use the Krishnamurti ayanamsa, and sub-lords are computed in exact arc-minutes. The sub-lord matches PyJHora at more than 500,000 test longitudes. Cusp readings now use real significators (the houses occupied and owned by the sub-lord's star lord and by the sub-lord itself), check them against the houses that promise or negate each matter, and give a verdict. KP ruling planets at birth are added.
+- **Sahams:** Karma (Mars − Mercury) and Roga (Lagna − Moon) now use the Tajika Neelakanthi formulas. Night reversals and the 30° rule are applied, and day or night is taken from the Sun's position above the horizon. Putra, Artha, Vanika and Samartha sahams are added. Artha, Samartha and Vanika reproduce P.V.R. Narasimha Rao's worked Chart 66, and each saham is judged by its lord.
+- **Kakshya:** a kakshya is fruitful only when its own lord gave a bindu. The rule is read from the new prastara (per-contributor) Ashtakavarga; before, the first *n* kakshyas were marked fruitful.
+- **Nakshatra pada:** the Moon's Navamsa sign and pada lord were always shown as Aries and Mars; they now follow the chart.
+- **Double transit:** follows K.N. Rao's rule that transit Saturn and Jupiter must both reach the house or its lord while the running dasa is connected with the matter. Dated windows are listed for the next six years, each checked against its dasa.
+- **Career:** Varahamihira's Karmajeeva rule (strongest of Lagna, Moon and Sun, then the 10th lord's Navamsa lord) with D-10 dignity, replacing points for arbitrary Dasamsa signs.
+- **Avasthas:** adds BPHS Lajjitadi states (Lajjita, Garvita, Kshudita, Trushita, Mudita, Kshobhita).
+- **Bhrigu Nandi Nadi:** adds the missing conjunction, opposition and 2nd/12th links, and the rule that a retrograde graha also acts from the previous sign. Adds Saturn- and Moon-based sutras, ranked by link strength.
+- **Ayur:** prakriti now comes from the Lagna, its lord, the Moon and the grahas on the Lagna, using BPHS graha doshas; before, a fixed set of planet points was added to every chart. Adds a health watch for the 6th and 8th houses.
+- **Jaimini:** results for grahas in the Karakamsa (Upadesa Sutras) and for Ketu in the 12th from it.
+- The Ashtakavarga tables were checked against BPHS and B.V. Raman: Moon from Mars 2, 3, 5, 6, 9, 10, 11 and Venus from Mars 3, 5, 6, 9, 11, 12, with totals 48/49/39/54/56/52/39. Unchanged.
+
 ### Printable Jathagam
 - One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.
 - Dasa-Bhukti dates everywhere are calendar dates at the birthplace; they were UTC dates, a day early for boundaries after 18:30 UTC in India.

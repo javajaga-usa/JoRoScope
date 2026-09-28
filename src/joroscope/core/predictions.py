@@ -814,6 +814,27 @@ def generate_lucky_factors(asc_sign_idx):
     }
 
 # 8. Jaimini 7 Chara Karakas & Karakamsha System
+# Results of grahas in the Karakamsa (Jaimini Upadesa Sutras 1.2, in present-day terms)
+KARAKAMSA_RESULTS = {
+    'Sun': ('Sun in the Karakamsa: work connected with government, politics or public administration.',
+            'காரகாம்சத்தில் சூரியன்: அரசு, அரசியல் அல்லது பொது நிர்வாகம் தொடர்பான பணி.'),
+    'Moon': ('Moon in the Karakamsa: a life of comforts, living by learning, the more so with Venus.',
+             'காரகாம்சத்தில் சந்திரன்: சுக போகங்கள் நிறைந்த வாழ்க்கை, கல்வியால் ஜீவனம்; சுக்கிரனுடன் மேலும் சிறப்பு.'),
+    'Mars': ('Mars in the Karakamsa: work with metals, chemistry, fire or weapons, such as engineering or defence.',
+             'காரகாம்சத்தில் செவ்வாய்: உலோகம், வேதியியல், நெருப்பு அல்லது ஆயுதம் தொடர்பான பணி, பொறியியல் அல்லது பாதுகாப்புத் துறை போன்றவை.'),
+    'Mercury': ('Mercury in the Karakamsa: trade, skilled crafts, textiles, or law and business dealings.',
+                'காரகாம்சத்தில் புதன்: வணிகம், கைத்திறன் கலைகள், ஜவுளி, அல்லது சட்டம் மற்றும் வர்த்தக விவகாரங்கள்.'),
+    'Jupiter': ('Jupiter in the Karakamsa: a learned, dutiful person versed in scripture: teaching, ritual or philosophy.',
+                'காரகாம்சத்தில் குரு: சாஸ்திர ஞானமும் கடமையுணர்வும் கொண்டவர்: கற்பித்தல், வைதீகம் அல்லது தத்துவம்.'),
+    'Venus': ('Venus in the Karakamsa: an official in government service, fond of pleasures, with keen senses and long life.',
+              'காரகாம்சத்தில் சுக்கிரன்: அரசுப் பணியில் அதிகாரி, இன்ப நாட்டம், கூர்மையான புலன்கள் மற்றும் நீண்ட ஆயுள்.'),
+    'Saturn': ('Saturn in the Karakamsa: renown through the family\'s traditional line of work.',
+               'காரகாம்சத்தில் சனி: குடும்பப் பாரம்பரியத் தொழிலில் புகழ்.'),
+    'Rahu': ('Rahu in the Karakamsa: work with machinery and metals, or with poisons and medicines; avoid dishonest ways.',
+             'காரகாம்சத்தில் ராகு: இயந்திரம் மற்றும் உலோகம், அல்லது விஷம் மற்றும் மருந்துகள் தொடர்பான பணி; நேர்மையற்ற வழிகளைத் தவிர்க்க வேண்டும்.'),
+    'Ketu': ('Ketu in the Karakamsa: dealings in large animals or vehicles; avoid dishonest ways.',
+             'காரகாம்சத்தில் கேது: பெரிய விலங்குகள் அல்லது வாகனங்கள் தொடர்பான வியாபாரம்; நேர்மையற்ற வழிகளைத் தவிர்க்க வேண்டும்.')
+}
 def calculate_jaimini_karakas(planets, vargas=None):
     seven_planets = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
     extracted = []
@@ -971,172 +992,202 @@ def calculate_jaimini_karakas(planets, vargas=None):
 
     kk_en, kk_ta = karakamsha_interpretations.get(karakamsha_sign, ('Spiritual illumination through Atmakaraka dharma.', 'ஆன்ம வழிகாட்டுதல்.'))
 
+    # Grahas sharing the Atmakaraka's Navamsa sign (Jaimini Upadesa Sutras 1.2), and Ketu in the 12th from it
+    navamsa_of = lambda p: vargas['D9'][p] if vargas and 'D9' in vargas else planets[p]['vargas']['D9']
+    occupants = [p for p in KARAKAMSA_RESULTS if p != ak_planet and navamsa_of(p) == karakamsha_sign_idx]
+    karakamsa_results = [dict(planet=p, planet_ta=PLANET_TAMIL[p], en=KARAKAMSA_RESULTS[p][0], ta=KARAKAMSA_RESULTS[p][1])
+                         for p in occupants]
+    if navamsa_of('Ketu') == (karakamsha_sign_idx + 11) % 12:
+        karakamsa_results.append(dict(planet='Ketu', planet_ta=PLANET_TAMIL['Ketu'],
+                                      en='Ketu in the 12th from the Karakamsa promises final liberation (moksha), the more so with benefics.',
+                                      ta='காரகாம்சத்திலிருந்து 12-இல் கேது இருப்பதால் மோட்ச பாக்கியம் உண்டு; சுப கிரகச் சேர்க்கையால் மேலும் வலுப்பெறும்.'))
+    if karakamsa_results:
+        kk_en += ' ' + ' '.join(r['en'] for r in karakamsa_results)
+        kk_ta += ' ' + ' '.join(r['ta'] for r in karakamsa_results)
+
     return {
         'karakas': karakas_list,
         'atmakaraka': ak_planet,
         'amatyakaraka': amk_planet,
+        'scheme_en': 'Seven chara karakas (Sun to Saturn), by degrees within the sign',
+        'scheme_ta': 'ஏழு சர காரகங்கள் (சூரியன் முதல் சனி வரை), ராசிக்குள் உள்ள பாகைகளின்படி',
         'karakamsha': {
             'sign': karakamsha_sign,
             'tamil_sign': karakamsha_tamil,
+            'occupants': karakamsa_results,
             'interpretation_en': kk_en,
             'interpretation_ta': kk_ta
         }
     }
 
 # 9. K.N. Rao & BVB Double Transit (Dwi-Gochara) Engine
+# An event needs transit Saturn and Jupiter both to influence (occupy or aspect) the house or
+# its lord, and a running Maha or Antar dasa connected with the matter (K.N. Rao).
+SATURN_ASPECTS, JUPITER_ASPECTS = (0, 2, 6, 9), (0, 4, 6, 8)
+DOUBLE_TRANSIT_EVENTS = [
+    ('marriage', 7, ('Venus',), 'Marriage & Relationship', 'திருமணம் & இல்லறம்'),
+    ('career', 10, ('Sun', 'Saturn'), 'Career Rise & Promotion', 'தொழில் முன்னேற்றம் & பதவி உயர்வு'),
+    ('children', 5, ('Jupiter',), 'Progeny & Children', 'புத்திர பாக்கியம்'),
+    ('property', 4, ('Mars', 'Venus'), 'Property, Home & Vehicle', 'பூமி, வீடு & வாகனம்')
+]
+DT_STATUS = {
+    'active': (90, 'Active window: double transit with dasa support', 'செயல்படும் காலம்: இரட்டைப் பெயர்ச்சியுடன் தசா ஆதரவு'),
+    'transit': (65, 'Transit ready, awaiting a supporting dasa', 'பெயர்ச்சி சாதகம்; ஆதரவான தசைக்காகக் காத்திருக்கிறது'),
+    'building': (50, 'Building: dasa supports, one transit in place', 'உருவாகிறது: தசா ஆதரவு, ஒரு பெயர்ச்சி மட்டும் சாதகம்'),
+    'quiet': (25, 'Quiet period', 'அமைதியான காலம்')
+}
+
+
+def _dasa_at(dasha_rows, moment):
+    for d in dasha_rows:
+        if datetime.fromisoformat(d['start']) <= moment < datetime.fromisoformat(d['end']):
+            for b in d.get('subperiods', []):
+                if datetime.fromisoformat(b['start']) <= moment < datetime.fromisoformat(b['end']):
+                    return d['lord'], b['lord']
+            return d['lord'], None
+    return None, None
+
+
 def calculate_double_transit(chart):
-    transit = chart['gochara']['planets']
-    sat_lon = transit['Saturn']['longitude']
-    jup_lon = transit['Jupiter']['longitude']
-
-    sat_sign = int(sat_lon // 30)
-    sat_deg = sat_lon % 30
-    jup_sign = int(jup_lon // 30)
-    jup_deg = jup_lon % 30
-
-    sat_aspects = [sat_sign, (sat_sign + 2) % 12, (sat_sign + 6) % 12, (sat_sign + 9) % 12]
-    jup_aspects = [jup_sign, (jup_sign + 4) % 12, (jup_sign + 6) % 12, (jup_sign + 8) % 12]
-
+    gochara = chart['gochara']
+    transit = gochara['planets']
     planets = chart['planets']
     asc_sign = planets['Ascendant']['sign_index']
+    tz = ZoneInfo(chart.get('timezone') or 'UTC')
+    now = datetime.fromisoformat(gochara['computed_at'])
+    sat_sign, jup_sign = transit['Saturn']['sign_index'], transit['Jupiter']['sign_index']
+    periods = gochara.get('slow_transits', {})
 
-    # 1. Marriage / Partnership (H7, Lord 7, Lagna)
-    h7_sign = (asc_sign + 6) % 12
-    h7_lord = SIGN_LORDS[h7_sign]
-    h7_lord_sign = planets.get(h7_lord, {}).get('sign_index', h7_sign)
+    def influences(aspects, from_sign, targets):
+        return any((t - from_sign) % 12 in aspects for t in targets)
 
-    marr_sat = (h7_sign in sat_aspects) or (h7_lord_sign in sat_aspects) or (asc_sign in sat_aspects)
-    marr_jup = (h7_sign in jup_aspects) or (h7_lord_sign in jup_aspects) or (asc_sign in jup_aspects)
-    marr_active = marr_sat and marr_jup
+    milestones = []
+    for key, house, karakas, title_en, title_ta in DOUBLE_TRANSIT_EVENTS:
+        house_sign = (asc_sign + house - 1) % 12
+        lord = SIGN_LORDS[house_sign]
+        targets = {house_sign, planets[lord]['sign_index']}
 
-    # 2. Career Elevation & Promotion (H10, Lord 10, Lagna)
-    h10_sign = (asc_sign + 9) % 12
-    h10_lord = SIGN_LORDS[h10_sign]
-    h10_lord_sign = planets.get(h10_lord, {}).get('sign_index', h10_sign)
+        def connected(dasa_lord):
+            if dasa_lord is None:
+                return False
+            ruler = SIGN_LORDS[planets[dasa_lord]['sign_index']] if dasa_lord in ('Rahu', 'Ketu') else dasa_lord
+            return (dasa_lord in (lord,) + karakas or ruler == lord or planets[dasa_lord]['house'] == house
+                    or planets[dasa_lord]['sign_index'] == planets[lord]['sign_index'])
 
-    career_sat = (h10_sign in sat_aspects) or (h10_lord_sign in sat_aspects) or (asc_sign in sat_aspects)
-    career_jup = (h10_sign in jup_aspects) or (h10_lord_sign in jup_aspects) or (asc_sign in jup_aspects)
-    career_active = career_sat and career_jup
+        sat_now = influences(SATURN_ASPECTS, sat_sign, targets)
+        jup_now = influences(JUPITER_ASPECTS, jup_sign, targets)
+        maha, antar = _dasa_at(chart.get('dasha', []), now)
+        dasa_now = connected(maha) or connected(antar)
+        status = ('active' if sat_now and jup_now and dasa_now else 'transit' if sat_now and jup_now
+                  else 'building' if dasa_now and (sat_now or jup_now) else 'quiet')
 
-    # 3. Childbirth / Progeny / Intellect (H5, Lord 5, Jupiter natal)
-    h5_sign = (asc_sign + 4) % 12
-    h5_lord = SIGN_LORDS[h5_sign]
-    h5_lord_sign = planets.get(h5_lord, {}).get('sign_index', h5_sign)
-    natal_jup_sign = planets.get('Jupiter', {}).get('sign_index', 0)
+        # Upcoming double-transit windows, each checked against the dasa running when it opens
+        windows = []
+        for sp in periods.get('Saturn', []):
+            if not influences(SATURN_ASPECTS, sp['sign_index'], targets):
+                continue
+            for jp in periods.get('Jupiter', []):
+                start, end = max(sp['start'], jp['start']), min(sp['end'], jp['end'])
+                if start < end and influences(JUPITER_ASPECTS, jp['sign_index'], targets):
+                    if windows and windows[-1]['_end'] == start:
+                        windows[-1]['_end'] = end
+                    else:
+                        windows.append(dict(_start=start, _end=end))
+        windows.sort(key=lambda w: w['_start'])
+        window_rows = []
+        for w in windows[:4]:
+            opens = datetime.fromisoformat(w['_start'])
+            w_maha, w_antar = _dasa_at(chart.get('dasha', []), opens)
+            window_rows.append(dict(
+                start=opens.astimezone(tz).date().isoformat(),
+                end=datetime.fromisoformat(w['_end']).astimezone(tz).date().isoformat(),
+                dasa=w_maha, bhukti=w_antar, dasa_support=connected(w_maha) or connected(w_antar)))
+        supported = [w for w in window_rows if w['dasa_support']]
+        best = supported[0] if supported else (window_rows[0] if window_rows else None)
 
-    child_sat = (h5_sign in sat_aspects) or (h5_lord_sign in sat_aspects) or (natal_jup_sign in sat_aspects)
-    child_jup = (h5_sign in jup_aspects) or (h5_lord_sign in jup_aspects) or (natal_jup_sign in jup_aspects)
-    child_active = child_sat and child_jup
+        score, status_en, status_ta = DT_STATUS[status]
+        lord_ta = PLANET_TAMIL[lord]
+        transit_en = (f"Transit Saturn in {SIGNS[sat_sign]} {'influences' if sat_now else 'does not influence'} your "
+                      f"{_ordinal(house)} house ({SIGNS[house_sign]}) or its lord {lord}; transit Jupiter in "
+                      f"{SIGNS[jup_sign]} {'influences it' if jup_now else 'does not'}.")
+        transit_ta = (f"கோச்சார சனி ({TAMIL_SIGNS[sat_sign]}) உங்கள் {house}-ஆம் பாவம் ({TAMIL_SIGNS[house_sign]}) அல்லது "
+                      f"அதன் அதிபதி {lord_ta} மீது {'தொடர்பு கொள்கிறார்' if sat_now else 'தொடர்பு கொள்ளவில்லை'}; "
+                      f"கோச்சார குரு ({TAMIL_SIGNS[jup_sign]}) {'தொடர்பு கொள்கிறார்' if jup_now else 'தொடர்பு கொள்ளவில்லை'}.")
+        if maha:
+            dasa_en = (f" The running {maha}{'–' + antar if antar else ''} dasa is "
+                       f"{'connected' if dasa_now else 'not connected'} with this matter.")
+            dasa_ta = (f" நடப்பு {PLANET_TAMIL[maha]}{'–' + PLANET_TAMIL[antar] if antar else ''} தசை இந்த விஷயத்துடன் "
+                       f"{'தொடர்பு கொண்டுள்ளது' if dasa_now else 'தொடர்பில்லை'}.")
+        else:
+            dasa_en = dasa_ta = ''
+        if best:
+            next_en = (f" Next {'dasa-supported ' if best['dasa_support'] else ''}double-transit window: "
+                       f"{best['start']} to {best['end']} ({best['dasa']}–{best['bhukti']} dasa).")
+            next_ta = (f" அடுத்த {'தசா ஆதரவுள்ள ' if best['dasa_support'] else ''}இரட்டைப் பெயர்ச்சி காலம்: "
+                       f"{best['start']} முதல் {best['end']} வரை ({PLANET_TAMIL[best['dasa']]}–{PLANET_TAMIL[best['bhukti']]} தசை).")
+        else:
+            next_en = " No double-transit window opens in the next 6 years."
+            next_ta = " அடுத்த 6 ஆண்டுகளில் இரட்டைப் பெயர்ச்சி காலம் இல்லை."
+        milestones.append({
+            'key': key,
+            'title_en': title_en,
+            'title_ta': title_ta,
+            'target_house': f"{_ordinal(house)} house ({SIGNS[house_sign]}) & its lord {lord}",
+            'target_house_ta': f"{house}-ஆம் பாவம் ({TAMIL_SIGNS[house_sign]}) & அதிபதி {lord_ta}",
+            'is_active': status == 'active',
+            'status': status,
+            'score': score,
+            'status_en': status_en,
+            'status_ta': status_ta,
+            'saturn_influence': sat_now,
+            'jupiter_influence': jup_now,
+            'dasa_support': dasa_now,
+            'windows': window_rows,
+            'desc_en': transit_en + dasa_en + next_en,
+            'desc_ta': transit_ta + dasa_ta + next_ta
+        })
 
-    # 4. Property, Vehicle & Relocation (H4, Lord 4, H12)
-    h4_sign = (asc_sign + 3) % 12
-    h4_lord = SIGN_LORDS[h4_sign]
-    h4_lord_sign = planets.get(h4_lord, {}).get('sign_index', h4_sign)
-    h12_sign = (asc_sign + 11) % 12
-
-    prop_sat = (h4_sign in sat_aspects) or (h4_lord_sign in sat_aspects) or (h12_sign in sat_aspects)
-    prop_jup = (h4_sign in jup_aspects) or (h4_lord_sign in jup_aspects) or (h12_sign in jup_aspects)
-    prop_active = prop_sat and prop_jup
-
-    milestones = [
-        {
-            'key': 'marriage',
-            'title_en': 'Marriage & Relationship Alignment',
-            'title_ta': 'திருமண பிராப்தி & தாம்பத்திய சேர்க்கை',
-            'target_house': '7th House & 7th Lord',
-            'target_house_ta': '7-ஆம் பாவம் & களத்திர காரகன்',
-            'is_active': marr_active,
-            'score': 88 if marr_active else (60 if (marr_sat or marr_jup) else 35),
-            'status_en': 'High-Probability Active Window' if marr_active else ('Emerging Alignment' if (marr_sat or marr_jup) else 'Neutral Period'),
-            'status_ta': 'தீவிர சாதகமான காலகட்டம்' if marr_active else ('வளர்ந்து வரும் காலகட்டம்' if (marr_sat or marr_jup) else 'அமைதியான காலம்'),
-            'desc_en': (
-                f"K.N. Rao's Double Transit Law is {'ACTIVATED' if marr_active else 'PARTIALLY ACTIVE'}. "
-                f"Transit Saturn in {SIGNS[sat_sign]} casts aspect on target houses, while Transit Jupiter in {SIGNS[jup_sign]} lends divine benefic sanction. "
-                f"{'Conditions are primed for alliance finalization, marriage ceremonies, or harmonious relationship deepening over the ongoing cycle.' if marr_active else 'Groundwork and prospective meetings are favored; formal commitment matures in upcoming phase.'}"
-            ),
-            'desc_ta': (
-                f"கே.என். ராவ் அவர்களின் இரட்டைப் பெயர்ச்சி விதி {'முழுமையாக இயங்குகிறது' if marr_active else 'பகுதியாக இயங்குகிறது'}. "
-                f"சனி பகவான் {TAMIL_SIGNS[sat_sign]} ராசியிலிருந்தும், குரு பகவான் {TAMIL_SIGNS[jup_sign]} ராசியிலிருந்தும் 7-ஆம் பாவகத்தை ஆசீர்வதிக்கின்றனர். "
-                f"{'திருமணம், புதிய கூட்டாண்மை மற்றும் இல்லற மகிழ்ச்சிக்குரிய அரிய சுப காலகட்டமாகும்.' if marr_active else 'திருமணப் பேச்சுவார்த்தைகள் மற்றும் நல்லுறவுக்கான தயாரிப்புகள் தொடங்கலாம்.'}"
-            )
-        },
-        {
-            'key': 'career',
-            'title_en': 'Career Elevation, Authority & Promotion',
-            'title_ta': 'தொழில் முன்னேற்றம், பதவி உயர்வு & அந்தஸ்து',
-            'target_house': '10th House & 10th Lord',
-            'target_house_ta': '10-ஆம் பாவம் & ஜீவன ஸ்தானம்',
-            'is_active': career_active,
-            'score': 92 if career_active else (65 if (career_sat or career_jup) else 40),
-            'status_en': 'High-Probability Active Window' if career_active else ('Emerging Alignment' if (career_sat or career_jup) else 'Neutral Period'),
-            'status_ta': 'தீவிர சாதகமான காலகட்டம்' if career_active else ('வளர்ந்து வரும் காலகட்டம்' if (career_sat or career_jup) else 'அமைதியான காலம்'),
-            'desc_en': (
-                f"Professional karma is energized. Transit Saturn (Labor & Permanence) and Transit Jupiter (Expansion & Honor) simultaneously touch your career axis. "
-                f"{'A major vocational breakthrough, leadership promotion, or lucrative business expansion is strongly signaled.' if career_active else 'Career foundations are strengthening steadily; focus on skill mastery and strategic networking.'}"
-            ),
-            'desc_ta': (
-                f"தொழில் ஜீவன ஸ்தானம் சுப பலம் பெறுகிறது. சனி (கடின உழைப்பு) மற்றும் குரு (வளர்ச்சி & கௌரவம்) இணைந்து உங்கள் 10-ஆம் பாவத்தை இயக்குகின்றனர். "
-                f"{'பதவி உயர்வு, புதிய பொறுப்புகள், நிறுவன வளர்ச்சி மற்றும் சமுதாய அந்தஸ்து கூடும் அற்புத காலம்.' if career_active else 'தொழில் முயற்சிகள் படிப்படியாக நல்ல முன்னேற்றத்தை நோக்கி நகரும்.'}"
-            )
-        },
-        {
-            'key': 'children',
-            'title_en': 'Progeny, Children & Intellectual Breakthroughs',
-            'title_ta': 'புத்திர பாக்கியம், கல்வி & படைப்பாற்றல்',
-            'target_house': '5th House & Jupiter',
-            'target_house_ta': '5-ஆம் பாவம் & குரு பகவான்',
-            'is_active': child_active,
-            'score': 85 if child_active else (55 if (child_sat or child_jup) else 30),
-            'status_en': 'High-Probability Active Window' if child_active else ('Emerging Alignment' if (child_sat or child_jup) else 'Neutral Period'),
-            'status_ta': 'தீவிர சாதகமான காலகட்டம்' if child_active else ('வளர்ந்து வரும் காலகட்டம்' if (child_sat or child_jup) else 'அமைதியான காலம்'),
-            'desc_en': (
-                f"Purva Punya and 5th house significations are activated. "
-                f"{'Highly fertile and auspicious window for conception, birth of children, competitive examination triumph, and creative breakthroughs.' if child_active else 'Scholarly intellectual pursuits and artistic cultivation yield steady satisfaction.'}"
-            ),
-            'desc_ta': (
-                f"பூர்வ புண்ணிய ஸ்தானம் குரு மற்றும் சனியின் பார்வையால் புத்துயிர் பெறுகிறது. "
-                f"{'குழந்தைப் பேறு, குழந்தைகளின் கல்வி மேன்மை, போட்டித் தேர்வுகளில் வெற்றி பெற அருமையான காலம்.' if child_active else 'அறிவுசார் பணிகள் மற்றும் புதிய பயிற்சிகளுக்கு நற்பலன் தரும் காலம்.'}"
-            )
-        },
-        {
-            'key': 'property',
-            'title_en': 'Real Estate, Vehicle & Relocation Timing',
-            'title_ta': 'பூமி, வீடு, வாகன யோகம் & இடமாற்றம்',
-            'target_house': '4th House & 4th Lord',
-            'target_house_ta': '4-ஆம் பாவம் & சுக ஸ்தானம்',
-            'is_active': prop_active,
-            'score': 84 if prop_active else (58 if (prop_sat or prop_jup) else 35),
-            'status_en': 'High-Probability Active Window' if prop_active else ('Emerging Alignment' if (prop_sat or prop_jup) else 'Neutral Period'),
-            'status_ta': 'தீவிர சாதகமான காலகட்டம்' if prop_active else ('வளர்ந்து வரும் காலகட்டம்' if (prop_sat or prop_jup) else 'அமைதியான காலம்'),
-            'desc_en': (
-                f"Fixed assets and domestic foundation are under transit focus. "
-                f"{'Strong probability of acquiring real estate, upgrading personal vehicles, home renovation, or favorable long-distance relocation.' if prop_active else 'Property investments require careful document verification and prudent budget planning.'}"
-            ),
-            'desc_ta': (
-                f"நிலம், மனை, வீடு மற்றும் வாகன சுகத்திற்கான 4-ஆம் பாவம் தூண்டப்படுகிறது. "
-                f"{'புதிய சொத்து வாங்குதல், வீடு புதுப்பித்தல், புது வாகனம் அமைதல் அல்லது அனுகூலமான இடமாற்றம் ஏற்படும் காலம்.' if prop_active else 'சொத்து விவகாரங்களில் ஆவணங்களை சரிபார்த்து நிதானமாக முடிவெடுப்பது நல்லது.'}"
-            )
+    def position(name, sign, aspects):
+        lon = transit[name]['longitude']
+        deg = lon % 30
+        return {
+            'sign': SIGNS[sign],
+            'tamil_sign': TAMIL_SIGNS[sign],
+            'degree_str': f"{int(deg)}° {int((deg * 60) % 60):02d}′",
+            'aspects_houses': sorted(((sign + a) - asc_sign) % 12 + 1 for a in aspects)
         }
-    ]
 
     return {
-        'calculation_date_utc': chart['gochara']['computed_at'].replace('T', ' ').replace('+00:00', ' UTC'),
-        'transit_saturn': {
-            'sign': SIGNS[sat_sign],
-            'tamil_sign': TAMIL_SIGNS[sat_sign],
-            'degree_str': f"{int(sat_deg)}° {int((sat_deg*60)%60):02d}′",
-            'aspects_houses': sat_aspects
-        },
-        'transit_jupiter': {
-            'sign': SIGNS[jup_sign],
-            'tamil_sign': TAMIL_SIGNS[jup_sign],
-            'degree_str': f"{int(jup_deg)}° {int((jup_deg*60)%60):02d}′",
-            'aspects_houses': jup_aspects
-        },
+        'calculation_date_utc': gochara['computed_at'].replace('T', ' ').replace('+00:00', ' UTC'),
+        'transit_saturn': position('Saturn', sat_sign, SATURN_ASPECTS),
+        'transit_jupiter': position('Jupiter', jup_sign, JUPITER_ASPECTS),
         'milestones': milestones
     }
 
 # 10. D-10 Dasamsa & Career Vocation Aptitude Engine
+EXALTATION_SIGN = {'Sun': 0, 'Moon': 1, 'Mars': 9, 'Mercury': 5, 'Jupiter': 3, 'Venus': 11, 'Saturn': 6}
+# Means of livelihood of the Karmajeeva graha (Brihat Jataka 10.2-4, in present-day terms)
+KARMAJEEVA = {
+    'Sun': ('government and administration, medicine and pharmacy, gold, textiles and work under authority',
+            'அரசு மற்றும் நிர்வாகம், மருத்துவம் மற்றும் மருந்துகள், தங்கம், ஜவுளி, அதிகார அமைப்புகளின் கீழ் பணி'),
+    'Moon': ('agriculture, water and marine produce, dairy, hospitality, nursing and public-facing work',
+             'விவசாயம், நீர் மற்றும் கடல் சார்ந்த பொருட்கள், பால் பண்ணை, விருந்தோம்பல், செவிலியம் மற்றும் மக்கள் தொடர்புப் பணிகள்'),
+    'Mars': ('engineering, metals and minerals, fire and energy, defence and police, surgery and real estate',
+             'பொறியியல், உலோகம் மற்றும் கனிமங்கள், நெருப்பு மற்றும் எரிசக்தி, ராணுவம் மற்றும் காவல்துறை, அறுவை சிகிச்சை, நிலம்-மனை'),
+    'Mercury': ('writing, accounting, commerce, communication and information technology, and skilled crafts',
+                'எழுத்து, கணக்கியல், வணிகம், தகவல் தொடர்பு மற்றும் தகவல் தொழில்நுட்பம், கைத்திறன் தொழில்கள்'),
+    'Jupiter': ('teaching, law, banking and finance, religion and advisory roles',
+                'ஆசிரியப் பணி, சட்டம், வங்கி மற்றும் நிதி, ஆன்மீகம், ஆலோசனைப் பணிகள்'),
+    'Venus': ('arts and entertainment, fashion, jewellery and gems, luxury goods and hospitality',
+              'கலை மற்றும் பொழுதுபோக்கு, ஆடை அலங்காரம், நகை மற்றும் ரத்தினங்கள், ஆடம்பரப் பொருட்கள், விருந்தோம்பல்'),
+    'Saturn': ('industry and manufacturing, mining and oil, labour-intensive enterprises, public works and service organisations',
+               'தொழிற்சாலை மற்றும் உற்பத்தி, சுரங்கம் மற்றும் எண்ணெய், உழைப்பு சார்ந்த நிறுவனங்கள், பொதுப்பணி மற்றும் சேவை அமைப்புகள்')
+}
+# Through whom wealth comes when a planet occupies the 10th (Brihat Jataka 10.1)
+KARMA_SOURCE = {'Sun': ('father', 'தந்தை'), 'Moon': ('mother', 'தாய்'), 'Mars': ('rivals and competition', 'போட்டியாளர்கள்'),
+                'Mercury': ('friends', 'நண்பர்கள்'), 'Jupiter': ('siblings', 'உடன்பிறந்தோர்'),
+                'Venus': ('spouse and women', 'வாழ்க்கைத் துணை மற்றும் பெண்கள்'), 'Saturn': ('servants and workers', 'பணியாளர்கள்')}
+
 def calculate_career_vocation_d10(chart):
     planets = chart['planets']
     vargas = chart.get('vargas', {})
@@ -1153,8 +1204,7 @@ def calculate_career_vocation_d10(chart):
             'title_ta': 'அரசு, பொதுத்துறை & தலைமை நிர்வாகம்',
             'planets': ['Sun', 'Mars', 'Jupiter'],
             'sectors_en': 'Government services, Public Policy, Corporate C-Suite, Defence, Judiciary',
-            'sectors_ta': 'அரசுப் பணிகள், ஐ.ஏ.எஸ் / ஐ.பி.எஸ், தலைமை அதிகாரி, பாதுகாப்பு, நீதித்துறை',
-            'base_score': 60
+            'sectors_ta': 'அரசுப் பணிகள், ஐ.ஏ.எஸ் / ஐ.பி.எஸ், தலைமை அதிகாரி, பாதுகாப்பு, நீதித்துறை'
         },
         {
             'id': 'technology',
@@ -1162,8 +1212,7 @@ def calculate_career_vocation_d10(chart):
             'title_ta': 'பொறியியல், மென்பொருள் & நவீன தொழில்நுட்பம்',
             'planets': ['Mars', 'Rahu', 'Mercury', 'Saturn'],
             'sectors_en': 'Software Engineering, AI/Data Science, Hardware, Civil Construction, Aerospace',
-            'sectors_ta': 'கணினி மென்பொருள், செயற்கை நுண்ணறிவு, கட்டடப் பொறியியல், விண்வெளி, மின்னணு',
-            'base_score': 55
+            'sectors_ta': 'கணினி மென்பொருள், செயற்கை நுண்ணறிவு, கட்டடப் பொறியியல், விண்வெளி, மின்னணு'
         },
         {
             'id': 'commerce',
@@ -1171,8 +1220,7 @@ def calculate_career_vocation_d10(chart):
             'title_ta': 'வணிகம், வங்கி, முதலீடு & நிதித்துறை',
             'planets': ['Mercury', 'Venus', 'Jupiter'],
             'sectors_en': 'Investment Banking, Wealth Management, FinTech, Retail Empire, Corporate Trade',
-            'sectors_ta': 'வங்கி, நிதி மேலாண்மை, பங்குச் சந்தை, ஏற்றுமதி இறக்குமதி, பெரு வர்த்தகம்',
-            'base_score': 58
+            'sectors_ta': 'வங்கி, நிதி மேலாண்மை, பங்குச் சந்தை, ஏற்றுமதி இறக்குமதி, பெரு வர்த்தகம்'
         },
         {
             'id': 'medicine',
@@ -1180,8 +1228,7 @@ def calculate_career_vocation_d10(chart):
             'title_ta': 'மருத்துவம், அறுவை சிகிச்சை & மக்கள் நல்வாழ்வு',
             'planets': ['Sun', 'Mars', 'Moon', 'Jupiter', 'Ketu'],
             'sectors_en': 'Physician, Surgery, Biotechnology, Pharmaceuticals, Holistic Wellness, Nursing',
-            'sectors_ta': 'மருத்துவர், அறுவை சிகிச்சை, மருந்தியல், உயிரி தொழில்நுட்பம், இயற்கை மருத்துவம்',
-            'base_score': 50
+            'sectors_ta': 'மருத்துவர், அறுவை சிகிச்சை, மருந்தியல், உயிரி தொழில்நுட்பம், இயற்கை மருத்துவம்'
         },
         {
             'id': 'creative',
@@ -1189,33 +1236,59 @@ def calculate_career_vocation_d10(chart):
             'title_ta': 'சட்டம், நீதி, கல்வி, கலை & ஊடகம்',
             'planets': ['Jupiter', 'Venus', 'Mercury', 'Moon'],
             'sectors_en': 'Legal Counsel, Higher Education, Film & Media, Journalism, Architecture, Creative Direction',
-            'sectors_ta': 'சட்ட ஆலோசகர், பேராசிரியர், திரைப்படம், இதழியல், கட்டடக்கலை, படைப்புக் கலைகள்',
-            'base_score': 52
+            'sectors_ta': 'சட்ட ஆலோசகர், பேராசிரியர், திரைப்படம், இதழியல், கட்டடக்கலை, படைப்புக் கலைகள்'
         }
     ]
 
+    # Karmajeeva (Brihat Jataka ch. 10): from the strongest of Lagna, Moon and Sun, the lord of
+    # the Navamsa held by the 10th lord shows the means of livelihood; planets in the 10th from
+    # them show through whom wealth comes.
+    shadbala = chart.get('shadbala', {})
+    strength = lambda p: shadbala.get(p, {}).get('ratio', 0)
+    references = [('Lagna', 'லக்னம்', asc_sign, strength(SIGN_LORDS[asc_sign])),
+                  ('Moon', 'சந்திரன்', planets['Moon']['sign_index'], strength('Moon')),
+                  ('Sun', 'சூரியன்', planets['Sun']['sign_index'], strength('Sun'))]
+    ref_en, ref_ta, ref_sign, _ = max(references, key=lambda r: r[3])
+    karma_sign = (ref_sign + 9) % 12
+    karma_lord = SIGN_LORDS[karma_sign]
+    karma_navamsa = planets[karma_lord]['vargas']['D9']
+    karmajeeva = SIGN_LORDS[karma_navamsa]
+    tenth_occupants = sorted({p for p in KARMAJEEVA
+                              for _, _, sign, _ in references if planets[p]['sign_index'] == (sign + 9) % 12})
+
+    d10_asc = d10.get('Ascendant', planets['Ascendant']['vargas']['D10'])
+
+    def d10_standing(p_name):
+        sign = planets[p_name]['vargas']['D10']
+        if p_name in EXALTATION_SIGN and sign == EXALTATION_SIGN[p_name]:
+            return 2, 'exalted', 'உச்சம்'
+        if SIGN_LORDS[sign] == p_name:
+            return 2, 'own sign', 'ஆட்சி'
+        if p_name in EXALTATION_SIGN and sign == (EXALTATION_SIGN[p_name] + 6) % 12:
+            return -1, 'debilitated', 'நீசம்'
+        return 0, None, None
+
+    def contribution(p_name):
+        """How well a graha is placed for career work, roughly -10 to +20."""
+        value = 3 * DIGNITY_SCORE.get(planets[p_name].get('dignity', 'Neutral'), 0) + 3 * d10_standing(p_name)[0]
+        if (planets[p_name]['vargas']['D10'] - d10_asc) % 12 in (0, 3, 6, 9):
+            value += 3
+        if strength(p_name) >= 1:
+            value += 2
+        if p_name in tenth_occupants:
+            value += 5
+        return value
+
     scored = []
     for arch in archetypes:
-        score = arch['base_score']
-        for p_name in arch['planets']:
-            p_data = planets.get(p_name)
-            if not p_data: continue
-            dig = p_data.get('dignity', 'Neutral')
-            if 'Exalted' in dig or 'Moolatrikona' in dig or 'Own' in dig:
-                score += 7
-            elif 'Friend' in dig:
-                score += 4
-            if p_data['house'] in (1, 4, 7, 10, 5, 9):
-                score += 5
-            if p_name in d10:
-                d10_sign = d10[p_name]
-                if d10_sign in (0, 3, 4, 6, 8, 9, 10):
-                    score += 4
-
-        if h10_lord in arch['planets']:
-            score += 10
-
-        score = min(score, 98)
+        members = [p for p in arch['planets'] if p in planets]
+        score = 50 + 1.5 * sum(contribution(p) for p in members) / len(members)
+        if karmajeeva in members:
+            score += 15
+        if h10_lord in members:
+            score += 8
+        score = round(score)
+        score = max(30, min(score, 98))
         scored.append({
             'id': arch['id'],
             'title_en': arch['title_en'],
@@ -1230,15 +1303,28 @@ def calculate_career_vocation_d10(chart):
     scored.sort(key=lambda x: x['score'], reverse=True)
     top_arch = scored[0]
 
+    kj_en, kj_ta = KARMAJEEVA[karmajeeva]
+    sources_en = ', '.join(f"{p} ({KARMA_SOURCE[p][0]})" for p in tenth_occupants)
+    sources_ta = ', '.join(f"{PLANET_TAMIL[p]} ({KARMA_SOURCE[p][1]})" for p in tenth_occupants)
+    lord_d10_score, lord_d10_en, lord_d10_ta = d10_standing(h10_lord)
+    d10_house = (planets[h10_lord]['vargas']['D10'] - d10_asc) % 12 + 1
     narrative_en = (
-        f"Your D-1 (Rasi) and D-10 (Dasamsa) charts indicate supreme aptitude for {top_arch['title_en']} ({top_arch['score']}% fit). "
-        f"Governed on the professional axis by 10th Lord {h10_lord} in alignment with powerful karakas. "
-        f"Key recommended industry sectors include: {top_arch['key_sectors_en']}."
+        f"Karmajeeva: the {ref_en} is the strongest of Lagna, Moon and Sun; the 10th from it is {SIGNS[karma_sign]}, whose lord "
+        f"{karma_lord} occupies the {SIGNS[karma_navamsa]} Navamsa, ruled by {karmajeeva}. {karmajeeva} points to a livelihood "
+        f"through {kj_en}. "
+        + (f"Planets in the 10th from Lagna, Moon or Sun show earnings helped by {sources_en}. " if tenth_occupants else '')
+        + f"In the Dasamsa (D-10), your 10th lord {h10_lord} sits in the {_ordinal(d10_house)} house"
+        + (f", {lord_d10_en}" if lord_d10_en else '') + ". "
+        + f"Best-fitting field: {top_arch['title_en']} ({top_arch['score']}%), for example {top_arch['key_sectors_en']}."
     )
     narrative_ta = (
-        f"உங்கள் ராசி (D-1) மற்றும் தசாம்சம் (D-10) அமைப்பின்படி, {top_arch['title_ta']} ({top_arch['score']}% பொருத்தம்) முதன்மை யோகமாக அமைகிறது. "
-        f"10-ஆம் அதிபதியான {PLANET_TAMIL[h10_lord]} மற்றும் சாதகமான கிரக இணைவுகள் உங்களை இத்துறையில் உயர்த்தும். "
-        f"பரிந்துரைக்கப்படும் முக்கிய துறைகள்: {top_arch['key_sectors_ta']}."
+        f"கர்மஜீவ விதி: லக்னம், சந்திரன், சூரியன் ஆகியவற்றில் {ref_ta} அதிக பலம் பெற்றுள்ளது; அதிலிருந்து 10-ஆம் ராசி "
+        f"{TAMIL_SIGNS[karma_sign]}, அதன் அதிபதி {PLANET_TAMIL[karma_lord]} {TAMIL_SIGNS[karma_navamsa]} நவாம்சத்தில் உள்ளார்; "
+        f"அந்த நவாம்ச அதிபதி {PLANET_TAMIL[karmajeeva]}. ஆகவே {kj_ta} வழியாக ஜீவனம் அமையும். "
+        + (f"லக்னம், சந்திரன் அல்லது சூரியனுக்கு 10-இல் உள்ள கிரகங்களால் {sources_ta} வழியாக வருமானத்திற்கு உதவி கிட்டும். " if tenth_occupants else '')
+        + f"தசாம்சத்தில் (D-10) உங்கள் 10-ஆம் அதிபதி {PLANET_TAMIL[h10_lord]} {d10_house}-ஆம் பாவத்தில்"
+        + (f" {lord_d10_ta} பெற்று" if lord_d10_ta else '') + " உள்ளார். "
+        + f"மிகப் பொருத்தமான துறை: {top_arch['title_ta']} ({top_arch['score']}%), உதாரணமாக {top_arch['key_sectors_ta']}."
     )
 
     return {
@@ -1247,11 +1333,37 @@ def calculate_career_vocation_d10(chart):
         'tenth_lord': h10_lord,
         'tenth_sign': SIGNS[h10_sign],
         'tamil_tenth_sign': TAMIL_SIGNS[h10_sign],
+        'karmajeeva': {
+            'reference': ref_en, 'reference_ta': ref_ta,
+            'tenth_sign': SIGNS[karma_sign], 'tenth_sign_ta': TAMIL_SIGNS[karma_sign],
+            'tenth_lord': karma_lord, 'navamsa_sign': SIGNS[karma_navamsa], 'navamsa_sign_ta': TAMIL_SIGNS[karma_navamsa],
+            'planet': karmajeeva, 'planet_ta': PLANET_TAMIL[karmajeeva],
+            'livelihood_en': kj_en, 'livelihood_ta': kj_ta,
+            'tenth_occupants': tenth_occupants
+        },
+        'd10': {'lagna': SIGNS[d10_asc], 'lagna_ta': TAMIL_SIGNS[d10_asc], 'tenth_lord_house': d10_house,
+                'tenth_lord_dignity': lord_d10_en, 'tenth_lord_dignity_ta': lord_d10_ta},
         'narrative_en': narrative_en,
         'narrative_ta': narrative_ta
     }
 
 # 11. Ayur-Jyotish & Tridosha Medical Wellness
+# (Vata, Pitta, Kapha) shares: grahas per BPHS ch. 3 (Rahu like Saturn, Ketu like Mars);
+# signs by element, earth signs mixed Vata-Kapha
+GRAHA_DOSHA = {'Sun': (0, 1, 0), 'Moon': (0.5, 0, 0.5), 'Mars': (0, 1, 0), 'Mercury': (1 / 3, 1 / 3, 1 / 3),
+               'Jupiter': (0, 0, 1), 'Venus': (0.5, 0, 0.5), 'Saturn': (1, 0, 0), 'Rahu': (1, 0, 0), 'Ketu': (0, 1, 0)}
+SIGN_DOSHA = [((0, 1, 0), (0.5, 0, 0.5), (1, 0, 0), (0, 0, 1))[i % 4] for i in range(12)]
+DOSHA_NAMES = (('Vata', 'வாதம்'), ('Pitta', 'பித்தம்'), ('Kapha', 'கபம்'))
+
+
+def _dosha_label(shares):
+    """Name of the dominant dosha(s) in a (vata, pitta, kapha) share."""
+    top = max(shares)
+    leading = [i for i in range(3) if shares[i] == top]
+    if len(leading) == 3:
+        return 'Tridosha', 'திரிதோஷம்'
+    return '-'.join(DOSHA_NAMES[i][0] for i in leading), '-'.join(DOSHA_NAMES[i][1] for i in leading)
+
 def calculate_ayur_jyotish(chart):
     planets = chart['planets']
     asc = planets['Ascendant']
@@ -1261,45 +1373,26 @@ def calculate_ayur_jyotish(chart):
     h6_sign = (asc_sign + 5) % 12
     h6_lord = SIGN_LORDS[h6_sign]
 
-    vata_pts = 5.0
-    pitta_pts = 5.0
-    kapha_pts = 5.0
-
-    # Ascendant sign element
-    if asc_sign in (0, 4, 8): pitta_pts += 12
-    elif asc_sign in (2, 6, 10): vata_pts += 12
-    elif asc_sign in (3, 7, 11): kapha_pts += 12
-    else: kapha_pts += 6; vata_pts += 6
-
-    # Moon sign element
-    if moon_sign in (0, 4, 8): pitta_pts += 9
-    elif moon_sign in (2, 6, 10): vata_pts += 9
-    elif moon_sign in (3, 7, 11): kapha_pts += 10
-    else: kapha_pts += 5; vata_pts += 5
-
-    # Sun sign element
-    if sun_sign in (0, 4, 8): pitta_pts += 10
-    elif sun_sign in (2, 6, 10): vata_pts += 7
-    elif sun_sign in (3, 7, 11): kapha_pts += 7
-    else: pitta_pts += 4; vata_pts += 4
-
-    # Planetary natural doshas
-    vata_pts += 10 if not planets.get('Saturn', {}).get('combust') else 6
-    vata_pts += 8 # Rahu
-    vata_pts += 6 # Mercury
-
-    pitta_pts += 10 # Mars
-    pitta_pts += 10 # Sun
-    pitta_pts += 8  # Ketu
-
-    kapha_pts += 10 # Jupiter
-    kapha_pts += 8  # Venus
-    kapha_pts += 8  # Moon
-
-    # 6th lord influence
-    if h6_lord in ('Mars', 'Sun'): pitta_pts += 6
-    elif h6_lord in ('Saturn', 'Mercury'): vata_pts += 6
-    elif h6_lord in ('Jupiter', 'Venus', 'Moon'): kapha_pts += 6
+    # Prakriti from the Lagna, its lord, the Moon and the grahas on the Lagna (weights as in
+    # Ayurvedic astrology); graha doshas per BPHS ch. 3, sign doshas by element.
+    waxing = (planets['Moon']['longitude'] - planets['Sun']['longitude']) % 360 < 180
+    graha_dosha = dict(GRAHA_DOSHA, Moon=(0.3, 0, 0.7) if waxing else (0.7, 0, 0.3))
+    lagna_lord = SIGN_LORDS[asc_sign]
+    contributions = [(3, SIGN_DOSHA[asc_sign], f"Lagna in {SIGNS[asc_sign]}", f"லக்னம் {TAMIL_SIGNS[asc_sign]}"),
+                     (3, graha_dosha[lagna_lord], f"Lagna lord {lagna_lord}", f"லக்னாதிபதி {PLANET_TAMIL[lagna_lord]}"),
+                     (2, SIGN_DOSHA[moon_sign], f"Moon in {SIGNS[moon_sign]}", f"சந்திரன் {TAMIL_SIGNS[moon_sign]} ராசியில்"),
+                     (1, graha_dosha['Moon'], f"{'Waxing' if waxing else 'Waning'} Moon", 'வளர்பிறைச் சந்திரன்' if waxing else 'தேய்பிறைச் சந்திரன்'),
+                     (1, SIGN_DOSHA[sun_sign], f"Sun in {SIGNS[sun_sign]}", f"சூரியன் {TAMIL_SIGNS[sun_sign]} ராசியில்")]
+    for name in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
+        if planets[name]['house'] == 1:
+            contributions.append((2, graha_dosha[name], f"{name} in the Lagna", f"லக்னத்தில் {PLANET_TAMIL[name]}"))
+        elif 1 in planets[name].get('aspects_cast', []):
+            contributions.append((1, graha_dosha[name], f"{name} aspecting the Lagna", f"லக்னத்தைப் பார்க்கும் {PLANET_TAMIL[name]}"))
+    vata_pts = sum(w * d[0] for w, d, _, _ in contributions)
+    pitta_pts = sum(w * d[1] for w, d, _, _ in contributions)
+    kapha_pts = sum(w * d[2] for w, d, _, _ in contributions)
+    factors = [dict(en=f"{en}: {_dosha_label(d)[0]}", ta=f"{ta}: {_dosha_label(d)[1]}", weight=w)
+               for w, d, en, ta in contributions]
 
     total = vata_pts + pitta_pts + kapha_pts
     v_pct = int(round(vata_pts / total * 100))
@@ -1327,6 +1420,19 @@ def calculate_ayur_jyotish(chart):
     }
 
     vuln_en, vuln_ta = body_map.get(SIGNS[h6_sign], ('Metabolic balance and vitality', 'உடல் நலம் மற்றும் சீரான இயக்கம்'))
+    # Grahas in the 6th (disease) and 8th (chronic ailments) and where the 6th lord sits
+    health_watch = []
+    for name in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
+        house = planets[name]['house']
+        if house in (6, 8):
+            label_en, label_ta = _dosha_label(GRAHA_DOSHA[name])
+            health_watch.append(dict(
+                en=f"{name} in the {_ordinal(house)} house: watch {label_en} imbalance and {body_map[SIGNS[planets[name]['sign_index']]][0].lower()}.",
+                ta=f"{house}-ஆம் பாவத்தில் {PLANET_TAMIL[name]}: {label_ta} சமநிலையிலும் {body_map[SIGNS[planets[name]['sign_index']]][1]} பகுதியிலும் கவனம் தேவை."))
+    h6_lord_house = planets[h6_lord]['house']
+    health_watch.append(dict(
+        en=f"The 6th lord {h6_lord} sits in the {_ordinal(h6_lord_house)} house, in {planets[h6_lord]['sign']}.",
+        ta=f"6-ஆம் அதிபதி {PLANET_TAMIL[h6_lord]} {h6_lord_house}-ஆம் பாவத்தில், {planets[h6_lord]['tamil']} ராசியில் உள்ளார்."))
 
     lifestyle_en = (
         f"Your constitution is characterized by {prakriti_en} (Vata: {v_pct}%, Pitta: {p_pct}%, Kapha: {k_pct}%). "
@@ -1354,7 +1460,9 @@ def calculate_ayur_jyotish(chart):
         'anatomical_vulnerabilities_en': vuln_en,
         'anatomical_vulnerabilities_ta': vuln_ta,
         'lifestyle_guidance_en': lifestyle_en,
-        'lifestyle_guidance_ta': lifestyle_ta
+        'lifestyle_guidance_ta': lifestyle_ta,
+        'factors': factors,
+        'health_watch': health_watch
     }
 
 # 12. Ashtakavarga Kakshya Precision Transit System
@@ -1368,21 +1476,21 @@ def calculate_kakshya_transits(chart):
     jup_sign = int(jup_lon // 30)
     jup_deg = jup_lon % 30
 
-    bav = chart.get('ashtakavarga', {}).get('BAV', {})
+    bav = chart['ashtakavarga']['BAV']
+    prastara = chart['ashtakavarga']['prastara']
     kakshya_deg_step = 30.0 / 8.0 # 3.75 deg per Kakshya
 
     def build_kakshya_table(p_name, sign_idx, current_deg):
+        # A kakshya bears fruit only if its lord contributed a bindu to this sign in the
+        # transiting planet's own Ashtakavarga (the prastara table).
         current_k_idx = min(int(current_deg / kakshya_deg_step), 7)
         rows = []
-        p_bav = bav.get(p_name, [0]*12)
-        sign_pts = p_bav[sign_idx] if len(p_bav) > sign_idx else 4
-
         for k in range(8):
             start_d = k * kakshya_deg_step
             end_d = (k + 1) * kakshya_deg_step
             k_lord = KAKSHYA_LORDS[k]
             k_lord_ta = KAKSHYA_LORDS_TA[k]
-            has_bindu = (k < sign_pts)
+            has_bindu = bool(prastara[p_name][k_lord][sign_idx])
             is_current = (k == current_k_idx)
 
             rows.append({
@@ -1410,8 +1518,9 @@ def calculate_kakshya_transits(chart):
             'current_degree': f"{int(sat_deg)}°{int((sat_deg*60)%60):02d}′",
             'current_kakshya': sat_curr,
             'kakshya_timeline': sat_table,
-            'summary_en': f"Saturn transits Kakshya {sat_k_idx + 1} ({sat_curr['lord']}) in {SIGNS[sat_sign]}. Status: {sat_curr['status_en']}.",
-            'summary_ta': f"சனி பகவான் {TAMIL_SIGNS[sat_sign]} ராசியில் {sat_k_idx + 1}-வது கக்ஷியாவில் ({sat_curr['lord_ta']}) சஞ்சரிக்கிறார். பலன்: {sat_curr['status_ta']}."
+            'bindus': bav['Saturn'][sat_sign],
+            'summary_en': f"Saturn transits Kakshya {sat_k_idx + 1} ({sat_curr['lord']}) of {SIGNS[sat_sign]}, where it holds {bav['Saturn'][sat_sign]} of 8 bindus. Status: {sat_curr['status_en']}.",
+            'summary_ta': f"சனி பகவான் {TAMIL_SIGNS[sat_sign]} ராசியின் {sat_k_idx + 1}-வது கக்ஷ்யையில் ({sat_curr['lord_ta']}) சஞ்சரிக்கிறார்; இந்த ராசியில் சனிக்கு 8-ல் {bav['Saturn'][sat_sign]} பரல்கள் உள்ளன. பலன்: {sat_curr['status_ta']}."
         },
         'jupiter': {
             'sign': SIGNS[jup_sign],
@@ -1419,8 +1528,9 @@ def calculate_kakshya_transits(chart):
             'current_degree': f"{int(jup_deg)}°{int((jup_deg*60)%60):02d}′",
             'current_kakshya': jup_curr,
             'kakshya_timeline': jup_table,
-            'summary_en': f"Jupiter transits Kakshya {jup_k_idx + 1} ({jup_curr['lord']}) in {SIGNS[jup_sign]}. Status: {jup_curr['status_en']}.",
-            'summary_ta': f"குரு பகவான் {TAMIL_SIGNS[jup_sign]} ராசியில் {jup_k_idx + 1}-வது கக்ஷியாவில் ({jup_curr['lord_ta']}) சஞ்சரிக்கிறார். பலன்: {jup_curr['status_ta']}."
+            'bindus': bav['Jupiter'][jup_sign],
+            'summary_en': f"Jupiter transits Kakshya {jup_k_idx + 1} ({jup_curr['lord']}) of {SIGNS[jup_sign]}, where it holds {bav['Jupiter'][jup_sign]} of 8 bindus. Status: {jup_curr['status_en']}.",
+            'summary_ta': f"குரு பகவான் {TAMIL_SIGNS[jup_sign]} ராசியின் {jup_k_idx + 1}-வது கக்ஷ்யையில் ({jup_curr['lord_ta']}) சஞ்சரிக்கிறார்; இந்த ராசியில் குருவுக்கு 8-ல் {bav['Jupiter'][jup_sign]} பரல்கள் உள்ளன. பலன்: {jup_curr['status_ta']}."
         }
     }
 
@@ -1449,27 +1559,23 @@ TAMIL_STARS = [
 
 
 def get_kp_sublord(lon):
-    lon = lon % 360
-    sign_idx = int(lon // 30)
-    sign_lord = SIGN_LORDS[sign_idx]
-    
-    star_span = 360.0 / 27.0
-    star_idx = int(lon // star_span)
-    star_name = STARS[star_idx % 27]
+    """Sign, star and KP sub of a longitude. Worked in arc-minutes, where a nakshatra is
+    exactly 800', so boundaries such as 280° (the start of Shravana) fall the right way."""
+    minutes = round((lon % 360) * 60, 6)
+    sign_idx = int(minutes // 1800) % 12
+    star_idx = int(minutes // 800) % 27
     star_lord = DASA_LORDS[star_idx % 9]
-    
-    arc_in_star = lon - (star_idx * star_span)
-    start_lord_idx = DASA_LORDS.index(star_lord)
+    offset = minutes - (minutes // 800) * 800
+    start = DASA_LORDS.index(star_lord)
+    sub_lord = DASA_LORDS[(start + 8) % 9]
     accum = 0.0
-    sub_lord = star_lord
     for i in range(9):
-        curr_lord = DASA_LORDS[(start_lord_idx + i) % 9]
-        sub_span = (star_span * VIMSHOTTARI_YEARS[curr_lord]) / 120.0
-        if accum <= arc_in_star < (accum + sub_span + 1e-9):
-            sub_lord = curr_lord
+        lord = DASA_LORDS[(start + i) % 9]
+        accum += 800 * VIMSHOTTARI_YEARS[lord] / 120
+        if offset < accum:
+            sub_lord = lord
             break
-        accum += sub_span
-    return sign_idx, SIGNS[sign_idx], TAMIL_SIGNS[sign_idx], sign_lord, star_name, star_lord, sub_lord
+    return sign_idx, SIGNS[sign_idx], TAMIL_SIGNS[sign_idx], SIGN_LORDS[sign_idx], STARS[star_idx], star_lord, sub_lord
 
 # 1. SHADBALA ENGINE & PREDICTIONS
 SHADBALA_READINGS = {
@@ -1618,125 +1724,226 @@ def calculate_shadbala(chart):
     }
 
 # 2. KRISHNAMURTI PADDHATI (KP SYSTEM)
+# Cusps judged by their sub-lord, with the houses that promise each matter and the houses
+# (12th from them) that negate it (K.S. Krishnamurti, KP Readers).
+KP_MATTERS = [
+    (1, 'Health & Personality', 'உடல் நலம் & சுய ஆளுமை', (1, 5, 11), (6, 8, 12)),
+    (2, 'Wealth & Family', 'தனம் & குடும்பம்', (2, 6, 11), (5, 8, 12)),
+    (5, 'Children & Intellect', 'புத்திர பாக்கியம் & புத்தி', (2, 5, 11), (1, 4, 10)),
+    (7, 'Marriage & Partnership', 'திருமணம் & கூட்டாண்மை', (2, 7, 11), (1, 6, 10)),
+    (10, 'Profession & Status', 'தொழில் & அந்தஸ்து', (2, 6, 10, 11), (1, 5, 9)),
+    (11, 'Gains & Fulfilment of Desires', 'லாபம் & விருப்பங்கள் நிறைவேறுதல்', (2, 6, 11), (5, 8, 12))
+]
+KP_VERDICTS = {
+    'promised': ('Promised', 'உறுதி'),
+    'mixed': ('Promised with delays', 'தாமதத்துடன் உறுதி'),
+    'weak': ('Weakly supported', 'பலம் குறைவு'),
+    'denied': ('Obstructed', 'தடை'),
+    'neutral': ('Not clearly indicated', 'தெளிவில்லை')
+}
+
+
+def _kp_house(lon, cusps):
+    """Placidus bhava (1-12) holding a longitude: from its cusp up to the next cusp."""
+    for n in range(12):
+        if (lon - cusps[n]) % 360 < (cusps[(n + 1) % 12] - cusps[n]) % 360:
+            return n + 1
+    return 1
+
+
+def _houses_en(houses):
+    hs = sorted(houses)
+    if len(hs) < 2:
+        return f"house {hs[0]}" if hs else 'no house'
+    return 'houses ' + ', '.join(map(str, hs[:-1])) + f' and {hs[-1]}'
+
+
+def _houses_ta(houses, case):
+    """Tamil house list in the accusative ('acc', before a verb) or genitive ('gen')."""
+    hs = sorted(houses)
+    if len(hs) == 1:
+        return f"{hs[0]}-ஆம் பாவத்தைக்" if case == 'acc' else f"{hs[0]}-ஆம் பாவத்"
+    joined = ', '.join(map(str, hs))
+    return f"{joined} ஆகிய பாவங்களைக்" if case == 'acc' else f"{joined} ஆகிய பாவங்களின்"
+
+
 def calculate_kp_system(chart):
-    planets = chart['planets']
-    kp_cusps = chart.get('kp_cusps', [])
-    if not kp_cusps or len(kp_cusps) < 12:
-        asc_lon = planets['Ascendant']['longitude']
-        kp_cusps = [(asc_lon + i * 30) % 360 for i in range(12)]
+    kp = chart.get('kp')
+    if kp:
+        cusps, longitudes = kp['cusps'], kp['planets']
+    else:  # a chart built without the engine's KP block: equal houses in the chart's ayanamsa
+        asc_lon = chart['planets']['Ascendant']['longitude']
+        cusps = [(asc_lon + i * 30) % 360 for i in range(12)]
+        longitudes = {p: chart['planets'][p]['longitude'] for p in DASA_LORDS}
+    grahas = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
+    info = {p: get_kp_sublord(longitudes[p]) for p in grahas}
+    occupied = {p: {_kp_house(longitudes[p], cusps)} for p in grahas}
+    owned = {p: {n + 1 for n, c in enumerate(cusps) if SIGN_LORDS[int(c // 30) % 12] == p} for p in grahas}
+    for node in ('Rahu', 'Ketu'):
+        # A node acts as an agent of the lord of the sign it occupies
+        agent = info[node][3]
+        occupied[node] |= occupied[agent]
+        owned[node] = set(owned[agent])
 
-    cusp_rows = []
-    for idx, lon in enumerate(kp_cusps):
+    def signified(p):
+        star_lord = info[p][5]
+        return dict(star_lord_occupies=sorted(occupied[star_lord]), occupies=sorted(occupied[p]),
+                    star_lord_owns=sorted(owned[star_lord]), owns=sorted(owned[p]))
+
+    def row(label, lon, extra):
         sign_idx, sign_name, sign_ta, sign_lord, star_name, star_lord, sub_lord = get_kp_sublord(lon)
         deg_in_sign = lon % 30
-        d = int(deg_in_sign); m = int((deg_in_sign * 60) % 60); s = int((deg_in_sign * 3600) % 60)
-        cusp_rows.append({
-            'cusp': idx + 1,
-            'longitude': round(lon, 4),
-            'degree_str': f"{d}° {m:02d}′ {s:02d}″",
-            'sign': sign_name,
-            'sign_ta': sign_ta,
-            'sign_lord': sign_lord,
-            'sign_lord_ta': PLANET_TAMIL.get(sign_lord, sign_lord),
-            'star_name': star_name,
-            'star_lord': star_lord,
-            'star_lord_ta': PLANET_TAMIL.get(star_lord, star_lord),
-            'sub_lord': sub_lord,
-            'sub_lord_ta': PLANET_TAMIL.get(sub_lord, sub_lord)
-        })
+        d = int(deg_in_sign); m = int((deg_in_sign * 60) % 60); sec = int((deg_in_sign * 3600) % 60)
+        return dict(label, longitude=round(lon, 4), degree_str=f"{d}° {m:02d}′ {sec:02d}″",
+                    sign=sign_name, sign_ta=sign_ta, sign_lord=sign_lord, sign_lord_ta=PLANET_TAMIL[sign_lord],
+                    star_name=star_name, star_lord=star_lord, star_lord_ta=PLANET_TAMIL[star_lord],
+                    sub_lord=sub_lord, sub_lord_ta=PLANET_TAMIL[sub_lord], **extra)
 
+    cusp_rows = [row(dict(cusp=i + 1), lon, {}) for i, lon in enumerate(cusps)]
     planet_rows = []
-    for p_name in ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']:
-        lon = planets[p_name]['longitude']
-        sign_idx, sign_name, sign_ta, sign_lord, star_name, star_lord, sub_lord = get_kp_sublord(lon)
-        deg_in_sign = lon % 30
-        d = int(deg_in_sign); m = int((deg_in_sign * 60) % 60); s = int((deg_in_sign * 3600) % 60)
-        planet_rows.append({
-            'planet': p_name,
-            'planet_ta': PLANET_TAMIL[p_name],
-            'degree_str': f"{d}° {m:02d}′ {s:02d}″",
-            'sign': sign_name,
-            'sign_ta': sign_ta,
-            'sign_lord': sign_lord,
-            'sign_lord_ta': PLANET_TAMIL.get(sign_lord, sign_lord),
-            'star_name': star_name,
-            'star_lord': star_lord,
-            'star_lord_ta': PLANET_TAMIL.get(star_lord, star_lord),
-            'sub_lord': sub_lord,
-            'sub_lord_ta': PLANET_TAMIL.get(sub_lord, sub_lord)
-        })
+    for p in grahas:
+        levels = signified(p)
+        houses = sorted(set().union(*levels.values()))
+        planet_rows.append(row(dict(planet=p, planet_ta=PLANET_TAMIL[p]), longitudes[p],
+                               dict(kp_house=_kp_house(longitudes[p], cusps),
+                                    significations=houses, signification_levels=levels)))
 
-    c1_sub = cusp_rows[0]['sub_lord']
-    c2_sub = cusp_rows[1]['sub_lord']
-    c5_sub = cusp_rows[4]['sub_lord']
-    c7_sub = cusp_rows[6]['sub_lord']
-    c10_sub = cusp_rows[9]['sub_lord']
-    c11_sub = cusp_rows[10]['sub_lord']
+    interpretations = {}
+    for cusp, title_en, title_ta, favourable, negating in KP_MATTERS:
+        sub = cusp_rows[cusp - 1]['sub_lord']
+        star_lord = info[sub][5]
+        primary = occupied[star_lord] | owned[star_lord]
+        secondary = occupied[sub] | owned[sub]
+        good, bad, own_good = primary & set(favourable), primary & set(negating), secondary & set(favourable)
+        if good and not bad:
+            verdict = 'promised'
+        elif good:
+            verdict = 'mixed'
+        elif own_good:
+            verdict = 'weak'
+        elif bad:
+            verdict = 'denied'
+        else:
+            verdict = 'neutral'
+        sub_ta, star_ta = PLANET_TAMIL[sub], PLANET_TAMIL[star_lord]
+        basis_en = (f"The {_ordinal(cusp)} cusp sub-lord is {sub}, in the star of {star_lord}, which signifies "
+                    f"{_houses_en(primary)}; {sub} itself signifies {_houses_en(secondary)}.")
+        basis_ta = (f"{cusp}-ஆம் பாவ ஆரம்பத்தின் உப-அதிபதி {sub_ta}; அது {star_ta} நட்சத்திரத்தில் உள்ளது. "
+                    f"{star_ta} {_houses_ta(primary, 'acc')} குறிக்கிறது; {sub_ta} தானாக {_houses_ta(secondary, 'acc')} குறிக்கிறது.")
+        outcome = {
+            'promised': (f"{title_en} is clearly promised through {_houses_en(good)}.",
+                         f"{title_ta} {_houses_ta(good, 'gen')} தொடர்பால் உறுதியாக வாக்களிக்கப்பட்டுள்ளது."),
+            'mixed': (f"{title_en} is promised through {_houses_en(good)}, but the link to {_houses_en(bad)} brings delays or struggle.",
+                      f"{title_ta} {_houses_ta(good, 'gen')} தொடர்பால் உறுதி; ஆனால் {_houses_ta(bad, 'gen')} தொடர்பால் தாமதமோ போராட்டமோ இருக்கும்."),
+            'weak': (f"{title_en} is possible but only modestly supported, through the sub-lord's own {_houses_en(own_good)}.",
+                     f"{title_ta} சாத்தியம்; ஆனால் உப-அதிபதியின் சொந்த {_houses_ta(own_good, 'gen')} தொடர்பு வழியே மட்டுமே குறைந்த ஆதரவு உள்ளது."),
+            'denied': (f"{title_en} meets obstruction from {_houses_en(bad)}, so only a supporting dasa can deliver it.",
+                       f"{title_ta} தடைகளைச் சந்திக்கும்: {_houses_ta(bad, 'gen')} தொடர்பு இதற்கு எதிராக உள்ளது; சாதகமான தசையில் மட்டுமே பலன் கிட்டும்."),
+            'neutral': (f"{title_en} is not clearly indicated either way by this sub-lord; the dasa lords decide.",
+                        f"{title_ta} இந்த உப-அதிபதியால் தெளிவாகச் சுட்டப்படவில்லை; நடப்பு தசா நாதர்களே தீர்மானிப்பர்.")
+        }[verdict]
+        interpretations[f'cusp_{cusp}'] = dict(
+            cusp_num=cusp,
+            title_en=f"{_ordinal(cusp)} Cusp Sub-Lord ({title_en})",
+            title_ta=f"{cusp}-ஆம் பாவ உப-அதிபதி ({title_ta})",
+            sub_lord=sub, sub_lord_ta=sub_ta, star_lord=star_lord, star_lord_ta=star_ta,
+            signified_houses=sorted(primary), favourable_houses=list(favourable), negating_houses=list(negating),
+            verdict=verdict, verdict_en=KP_VERDICTS[verdict][0], verdict_ta=KP_VERDICTS[verdict][1],
+            reading_en=f"{basis_en} {outcome[0]}", reading_ta=f"{basis_ta} {outcome[1]}"
+        )
 
-    kp_interpretations = {
-        'cusp_1': {
-            'cusp_num': 1,
-            'title_en': '1st Cusp Sub-Lord (Physical Constitution & Self-Agency)',
-            'title_ta': '1-ஆம் பாவ உப-அதிபதி (உடல் நலம், சுய கௌரவம் & ஆயுள் பலம்)',
-            'sub_lord': c1_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c1_sub, c1_sub),
-            'reading_en': f"1st Cusp sub-lord is {c1_sub}. In KP astrology, this sub-lord governs physical vitality, innate inclinations, and health resilience. {c1_sub}'s connection with auspicious houses grants strong recovery power and dignified self-direction.",
-            'reading_ta': f"லக்ன பாவத்தின் உப-அதிபதி {PLANET_TAMIL.get(c1_sub, c1_sub)} ஆகும். கே.பி. விதிகளின்படி இது உடல் ஆரோக்கியம், தனித்துவமான செயல் திறன் மற்றும் நோய்களை எதிர்க்கும் ஆற்றலை நிர்ணயிக்கிறது. சுப ஸ்தான தொடர்புகளால் நீண்ட ஆயுளும் நற்புகழும் கிட்டும்."
-        },
-        'cusp_2': {
-            'cusp_num': 2,
-            'title_en': '2nd Cusp Sub-Lord (Financial Inflow & Family Wealth)',
-            'title_ta': '2-ஆம் பாவ உப-அதிபதி (தன வரவு, வாக்கு வன்மை & குடும்ப செல்வம்)',
-            'sub_lord': c2_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c2_sub, c2_sub),
-            'reading_en': f"2nd Cusp sub-lord is {c2_sub}. Controls liquid assets, speech eloquence, and monetary accumulation. As {c2_sub} signifies wealth channels, earnings grow steadily through systematic investments and credible partnerships.",
-            'reading_ta': f"2-ஆம் பாவத்தின் உப-அதிபதி {PLANET_TAMIL.get(c2_sub, c2_sub)} ஆகும். இது நிதி திரட்டுதல், வாக்குப் பலம் மற்றும் குடும்ப பொருளாதார ஸ்திரத்தன்மையை வழிநடத்துகிறது. வங்கி இருப்பு மற்றும் சேமிப்பு படிப்படியாக உயரும்."
-        },
-        'cusp_5': {
-            'cusp_num': 5,
-            'title_en': '5th Cusp Sub-Lord (Creative Intellect & Speculative Wisdom)',
-            'title_ta': '5-ஆம் பாவ உப-அதிபதி (பூர்வ புண்ணியம், புத்தி கூர்மை & புத்திர யோகம்)',
-            'sub_lord': c5_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c5_sub, c5_sub),
-            'reading_en': f"5th Cusp sub-lord is {c5_sub}. Determines creative breakthroughs, artistic intuition, and speculative intelligence. Inspires fruitful intellectual pursuits and harmonious progeny relations.",
-            'reading_ta': f"5-ஆம் பாவ உப-அதிபதி {PLANET_TAMIL.get(c5_sub, c5_sub)} ஆகும். இது பூர்வ புண்ணியம், ஆக்கப்பூர்வமான சிந்தனை, கலை ஆர்வம் மற்றும் பிள்ளைகளின் மேன்மையை குறிக்கிறது. கற்பனை ஆற்றலும் புதிய திட்டங்களை வகுக்கும் திறனும் சிறக்கும்."
-        },
-        'cusp_7': {
-            'cusp_num': 7,
-            'title_en': '7th Cusp Sub-Lord (Spouse Nature & Partnership Harmony)',
-            'title_ta': '7-ஆம் பாவ உப-அதிபதி (களத்திர பாக்கியம், துணைவரின் குணம் & கூட்டுத் தொழில்)',
-            'sub_lord': c7_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c7_sub, c7_sub),
-            'reading_en': f"7th Cusp sub-lord is {c7_sub}. In KP doctrine, this sub-lord governs marital timing, spouse temperament, and commercial alliances. Bestows a loyal, supportive partner with compatible values.",
-            'reading_ta': f"7-ஆம் பாவ உப-அதிபதி {PLANET_TAMIL.get(c7_sub, c7_sub)} ஆகும். இது திருமண வாழ்க்கை, துணைவரின் குணாதிசயம் மற்றும் வணிகக் கூட்டாளிகளைத் தீர்மானிக்கிறது. அன்பான, குடும்ப நலனில் அக்கறை கொண்ட துணைவர் அமைவார்."
-        },
-        'cusp_10': {
-            'cusp_num': 10,
-            'title_en': '10th Cusp Sub-Lord (Professional Eminence & Social Status)',
-            'title_ta': '10-ஆம் பாவ உப-அதிபதி (தொழில் வெற்றி, சமூக அந்தஸ்து & அதிகார யோகம்)',
-            'sub_lord': c10_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c10_sub, c10_sub),
-            'reading_en': f"10th Cusp sub-lord is {c10_sub}. Determines career zenith, authority in enterprise, and societal reputation. Endows focused execution, leading to commanding recognition in your field.",
-            'reading_ta': f"10-ஆம் பாவ உப-அதிபதி {PLANET_TAMIL.get(c10_sub, c10_sub)} ஆகும். இது தொழில் மேன்மை, அரசு மற்றும் உயர்மட்ட நிர்வாகத்தில் செல்வாக்கு, மற்றும் சமூக நற்பெயரைத் தரும். விடாமுயற்சியால் உயர்பதவிகளை அடைவீர்கள்."
-        },
-        'cusp_11': {
-            'cusp_num': 11,
-            'title_en': '11th Cusp Sub-Lord (Fulfillment of Desires & Profitability)',
-            'title_ta': '11-ஆம் பாவ உப-அதிபதி (லாப ஸ்தானம், விருப்பங்கள் நிறைவேறுதல் & நண்பர்கள்)',
-            'sub_lord': c11_sub,
-            'sub_lord_ta': PLANET_TAMIL.get(c11_sub, c11_sub),
-            'reading_en': f"11th Cusp sub-lord is {c11_sub}. In KP principles, the 11th cusp is the crown of fulfillment. Confirms that ambitious life aspirations and financial milestones will manifest successfully.",
-            'reading_ta': f"11-ஆம் பாவ உப-அதிபதி {PLANET_TAMIL.get(c11_sub, c11_sub)} ஆகும். இது அனைத்து ஆசைகளும் ஈடேறுவதையும், தொழில் லாபம் மற்றும் விசுவாசமான நண்பர்களின் ஆதரவையும் உறுதி செய்கிறது."
-        }
-    }
+    # Ruling planets at birth: Lagna sign, star and sub lords, Moon sign and star lords, and the day lord
+    asc = cusp_rows[0]
+    moon = next(r for r in planet_rows if r['planet'] == 'Moon')
+    weekday = chart.get('vedic_weekday')
+    ruling = [('Lagna sign lord', 'லக்ன ராசி அதிபதி', asc['sign_lord']), ('Lagna star lord', 'லக்ன நட்சத்திர அதிபதி', asc['star_lord']),
+              ('Lagna sub-lord', 'லக்ன உப-அதிபதி', asc['sub_lord']), ('Moon sign lord', 'சந்திர ராசி அதிபதி', moon['sign_lord']),
+              ('Moon star lord', 'சந்திர நட்சத்திர அதிபதி', moon['star_lord'])]
+    if weekday is not None:
+        day_lord = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'][weekday]
+        ruling.append(('Day lord', 'கிழமை அதிபதி', day_lord))
+    ruling_planets = [dict(role_en=en, role_ta=ta, planet=p, planet_ta=PLANET_TAMIL[p]) for en, ta, p in ruling]
 
     return {
+        'ayanamsa': 'Krishnamurti' if kp else None,
+        'ayanamsa_degrees': round(kp['ayanamsa'], 4) if kp else None,
         'cusps': cusp_rows,
         'planets': planet_rows,
-        'cuspal_predictions': kp_interpretations
+        'cuspal_predictions': interpretations,
+        'ruling_planets': ruling_planets
     }
 
 # 3. BHRIGU NANDI NADI (BNN)
+# Nadi links between grahas counted by sign: together, in trine (5th/9th), opposite (7th), in the
+# next sign (2nd) or the previous sign (12th). A retrograde graha also acts from the previous sign.
+BNN_SUTRAS = [
+    ('Jupiter', 'Saturn', 'Dharma-Karma Adhipati Yoga (Guru + Shani)', 'தர்ம-கர்மாதிபதி யோகம் (குரு + சனி சேர்க்கை)',
+     'The Divine Worker Sutra. Links Jeeva Karaka (Soul) with Karma Karaka (Duty). Bestows deep sense of social duty, ethical professional standing, steady perseverance through initial delays, and lasting eminence once Saturn matures at 36.',
+     'ஜீவகாரகன் குருவும் கர்மகாரகன் சனியும் தொடர்பு கொள்வதால் உண்டாகும் உன்னத யோகம். தொடக்கத்தில் உழைப்புக்கேற்ற அங்கீகாரம் சற்றே தாமதமானாலும், 36 வயதிற்குப் பின் (சனி முதிர்ச்சி பெறும் வயது) அழியாத நற்பெயரும், உயர்ந்த பதவியும், சமூக மரியாதையும் கிட்டும்.'),
+    ('Jupiter', 'Mars', 'Deva-Senapati Yoga (Guru + Mangala)', 'தேவ-சேனாதிபதி யோகம் (குரு + செவ்வாய் சேர்க்கை)',
+     'Courageous Leader Sutra. Melds divine wisdom with energetic vigor. Bestows commanding executive power, technical/engineering acumen, real estate prosperity, and protective championship of family interests.',
+     'குருவும் செவ்வாயும் இணைவதால் அஞ்சாத தைரியம், பூமி-மனை யோகம், பொறியியல்/தொழில்நுட்ப ஆளுமை மற்றும் தலைமை நிர்வாகப் பொறுப்புகள் அமையும்.'),
+    ('Jupiter', 'Venus', 'Bhrigu-Guru Yoga (Jupiter + Venus)', 'பிருகு-குரு யோகம் (குரு + சுக்கிரன் சேர்க்கை)',
+     'Abundant Fortune Sutra. Harmonizes the two supreme benefics (Deva Guru & Asura Guru). Bestows immense material affluence, refined aesthetic taste, virtuous life companion, and peaceful family prosperity.',
+     'இரு பெரும் சுப கிரகங்களான குருவும் சுக்கிரனும் இணையும் மகா சுப யோகம். பொன், பொருள் சேர்க்கை, வாகன யோகம், குடும்ப மகிழ்ச்சி மற்றும் ஆடம்பர வசதிகள் இயல்பாகவே அமையும்.'),
+    ('Jupiter', 'Mercury', 'Saraswati Yoga (Guru + Budha)', 'சரஸ்வதி யோகம் (குரு + புதன் சேர்க்கை)',
+     'Master of Wisdom & Commerce. Fosters multifaceted intellectual depth, teaching mastery, linguistic wit, successful business enterprise, and diplomatic counsel.',
+     'குருவும் புதனும் இணைவதால் வாக்கு வன்மை, எழுத்து, கணிதம், ஜோதிடம், மற்றும் வர்த்தகத் துறைகளில் தனி முத்திரை பதிக்கும் கல்வி ஞானம் உண்டாகும்.'),
+    ('Jupiter', 'Sun', 'Shiva-Raja Yoga (Guru + Surya)', 'சிவ-ராஜ யோகம் (குரு + சூரியன் சேர்க்கை)',
+     'Honor & Regal Dignity. Grants divine protection, paternal blessings, ethical leadership, and honors from governmental or high corporate bodies.',
+     'சூரியனும் குருவும் இணைவதால் தந்தை வழியில் பெருமை, அரசு வழியில் ஆதரவு, கம்பீரமான தோற்றம் மற்றும் நேர்மையான வழியில் உயர்ந்த கௌரவம் கிட்டும்.'),
+    ('Jupiter', 'Rahu', 'Guru-Rahu Link (Unconventional Thinker)', 'குரு-ராகு தொடர்பு (புதுமைச் சிந்தனை)',
+     'Unconventional Innovator. Drives revolutionary thinking that challenges traditional dogmas. Strongly favors overseas travels, cutting-edge technology, foreign networks, and unconventional success.',
+     'குருவும் ராகுவும் இணைவதால் பழமைவாதத்தைத் தாண்டி நவீன அறிவியல், கணினி மற்றும் வெளிநாட்டு தொடர்புகளால் பெரிய முன்னேற்றத்தை அடையும் ஆற்றல் உண்டு.'),
+    ('Jupiter', 'Ketu', 'Gnana Mukti Yoga (Guru + Ketu)', 'ஞான முக்தி யோகம் (குரு + கேது சேர்க்கை)',
+     'Spiritual Seeker & Mystic. Bestows philosophical detachment, profound intuitive faculties, natural healing talents, and attraction to meditation, astrology, or higher metaphysics.',
+     'ஞானகாரகன் கேதுவும் குருவும் இணைவதால் இறை பக்தி, உள்ளுணர்வு, ஜோதிடம் மற்றும் ஆன்மீக ஆராய்ச்சியில் அதீத ஞானம் உண்டாகும்.'),
+    ('Saturn', 'Venus', 'Lakshmi-Karma Yoga (Shani + Shukra)', 'லட்சுமி-கர்ம யோகம் (சனி + சுக்கிரன் சேர்க்கை)',
+     'Prosperity through Enterprise. Karma Karaka meets Dhanakaraka. Bestows steady accumulation of durable assets, success in corporate/luxury industries, and a supportive partner.',
+     'சனி மற்றும் சுக்கிரன் இணைவதால் கடின உழைப்பு பெரும் செல்வமாக மாறும். நிலையான அசையாச் சொத்துக்கள் மற்றும் தொழில் மூலமாக நிரந்தர வருமானம் பெருகும்.'),
+    ('Saturn', 'Mercury', 'Vyapara Yoga (Shani + Budha)', 'வியாபார யோகம் (சனி + புதன் சேர்க்கை)',
+     'Master of Commerce & Logistics. Combines patient discipline with analytical calculation. Highly favored for auditing, legal trade, software development, and large-scale commerce.',
+     'சனி மற்றும் புதன் இணைவதால் கணக்கு, தணிக்கை, மென்பொருள் மற்றும் வணிக மேலாண்மையில் நுட்பமான நிபுணத்துவம் பெற்று தொழிலில் வெற்றி பெறுவீர்கள்.'),
+    ('Jupiter', 'Moon', 'Gaja-Kesari Sutra (Guru + Chandra)', 'கஜகேசரி சூத்திரம் (குரு + சந்திரன்)',
+     'Respect, a helpful mother and good public standing; a generous, contented mind.',
+     'குரு-சந்திரன் தொடர்பால் மரியாதை, தாயின் ஆதரவு, நல்ல பொது அந்தஸ்து; தாராள மனமும் மனநிறைவும் உண்டு.'),
+    ('Saturn', 'Mars', 'Karma-Bhumi Sutra (Shani + Mangala)', 'கர்ம-பூமி சூத்திரம் (சனி + செவ்வாய்)',
+     'Work with land, machinery, engineering or construction; hard-won results through struggle and technical skill. Guard against accidents and conflict at work.',
+     'சனி-செவ்வாய் தொடர்பால் நிலம், இயந்திரம், பொறியியல் அல்லது கட்டுமானத் துறைகளில் உழைப்பு; போராட்டத்தின் மூலம் கிடைக்கும் வெற்றி. பணியிடத்தில் விபத்து மற்றும் மோதல்களில் கவனம் தேவை.'),
+    ('Saturn', 'Sun', 'Pitru-Karma Sutra (Shani + Surya)', 'பித்ரு-கர்ம சூத்திரம் (சனி + சூரியன்)',
+     'Service under government or large institutions; responsibilities toward the father, with differences of outlook between father and native.',
+     'சனி-சூரியன் தொடர்பால் அரசு அல்லது பெரிய நிறுவனங்களின் கீழ் பணி; தந்தை மீதான பொறுப்புகள், தந்தையுடன் கருத்து வேறுபாடுகள் வரலாம்.'),
+    ('Saturn', 'Moon', 'Jana-Seva Sutra (Shani + Chandra)', 'ஜன-சேவை சூத்திரம் (சனி + சந்திரன்)',
+     'Work that serves the public or deals with the masses; a serious, responsible mind that must guard against worry.',
+     'சனி-சந்திரன் தொடர்பால் மக்கள் சேவை அல்லது பொதுமக்களுடன் தொடர்புடைய பணி; பொறுப்பான மனம், ஆனால் கவலையைத் தவிர்க்க வேண்டும்.'),
+    ('Saturn', 'Rahu', 'Videsha-Karma Sutra (Shani + Rahu)', 'விதேச-கர்ம சூத்திரம் (சனி + ராகு)',
+     'Work in large organisations, technology or foreign lands; sudden rises and changes in career.',
+     'சனி-ராகு தொடர்பால் பெரிய நிறுவனங்கள், தொழில்நுட்பம் அல்லது வெளிநாடுகளில் பணி; தொழிலில் திடீர் உயர்வுகளும் மாற்றங்களும் உண்டு.'),
+    ('Saturn', 'Ketu', 'Karma-Viraga Sutra (Shani + Ketu)', 'கர்ம-வைராக்ய சூத்திரம் (சனி + கேது)',
+     'Breaks or changes in career and a pull toward detachment; success in technical, research or spiritual work.',
+     'சனி-கேது தொடர்பால் தொழிலில் இடைவெளிகள் அல்லது மாற்றங்கள், பற்றின்மை நாட்டம்; தொழில்நுட்பம், ஆராய்ச்சி அல்லது ஆன்மீகப் பணிகளில் வெற்றி.'),
+]
+BNN_LINKS = [
+    ((0,), 'joined in the same sign', 'ஒரே ராசியில் சேர்ந்து'),
+    ((4, 8), 'in trine (5th/9th)', 'திரிகோணத்தில் (5/9)'),
+    ((6,), 'opposite each other (7th)', 'ஒன்றுக்கொன்று எதிர் ராசியில் (7)'),
+    ((1, 11), 'in adjacent signs (2nd/12th)', 'அடுத்தடுத்த ராசிகளில் (2/12)')
+]
+
+
+def _bnn_link(planets, a, b):
+    """The strongest Nadi link between two grahas, or None."""
+    def signs(p):
+        sign = planets[p]['sign_index']
+        retro = planets[p].get('retrograde') and p not in ('Rahu', 'Ketu')
+        return {sign, (sign - 1) % 12} if retro else {sign}
+    distances = {(sb - sa) % 12 for sa in signs(a) for sb in signs(b)}
+    for rank, (offsets, en, ta) in enumerate(BNN_LINKS):
+        if distances & set(offsets):
+            return rank, en, ta
+    return None
+
+
 def calculate_bhrigu_nandi_nadi(chart):
     planets = chart['planets']
     trine_map = {
@@ -1747,7 +1954,6 @@ def calculate_bhrigu_nandi_nadi(chart):
     }
 
     p_names = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
-    p_trine = {}
     for p_name in p_names:
         s_idx = planets[p_name]['sign_index']
         if s_idx in (0, 4, 8): t_key = 'dharma_fire'
@@ -1760,92 +1966,23 @@ def calculate_bhrigu_nandi_nadi(chart):
             'sign': planets[p_name]['sign'],
             'tamil_sign': planets[p_name]['tamil']
         })
-        p_trine[p_name] = t_key
 
     sutras = []
-    def in_same_trine(p1, p2):
-        return p_trine[p1] == p_trine[p2]
-
-    if in_same_trine('Jupiter', 'Saturn'):
-        sutras.append({
-            'title_en': 'Dharma-Karma Adhipati Yoga (Guru + Shani)',
-            'title_ta': 'தர்ம-கர்மாதிபதி யோகம் (குரு + சனி சேர்க்கை)',
-            'planets': ['Jupiter', 'Saturn'],
-            'significance_en': 'The Divine Worker Sutra. Conjoins Jeeva Karaka (Soul) with Karma Karaka (Duty). Bestows deep sense of social duty, ethical professional standing, steady perseverance through initial delays, and celebrated eminence after age 32.',
-            'significance_ta': 'ஜீவகாரகன் குருவும் கர்மகாரகன் சனியும் திரிகோணத்தில் இணைவதால் உண்டாகும் உன்னத யோகம். தொடக்கத்தில் உழைப்புக்கேற்ற அங்கீகாரம் சற்றே தாமதமானாலும், 32 வயதிற்குப் பின் அழியாத நற்பெயரும், உயர்ந்த பதவியும், சமூக மரியாதையும் கிட்டும்.'
-        })
-
-    if in_same_trine('Jupiter', 'Mars'):
-        sutras.append({
-            'title_en': 'Deva-Senapati Yoga (Guru + Mangala)',
-            'title_ta': 'தேவ-சேனாதிபதி யோகம் (குரு + செவ்வாய் சேர்க்கை)',
-            'planets': ['Jupiter', 'Mars'],
-            'significance_en': 'Courageous Leader Sutra. Melds divine wisdom with energetic vigor. Bestows commanding executive power, technical/engineering acumen, real estate prosperity, and protective championship of family interests.',
-            'significance_ta': 'குருவும் செவ்வாயும் இணைவதால் அஞ்சாத தைரியம், பூமி-மனை யோகம், பொறியியல்/தொழில்நுட்ப ஆளுமை மற்றும் தலைமை நிர்வாகப் பொறுப்புகள் அமையும்.'
-        })
-
-    if in_same_trine('Jupiter', 'Venus'):
-        sutras.append({
-            'title_en': 'Bhrigu-Guru Yoga (Jupiter + Venus)',
-            'title_ta': 'பிருகு-குரு யோகம் (குரு + சுக்கிரன் சேர்க்கை)',
-            'planets': ['Jupiter', 'Venus'],
-            'significance_en': 'Abundant Fortune Sutra. Harmonizes the two supreme benefics (Deva Guru & Asura Guru). Bestows immense material affluence, refined aesthetic taste, virtuous life companion, and peaceful family prosperity.',
-            'significance_ta': 'இரு பெரும் சுப கிரகங்களான குருவும் சுக்கிரனும் இணையும் மகா சுப யோகம். பொன், பொருள் சேர்க்கை, வாகன யோகம், குடும்ப மகிழ்ச்சி மற்றும் ஆடம்பர வசதிகள் இயல்பாகவே அமையும்.'
-        })
-
-    if in_same_trine('Jupiter', 'Mercury'):
-        sutras.append({
-            'title_en': 'Saraswati Yoga (Guru + Budha)',
-            'title_ta': 'சரஸ்வதி யோகம் (குரு + புதன் சேர்க்கை)',
-            'planets': ['Jupiter', 'Mercury'],
-            'significance_en': 'Master of Wisdom & Commerce. Fosters multifaceted intellectual depth, teaching mastery, linguistic wit, successful business enterprise, and diplomatic counsel.',
-            'significance_ta': 'குருவும் புதனும் இணைவதால் வாக்கு வன்மை, எழுத்து, கணிதம், ஜோதிடம், மற்றும் வர்த்தகத் துறைகளில் தனி முத்திரை பதிக்கும் கல்வி ஞானம் உண்டாகும்.'
-        })
-
-    if in_same_trine('Jupiter', 'Sun'):
-        sutras.append({
-            'title_en': 'Shiva-Raja Yoga (Guru + Surya)',
-            'title_ta': 'சிவ-ராஜ யோகம் (குரு + சூரியன் சேர்க்கை)',
-            'planets': ['Jupiter', 'Sun'],
-            'significance_en': 'Honor & Regal Dignity. Grants divine protection, paternal blessings, ethical leadership, and honors from governmental or high corporate bodies.',
-            'significance_ta': 'சூரியனும் குருவும் இணைவதால் தந்தை வழியில் பெருமை, அரசு வழியில் ஆதரவு, கம்பீரமான தோற்றம் மற்றும் நேர்மையான வழியில் உயர்ந்த கௌரவம் கிட்டும்.'
-        })
-
-    if in_same_trine('Jupiter', 'Rahu'):
-        sutras.append({
-            'title_en': 'Guru-Chandal / Revolutionary Mind (Guru + Rahu)',
-            'title_ta': 'விஞ்ஞான புத்தி யோகம் (குரு + ராகு சேர்க்கை)',
-            'planets': ['Jupiter', 'Rahu'],
-            'significance_en': 'Unconventional Innovator. Drives revolutionary thinking that challenges traditional dogmas. Strongly favors overseas travels, cutting-edge technology, foreign networks, and unconventional success.',
-            'significance_ta': 'குருவும் ராகுவும் இணைவதால் பழமைவாதத்தைத் தாண்டி நவீன அறிவியல், கணினி மற்றும் வெளிநாட்டு தொடர்புகளால் பெரிய முன்னேற்றத்தை அடையும் ஆற்றல் உண்டு.'
-        })
-
-    if in_same_trine('Jupiter', 'Ketu'):
-        sutras.append({
-            'title_en': 'Gnana Mukti Yoga (Guru + Ketu)',
-            'title_ta': 'ஞான முக்தி யோகம் (குரு + கேது சேர்க்கை)',
-            'planets': ['Jupiter', 'Ketu'],
-            'significance_en': 'Spiritual Seeker & Mystic. Bestows philosophical detachment, profound intuitive faculties, natural healing talents, and attraction to meditation, astrology, or higher metaphysics.',
-            'significance_ta': 'ஞானகாரகன் கேதுவும் குருவும் இணைவதால் இறை பக்தி, உள்ளுணர்வு, ஜோதிடம் மற்றும் ஆன்மீக ஆராய்ச்சியில் அதீத ஞானம் உண்டாகும்.'
-        })
-
-    if in_same_trine('Saturn', 'Venus'):
-        sutras.append({
-            'title_en': 'Lakshmi-Karma Yoga (Shani + Shukra)',
-            'title_ta': 'லட்சுமி-கர்ம யோகம் (சனி + சுக்கிரன் சேர்க்கை)',
-            'planets': ['Saturn', 'Venus'],
-            'significance_en': 'Prosperity through Enterprise. Karma Karaka meets Dhanakaraka. Bestows steady accumulation of durable assets, success in corporate/luxury industries, and a supportive partner.',
-            'significance_ta': 'சனி மற்றும் சுக்கிரன் இணைவதால் கடின உழைப்பு பெரும் செல்வமாக மாறும். நிலையான அசையாச் சொத்துக்கள் மற்றும் தொழில் மூலமாக நிரந்தர வருமானம் பெருகும்.'
-        })
-
-    if in_same_trine('Saturn', 'Mercury'):
-        sutras.append({
-            'title_en': 'Vyapara Yoga (Shani + Budha)',
-            'title_ta': 'வியாபார யோகம் (சனி + புதன் சேர்க்கை)',
-            'planets': ['Saturn', 'Mercury'],
-            'significance_en': 'Master of Commerce & Logistics. Combines patient discipline with analytical calculation. Highly favored for auditing, legal trade, software development, and large-scale commerce.',
-            'significance_ta': 'சனி மற்றும் புதன் இணைவதால் கணக்கு, தணிக்கை, மென்பொருள் மற்றும் வணிக மேலாண்மையில் நுட்பமான நிபுணத்துவம் பெற்று தொழிலில் வெற்றி பெறுவீர்கள்.'
-        })
+    for a, b, title_en, title_ta, sig_en, sig_ta in BNN_SUTRAS:
+        link = _bnn_link(planets, a, b)
+        if link:
+            rank, link_en, link_ta = link
+            sutras.append({
+                'title_en': title_en,
+                'title_ta': title_ta,
+                'planets': [a, b],
+                'link_rank': rank,
+                'link_en': link_en,
+                'link_ta': link_ta,
+                'significance_en': f"{a} and {b} are {link_en}. {sig_en}",
+                'significance_ta': f"{PLANET_TAMIL[a]}, {PLANET_TAMIL[b]} {link_ta} உள்ளனர். {sig_ta}"
+            })
+    sutras.sort(key=lambda x: x['link_rank'])  # conjunctions first, adjacent signs last
 
     if not sutras:
         sutras.append({
@@ -1864,6 +2001,62 @@ def calculate_bhrigu_nandi_nadi(chart):
     }
 
 # 4. PLANETARY AVASTHAS & FRUITION POTENCY
+# Lajjitadi avasthas (BPHS): the mood in which a graha gives the results of its house
+LAJJITADI = {
+    'Lajjita': ('Lajjita (Ashamed)', 'லஜ்ஜித (வெட்கம்)', -1,
+                'In the 5th house with Rahu, Ketu, the Sun, Saturn or Mars: it hesitates to give its results fully.',
+                '5-ஆம் பாவத்தில் ராகு, கேது, சூரியன், சனி அல்லது செவ்வாயுடன் உள்ளதால் முழுப் பலனைத் தயக்கத்துடன் தரும்.'),
+    'Garvita': ('Garvita (Proud)', 'கர்வித (பெருமிதம்)', 1,
+                'Exalted or in its Moolatrikona: it gives prosperity, comforts and success in its matters.',
+                'உச்சம் அல்லது மூலத்திரிகோணத்தில் உள்ளதால் செல்வம், சுகம் மற்றும் காரிய வெற்றி தரும்.'),
+    'Kshudita': ('Kshudita (Starved)', 'க்ஷுதித (பசி)', -1,
+                 'In an enemy\'s sign, with or aspected by an enemy, or joined by Saturn: its results come with want and worry.',
+                 'பகை வீட்டில், பகைவருடன் சேர்ந்து அல்லது பகைவர் பார்வையில், அல்லது சனியுடன் உள்ளதால் பலன்கள் குறைவுடனும் கவலையுடனும் வரும்.'),
+    'Trushita': ('Trushita (Thirsty)', 'த்ருஷித (தாகம்)', -1,
+                 'In a watery sign, aspected by a malefic and by no benefic: its results are delayed and leave one wanting.',
+                 'நீர் ராசியில் பாப கிரகப் பார்வை பெற்று சுபப் பார்வை இல்லாததால் பலன்கள் தாமதமாகி நிறைவின்றி இருக்கும்.'),
+    'Mudita': ('Mudita (Delighted)', 'முதித (மகிழ்ச்சி)', 1,
+               'In a friend\'s sign, with or aspected by a friend, or joined by Jupiter: it gives happiness and gains.',
+               'நட்பு வீட்டில், நண்பருடன் சேர்ந்து அல்லது நண்பர் பார்வையில், அல்லது குருவுடன் உள்ளதால் மகிழ்ச்சியும் லாபமும் தரும்.'),
+    'Kshobhita': ('Kshobhita (Agitated)', 'க்ஷோபித (கலக்கம்)', -1,
+                  'Joined by the Sun and aspected by a malefic or an enemy: its results come amid agitation and loss.',
+                  'சூரியனுடன் சேர்ந்து பாப அல்லது பகை கிரகப் பார்வை பெற்றதால் பலன்கள் கலக்கத்துடனும் இழப்புடனும் வரும்.')
+}
+WATERY_SIGNS = (3, 7, 11)
+
+
+def lajjitadi_avasthas(p_name, planets):
+    """The Lajjitadi states of a graha, judged by rasi (sign) conjunction and Parashari aspect."""
+    from .engine import NATURAL_FRIENDS
+    p = planets[p_name]
+    friends = NATURAL_FRIENDS[p_name]
+    with_it = [q for q in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu')
+               if q != p_name and planets[q]['sign_index'] == p['sign_index']]
+    aspected_by = [q for q in p.get('aspects_received', []) if q != 'Ascendant']
+    malefics = ('Sun', 'Mars', 'Saturn', 'Rahu', 'Ketu')
+    sign_lord = SIGN_LORDS[p['sign_index']]
+    enemy = lambda q: friends.get(q, 0) < 0
+    friend = lambda q: friends.get(q, 0) > 0
+    states = []
+    if p['house'] == 5 and any(q in ('Rahu', 'Ketu', 'Sun', 'Saturn', 'Mars') for q in with_it):
+        states.append('Lajjita')
+    if p.get('dignity') in ('Exalted', 'Moolatrikona'):
+        states.append('Garvita')
+    if ((sign_lord != p_name and enemy(sign_lord)) or any(enemy(q) for q in with_it + aspected_by)
+            or 'Saturn' in with_it):
+        states.append('Kshudita')
+    if (p['sign_index'] in WATERY_SIGNS and any(q in malefics for q in aspected_by)
+            and not any(q in NATURAL_BENEFICS for q in aspected_by)):
+        states.append('Trushita')
+    if ((sign_lord != p_name and friend(sign_lord)) or any(friend(q) for q in with_it + aspected_by)
+            or 'Jupiter' in with_it):
+        states.append('Mudita')
+    if 'Sun' in with_it and any(q in malefics or enemy(q) for q in aspected_by):
+        states.append('Kshobhita')
+    return [dict(key=k, en=LAJJITADI[k][0], ta=LAJJITADI[k][1], effect=LAJJITADI[k][2],
+                 reading_en=LAJJITADI[k][3], reading_ta=LAJJITADI[k][4]) for k in states]
+
+
 def calculate_planetary_avasthas(chart):
     planets = chart['planets']
     avastha_list = []
@@ -1896,7 +2089,8 @@ def calculate_planetary_avasthas(chart):
             j_en = 'Swapna (Dreaming / Contemplative)'; j_ta = 'ஸ்வப்ன (கனவு நிலை)'; j_pct = 60
 
         fruit_potency = round((b_pct * 0.6) + (j_pct * 0.4))
-        
+        moods = lajjitadi_avasthas(p_name, planets)
+
         avastha_list.append({
             'planet': p_name,
             'planet_ta': PLANET_TAMIL[p_name],
@@ -1907,6 +2101,7 @@ def calculate_planetary_avasthas(chart):
             'jagradadi': j_en,
             'jagradadi_ta': j_ta,
             'fruit_potency': fruit_potency,
+            'lajjitadi': moods,
             'interpretation_en': f"Operating in {b_en} and {j_en}. Manifests approximately {fruit_potency}% of its innate planetary potential in physical life events.",
             'interpretation_ta': f"{b_ta} மற்றும் {j_ta} நிலையில் உள்ளதால், தனது இயற்கை காரகத்துவங்களில் சுமார் {fruit_potency}% முழு பலன்களை நடைமுறை வாழ்வில் வழங்கும்."
         })
@@ -1919,8 +2114,8 @@ def calculate_nakshatra_pada_reading(chart):
     star = moon['nakshatra']
     star_ta = moon['tamil_nakshatra']
     pada = moon['pada']
-    nav_sign = moon.get('navamsa', 'Aries')
-    nav_idx = SIGNS.index(nav_sign) if nav_sign in SIGNS else 0
+    nav_idx = moon['navamsa']  # the Navamsa sign index of the Moon's pada
+    nav_sign = SIGNS[nav_idx]
     nav_ta = TAMIL_SIGNS[nav_idx]
     pada_lord = SIGN_LORDS[nav_idx]
 
@@ -1964,57 +2159,102 @@ def calculate_nakshatra_pada_reading(chart):
     }
 
 # 6. SENSITIVE SAHAMS (TAJIKA & PARASHARA COSMIC POINTS)
+# Tajika Neelakanthi formulas A - B + C (C is the Lagna): by night A and B swap where marked.
+# When C does not lie on the way from B to A, 30° is added.
+SAHAMS = [
+    ('Punya Saham', 'புண்ணிய சஹமம்', 'Moon', 'Sun', True, 'Fortune & Divine Merit', 'அதிர்ஷ்டம் & பூர்வ புண்ணியம்',
+     'The point of grace and fortune: sudden favourable turns of fate, spiritual merit and virtuous prosperity.',
+     'தெய்வ அனுகூலம் மற்றும் பூர்வ புண்ணியத்தின் புள்ளி: எதிர்பாராத அதிர்ஷ்டம், தர்ம சிந்தனை மற்றும் நேர்மையான செல்வம்.'),
+    ('Vidya Saham', 'வித்யா சஹமம்', 'Sun', 'Moon', True, 'Education & Learning', 'கல்வி & ஞானம்',
+     'The point of learning: scholarship, examinations, analytical depth and quick comprehension.',
+     'கல்வியின் புள்ளி: படிப்பு, தேர்வுகள், ஆராய்ச்சி அறிவு மற்றும் விரைவான புரிதல்.'),
+    ('Vivaha Saham', 'விவாக சஹமம்', 'Venus', 'Saturn', True, 'Marriage', 'திருமணம்',
+     'The point of marriage: the timing of the wedding, harmony with the spouse and lasting devotion.',
+     'திருமணத்தின் புள்ளி: திருமண காலம், துணைவருடன் நல்லிணக்கம் மற்றும் நீடித்த அன்பு.'),
+    ('Putra Saham', 'புத்திர சஹமம்', 'Jupiter', 'Moon', True, 'Children', 'புத்திர பாக்கியம்',
+     'The point of children: the blessing of progeny and joy through them.',
+     'குழந்தைப் பேற்றின் புள்ளி: புத்திர பாக்கியமும் அவர்களால் உண்டாகும் மகிழ்ச்சியும்.'),
+    ('Karma Saham', 'கர்ம சஹமம்', 'Mars', 'Mercury', True, 'Work & Career', 'தொழில் & கர்மம்',
+     'The point of work: professional effort, standing at work and the results of one\'s deeds.',
+     'தொழிலின் புள்ளி: பணி முயற்சி, பணியிட அந்தஸ்து மற்றும் செய்த கர்மங்களின் பலன்.'),
+    ('Artha Saham', 'அர்த்த சஹமம்', '2nd house', '2nd lord', False, 'Money', 'பணம்',
+     'The point of money: earnings, savings and the flow of wealth.',
+     'பணத்தின் புள்ளி: வருமானம், சேமிப்பு மற்றும் செல்வ வரவு.'),
+    ('Vanika Saham', 'வணிக சஹமம்', 'Moon', 'Mercury', True, 'Commerce', 'வணிகம்',
+     'The point of commerce: trade, business dealings and mercantile success.',
+     'வணிகத்தின் புள்ளி: வியாபாரம், கொடுக்கல் வாங்கல் மற்றும் வர்த்தக வெற்றி.'),
+    ('Samartha Saham', 'சாமர்த்திய சஹமம்', 'Mars', 'Lagna lord', True, 'Ability & Enterprise', 'திறமை & முயற்சி',
+     'The point of capability: initiative, competence and the drive to accomplish.',
+     'திறமையின் புள்ளி: முனைப்பு, செயல்திறன் மற்றும் காரியங்களைச் சாதிக்கும் ஆற்றல்.'),
+    ('Roga Saham', 'ரோக சஹமம்', 'Lagna', 'Moon', False, 'Health & Disease', 'உடல் நலம் & நோய்',
+     'The point of illness: where health needs care and how resilient the body is.',
+     'நோயின் புள்ளி: உடல் நலத்தில் கவனம் தேவைப்படும் இடமும் உடலின் எதிர்ப்பு சக்தியும்.')
+]
+
+
+def _saham(a, b, c):
+    """A - B + C, plus 30° when C does not fall on the way from B to A."""
+    value = a - b + c
+    if (c - b) % 360 > (a - b) % 360:
+        value += 30
+    return value % 360
+
+
 def calculate_sahams(chart):
     planets = chart['planets']
     asc_lon = planets['Ascendant']['longitude']
-    sun_lon = planets['Sun']['longitude']
-    moon_lon = planets['Moon']['longitude']
-    sat_lon = planets['Saturn']['longitude']
-    ven_lon = planets['Venus']['longitude']
-    is_day = planets['Sun']['house'] in (7, 8, 9, 10, 11, 12)
-
-    punya_lon = (asc_lon + moon_lon - sun_lon) % 360 if is_day else (asc_lon + sun_lon - moon_lon) % 360
-    vidya_lon = (asc_lon + sun_lon - moon_lon) % 360 if is_day else (asc_lon + moon_lon - sun_lon) % 360
-    vivaha_lon = (asc_lon + ven_lon - sat_lon) % 360
-    karma_lon = (asc_lon + sun_lon - sat_lon) % 360 if is_day else (asc_lon + sat_lon - sun_lon) % 360
-    roga_lon = (asc_lon + moon_lon - sat_lon) % 360
-
-    sahams_data = [
-        ('Punya Saham', 'புண்ணிய சஹாம்', punya_lon, 'Fortune & Divine Merit', 'அதிர்ஷ்டம் & பூர்வ புண்ணியம்',
-         'Point of divine grace and fortune. Signifies sudden favorable turns of fate, spiritual merit, and virtuous prosperity.',
-         'தெய்வ அனுகூலம் மற்றும் பூர்வ புண்ணியப் புள்ளி. எதிர்பாராத அதிர்ஷ்ட வாய்ப்புகள் மற்றும் தர்ம காரியங்களால் வாழ்வில் உயர்வு தரும்.'),
-        ('Vidya Saham', 'வித்யா சஹாம்', vidya_lon, 'Intellect & Higher Learning', 'கல்வி ஞானம் & ஆராய்ச்சி அறிவு',
-         'Point of deep intellect and scholarship. Enhances analytical perception, academic laurels, and quick comprehension.',
-         'உயர்ந்த அறிவு மற்றும் கல்வித் திறன் புள்ளி. கூரிய புத்தி, ஆராய்ச்சி ஆர்வம் மற்றும் நிபுணத்துவத்தை வளர்க்கும்.'),
-        ('Vivaha Saham', 'விவாக சஹாம்', vivaha_lon, 'Sacred Marriage & Partnerships', 'திருமண யோகம் & தாம்பத்தியம்',
-         'Point of marital harmony and contracts. Dictates emotional compatibility, wedding timing, and lasting mutual devotion.',
-         'தாம்பத்திய சுகம் மற்றும் திருமணப் புள்ளி. துணைவருடன் நல்லிணக்கம், குடும்பப் பொறுப்பு மற்றும் விசுவாசமான உறவை உறுதி செய்யும்.'),
-        ('Karma Saham', 'கர்மா சஹாம்', karma_lon, 'Career Eminence & Authority', 'தொழில் மேன்மை & சமூக அந்தஸ்து',
-         'Point of worldly action and social legacy. Signals career zenith, authority over teams, and lasting societal respect.',
-         'சமூக அந்தஸ்து மற்றும் அதிகாரப் புள்ளி. தொழிலில் உயர்ந்த தலைமைப் பொறுப்பு, சமூக கௌரவம் மற்றும் நிலைத்த புகழைத் தரும்.'),
-        ('Roga Saham', 'ரோக சஹாம்', roga_lon, 'Physical Resilience & Healing', 'உடல் எதிர்ப்பு சக்தி & ஆரோக்கியம்',
-         'Point of health sensitivity and bodily immunity. Advises balanced lifestyle rhythms to preserve enduring vitality.',
-         'உடல் ஆரோக்கியம் மற்றும் நோய் எதிர்ப்பு சக்திப் புள்ளி. முறையான உணவுப் பழக்கம் மற்றும் தியானத்தால் பூரண நல்வாழ்வு பெறலாம்.')
-    ]
+    asc_sign = planets['Ascendant']['sign_index']
+    # By day the Sun is above the horizon: on the ecliptic arc from the Descendant up to the Ascendant
+    is_day = (asc_lon - planets['Sun']['longitude']) % 360 < 180
+    lagna_lord = SIGN_LORDS[asc_sign]
+    second_lord = SIGN_LORDS[(asc_sign + 1) % 12]
+    points = {name: planets[name]['longitude'] for name in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn')}
+    points.update({'Lagna': asc_lon, '2nd house': (asc_lon + 30) % 360, '2nd lord': planets[second_lord]['longitude'],
+                   'Lagna lord': planets[lagna_lord]['longitude']})
 
     sahams_list = []
-    for en_title, ta_title, lon, kw_en, kw_ta, r_en, r_ta in sahams_data:
+    for en_title, ta_title, a, b, reverses, kw_en, kw_ta, r_en, r_ta in SAHAMS:
+        swap = reverses and not is_day
+        if en_title == 'Samartha Saham' and lagna_lord == 'Mars':
+            a, b, swap = 'Jupiter', 'Mars', not swap  # Mars owning the Lagna: Jupiter - Mars + Lagna
+        if swap:
+            a, b = b, a
+        lon = _saham(points[a], points[b], asc_lon)
         s_idx = int(lon // 30)
         deg = lon % 30
-        h_from_asc = (s_idx - planets['Ascendant']['sign_index']) % 12 + 1
+        house = (s_idx - asc_sign) % 12 + 1
+        lord = SIGN_LORDS[s_idx]
+        lord_house = planets[lord]['house']
+        lord_dignity = planets[lord].get('dignity', 'Neutral')
+        if lord_house in DUSTHANAS or lord_dignity == 'Debilitated':
+            strength, note_en, note_ta = 'weak', 'needs strengthening', 'பலப்படுத்த வேண்டியது'
+        elif lord_house in KENDRAS + TRIKONAS + (11,) and DIGNITY_SCORE.get(lord_dignity, 0) >= 0:
+            strength, note_en, note_ta = 'strong', 'well supported', 'நல்ல ஆதரவுடன் உள்ளது'
+        else:
+            strength, note_en, note_ta = 'moderate', 'moderately supported', 'மிதமான ஆதரவுடன் உள்ளது'
+        malefics = [q for q in ('Saturn', 'Mars', 'Rahu', 'Ketu') if planets[q]['sign_index'] == s_idx]
+        affliction_en = f" {', '.join(malefics)} in the same sign afflicts it." if malefics else ''
+        affliction_ta = f" அதே ராசியில் உள்ள {', '.join(PLANET_TAMIL[q] for q in malefics)} இதைப் பாதிக்கிறது." if malefics else ''
         d = int(deg); m = int((deg * 60) % 60)
         sahams_list.append({
             'name_en': en_title,
             'name_ta': ta_title,
+            'formula': f"{a} - {b} + Lagna",
             'longitude': round(lon, 2),
             'degree_str': f"{d}° {m:02d}′",
             'sign': SIGNS[s_idx],
             'tamil_sign': TAMIL_SIGNS[s_idx],
-            'house': h_from_asc,
+            'house': house,
+            'lord': lord,
+            'lord_ta': PLANET_TAMIL[lord],
+            'lord_house': lord_house,
+            'strength': strength,
             'keyword_en': kw_en,
             'keyword_ta': kw_ta,
-            'reading_en': r_en,
-            'reading_ta': r_ta
+            'reading_en': (f"{r_en} It falls in {SIGNS[s_idx]}, the {_ordinal(house)} house; its lord {lord} sits in the "
+                           f"{_ordinal(lord_house)} house, so this area of life is {note_en}.{affliction_en}"),
+            'reading_ta': (f"{r_ta} இது {house}-ஆம் பாவமான {TAMIL_SIGNS[s_idx]} ராசியில் விழுகிறது; அதன் அதிபதி "
+                           f"{PLANET_TAMIL[lord]} {lord_house}-ஆம் பாவத்தில் இருப்பதால் இந்த வாழ்க்கைத் துறை {note_ta}.{affliction_ta}")
         })
 
     return {

@@ -508,7 +508,7 @@ const I18N = {
     transit_jupiter_today: "TRANSIT JUPITER TODAY",
     h_career: "D-10 Dasamsa & Vocation Aptitude Analysis",
     pill_bvb: "BVB Tested Framework",
-    p_career: "Cross-analysis of Rasi (D-1), Dasamsa (D-10), and Amatyakaraka (AmK) calculating objective aptitude scores across 5 proven career archetypes.",
+    p_career: "Varahamihira's Karmajeeva rule (Brihat Jataka ch. 10) read with the Dasamsa (D-10), scoring 5 career archetypes on the grahas that govern work.",
     h_ayur: "Ayur-Jyotish & Tridosha Wellness Framework",
     pill_charaka: "Charaka & Prashna Marga",
     p_ayur: "Classical Ayurvedic constitutional analysis evaluating Vata, Pitta, and Kapha balances, metabolic tendencies, and organ system resilience.",
@@ -544,6 +544,8 @@ const I18N = {
     th_sign_lord: "Sign Lord",
     th_star_lord: "Star Lord",
     th_sub_lord: "Sub-Lord",
+    th_kp_house: "House",
+    th_significations: "Signified Houses",
     h_kp_planets: "9 Planets KP Coordinates",
     h_bnn: "Bhrigu Nandi Nadi (BNN) Karmic Planetary Sutras",
     pill_bnn: "Classical Sage Bhrigu Tradition",
@@ -864,7 +866,7 @@ const I18N = {
     transit_jupiter_today: "இன்றைய குரு கோச்சாரம்",
     h_career: "தசாம்சம் (D-10) & தொழில் திறன் ஆய்வு",
     pill_bvb: "பாரதிய வித்யா பவன் முறை",
-    p_career: "இராசி (D-1), தசாம்சம் (D-10) மற்றும் அமாத்யகாரகன் அடிப்படையில் 5 தொழில் வகைகளுக்கான திறன் மதிப்பீடு.",
+    p_career: "வராஹமிஹிரரின் கர்மஜீவ விதி (பிருஹத் ஜாதகம் அ. 10) மற்றும் தசாம்சம் (D-10) அடிப்படையில், தொழிலை ஆளும் கிரகங்களைக் கொண்டு 5 தொழில் வகைகளுக்கான மதிப்பீடு.",
     h_ayur: "ஆயுர்-ஜோதிடம் & திரிதோஷ நல ஆய்வு",
     pill_charaka: "சரகர் & பிரசன்ன மார்க்கம்",
     p_ayur: "வாதம், பித்தம், கபம் சமநிலை, செரிமானப் போக்கு மற்றும் உறுப்புகளின் வலிமையை மதிப்பிடும் ஆயுர்வேத உடலமைப்பு ஆய்வு.",
@@ -900,6 +902,8 @@ const I18N = {
     th_sign_lord: "ராசி அதிபதி",
     th_star_lord: "நட்சத்திர அதிபதி",
     th_sub_lord: "உப-அதிபதி",
+    th_kp_house: "பாவம்",
+    th_significations: "குறிக்கும் பாவங்கள்",
     h_kp_planets: "9 கிரகங்களின் கே.பி நிலைகள்",
     h_bnn: "பிருகு நந்தி நாடி கர்ம சூத்திரங்கள்",
     pill_bnn: "பிருகு முனிவர் மரபு",
@@ -2886,6 +2890,9 @@ function renderLifeReadings() {
             <strong style="color:var(--gold); font-size:12px">${m.score}%</strong>
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(isTa ? m.desc_ta : m.desc_en)}</p>
+          ${(m.windows || []).length ? `<ul class="bhava-factors">${m.windows.map(w => `
+            <li class="${w.dasa_support ? 'plus' : 'neutral'}">${w.start} – ${w.end} · ${esc(grahaName(w.dasa))}–${esc(grahaName(w.bhukti))} ${txt('dasa', 'தசை')}${w.dasa_support ? ` · ${txt('dasa supports', 'தசா ஆதரவு')}` : ''}</li>`).join('')}
+          </ul>` : ''}
         `;
         tGrid.append(card);
       });
@@ -2899,6 +2906,15 @@ function renderLifeReadings() {
       $('#career-top-title').textContent = `${isTa ? 'முதன்மை யோகம்' : 'Prime Calling'}: ${isTa ? c10.top_archetype.title_ta : c10.top_archetype.title_en}`;
       $('#career-top-badge').textContent = `${c10.top_archetype.score}% ${isTa ? 'பொருத்தம்' : 'Aptitude Match'}`;
       $('#career-top-narrative').textContent = isTa ? c10.narrative_ta : c10.narrative_en;
+    }
+    const cStrip = $('#career-meta-strip');
+    if (cStrip && c10.karmajeeva) {
+      const kj = c10.karmajeeva;
+      cStrip.innerHTML = `
+        <span class="bhava-meta-pill highlight">${txt('Karmajeeva graha', 'கர்மஜீவ கிரகம்')}: <strong>${esc(grahaName(kj.planet))}</strong></span>
+        <span class="bhava-meta-pill">${txt('Reckoned from', 'கணக்கிட்டது')}: <strong>${esc(txt(kj.reference, kj.reference_ta))}</strong></span>
+        <span class="bhava-meta-pill">${txt('10th lord', '10-ஆம் அதிபதி')}: <strong>${esc(grahaName(c10.tenth_lord))}</strong></span>
+        ${c10.d10 ? `<span class="bhava-meta-pill">${txt('D-10 Lagna', 'தசாம்ச லக்னம்')}: <strong>${esc(txt(c10.d10.lagna, c10.d10.lagna_ta))}</strong></span>` : ''}`;
     }
 
     const cContainer = $('#career-archetypes-container');
@@ -2947,6 +2963,11 @@ function renderLifeReadings() {
 
     $('#ayur-vulnerabilities-text').textContent = isTa ? ayur.anatomical_vulnerabilities_ta : ayur.anatomical_vulnerabilities_en;
     $('#ayur-lifestyle-text').textContent = isTa ? ayur.lifestyle_guidance_ta : ayur.lifestyle_guidance_en;
+    const listInto = (el, items, cls) => {
+      if (el) el.innerHTML = (items || []).map(f => `<li class="${cls}">${esc(txt(f.en, f.ta))}</li>`).join('');
+    };
+    listInto($('#ayur-factors'), ayur.factors, 'neutral');
+    listInto($('#ayur-health-watch'), ayur.health_watch, 'minus');
   }
 
   // Chapter 11: Ashtakavarga Kakshya Precision Transits
@@ -3078,6 +3099,11 @@ function renderLifeReadings() {
   // Chapter 13: Krishnamurti Paddhati (KP System) Sub-Lord Analysis
   const kp = pred.kp_system;
   if (kp) {
+    const rStrip = $('#kp-ruling-strip');
+    if (rStrip) {
+      rStrip.innerHTML = (kp.ayanamsa ? `<span class="bhava-meta-pill highlight">${txt('Ayanamsa', 'அயனாம்சம்')}: <strong>${txt('Krishnamurti', 'கிருஷ்ணமூர்த்தி')} ${kp.ayanamsa_degrees}°</strong></span>` : '')
+        + (kp.ruling_planets || []).map(r => `<span class="bhava-meta-pill">${esc(txt(r.role_en, r.role_ta))}: <strong>${esc(grahaName(r.planet))}</strong></span>`).join('');
+    }
     const kpGrid = $('#kp-cusp-preds-grid');
     if (kpGrid && kp.cuspal_predictions) {
       kpGrid.replaceChildren();
@@ -3087,13 +3113,15 @@ function renderLifeReadings() {
         const title = isTa ? cp.title_ta : cp.title_en;
         const subLord = isTa ? cp.sub_lord_ta : cp.sub_lord;
         const reading = isTa ? cp.reading_ta : cp.reading_en;
+        const verdictClass = { promised: 'success', mixed: 'neutral', weak: 'neutral', denied: 'danger', neutral: 'neutral' }[cp.verdict] || 'neutral';
         card.innerHTML = `
           <div class="reading-header">
             <span class="reading-icon">🔍</span>
             <div>
               <h3>${esc(title)}</h3>
-              <small class="muted">${isTa ? 'உப-அதிபதி' : 'Sub-Lord'}: <strong style="color:var(--gold);">${esc(subLord)}</strong></small>
+              <small class="muted">${isTa ? 'உப-அதிபதி' : 'Sub-Lord'}: <strong style="color:var(--gold);">${esc(subLord)}</strong>${cp.star_lord ? ` · ${txt('Star lord', 'நட்சத்திர அதிபதி')}: ${esc(grahaName(cp.star_lord))}` : ''}</small>
             </div>
+            ${cp.verdict ? `<span class="status-pill ${verdictClass}">${esc(txt(cp.verdict_en, cp.verdict_ta))}</span>` : ''}
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(reading)}</p>
         `;
@@ -3130,6 +3158,8 @@ function renderLifeReadings() {
           <td>${isTa ? p.sign_lord_ta : p.sign_lord}</td>
           <td>${starName(p.star_name)} (${isTa ? p.star_lord_ta : p.star_lord})</td>
           <td><strong style="color:var(--gold)">${isTa ? p.sub_lord_ta : p.sub_lord}</strong></td>
+          <td>${p.kp_house ?? '—'}</td>
+          <td>${(p.significations || []).join(', ')}</td>
         `;
         pBody.append(tr);
       });
@@ -3209,6 +3239,9 @@ function renderLifeReadings() {
             <strong style="color:var(--gold); font-size:12px">${a.fruit_potency}%</strong>
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(interp)}</p>
+          ${(a.lajjitadi || []).length ? `<ul class="bhava-factors">${a.lajjitadi.map(m => `
+            <li class="${m.effect > 0 ? 'plus' : 'minus'}"><strong>${esc(txt(m.en, m.ta))}</strong> — ${esc(txt(m.reading_en, m.reading_ta))}</li>`).join('')}
+          </ul>` : ''}
         `;
         aGrid.append(card);
       });
@@ -3254,6 +3287,7 @@ function renderLifeReadings() {
               <h3>${esc(name)}</h3>
               <small class="muted">${sign} ${s.degree_str} · ${isTa ? 'பாவம்' : 'House'} ${s.house} (${esc(kw)})</small>
             </div>
+            ${s.strength ? `<span class="status-pill ${s.strength === 'strong' ? 'success' : (s.strength === 'weak' ? 'danger' : 'neutral')}">${esc(txt({ strong: 'Strong', moderate: 'Moderate', weak: 'Weak' }[s.strength], { strong: 'பலம்', moderate: 'மத்திமம்', weak: 'பலவீனம்' }[s.strength]))}</span>` : ''}
           </div>
           <p class="reading-body" style="font-size:12.5px">${esc(reading)}</p>
         `;
