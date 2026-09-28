@@ -959,6 +959,36 @@ def dasha(moon, birth, now=None):
 
     return rows
 
+# Yogini Dasa: eight yoginis in a 36-year cycle; the birth star fixes the first
+# ((nakshatra number + 3) mod 8), bhuktis start from the Dasa's own yogini.
+YOGINIS = [('Mangala', 'மங்களா', 'Moon', 1), ('Pingala', 'பிங்களா', 'Sun', 2), ('Dhanya', 'தான்யா', 'Jupiter', 3),
+           ('Bhramari', 'பிராமரி', 'Mars', 4), ('Bhadrika', 'பத்ரிகா', 'Mercury', 5), ('Ulka', 'உல்கா', 'Saturn', 6),
+           ('Siddha', 'சித்தா', 'Venus', 7), ('Sankata', 'சங்கடா', 'Rahu', 8)]
+
+def yogini_dasha(moon, birth, now=None, cycles=4):
+    """Yogini Dasa periods from the birth-star balance, with bhuktis."""
+    portion = moon / (40 / 3)
+    first = (int(portion) + 1 + 3) % 8 - 1  # zero-based yogini, (star number + 3) mod 8
+    first_years = YOGINIS[first][3]
+    start = birth - timedelta(days=(portion % 1) * first_years * YEAR)
+    now = now or datetime.now(timezone.utc)
+    rows = []
+    for k in range(8 * cycles):
+        i = (first + k) % 8
+        name, name_ta, lord, years = YOGINIS[i]
+        end = start + timedelta(days=years * YEAR)
+        subs, sub_start = [], start
+        for m in range(8):
+            j = (i + m) % 8
+            sub_end = sub_start + timedelta(days=years * YOGINIS[j][3] / 36 * YEAR)
+            subs.append(dict(yogini=YOGINIS[j][0], yogini_ta=YOGINIS[j][1], lord=YOGINIS[j][2],
+                             start=sub_start.isoformat(), end=sub_end.isoformat(), is_active=sub_start <= now < sub_end))
+            sub_start = sub_end
+        rows.append(dict(yogini=name, yogini_ta=name_ta, lord=lord, years=years,
+                         start=start.isoformat(), end=end.isoformat(), subperiods=subs, is_active=start <= now < end))
+        start = end
+    return rows
+
 def get_active_dasha(dasha_rows):
     """Extract currently active 3-tier dasa from calculated rows."""
     for d in dasha_rows:
@@ -1453,6 +1483,7 @@ def calculate(data):
     moon_lon = planets['Moon']['longitude']
     dasha_rows = dasha(moon_lon, utc)
     active_dasha = get_active_dasha(dasha_rows)
+    yogini_rows = yogini_dasha(moon_lon, utc)
 
     # Panchangam
     panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon, data['timezone'])
@@ -1527,6 +1558,7 @@ def calculate(data):
         planets=planets,
         dasha=dasha_rows,
         active_dasha=active_dasha,
+        yogini_dasha=yogini_rows,
         panchanga=panchangam,
         ashtakavarga=ashtakavarga,
         yogas=yogas,

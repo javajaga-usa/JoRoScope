@@ -15,6 +15,8 @@
 - Lifetime Saturn cycles: Ezharai Sani with its three phases, Ardhashtama, Kandaka and Ashtama Sani from the natal Moon, found by sweeping Saturn's exact sign changes.
 - Printable Porutham report; the match verdict drops one step when Chevvai or Papa Samyam is unbalanced or a Dasa Sandhi falls, and says why.
 - Full-chart matches correct saved profiles whose stored star or sign was wrong.
+- Upagrahas: Gulika, Kaala, Mrityu, Artha Praharaka, Yama Ghantaka (Jagannatha Hora conventions) and the Dhuma group (BPHS).
+- Yogini Dasa with bhuktis, its star mapping checked against PyJHora.
 - Dasa Sandhi in matching: Maha Dasa changes of bride and groom within 182 days of each other over the next 30 years.
 
 ### Printable Jathagam

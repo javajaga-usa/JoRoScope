@@ -342,6 +342,12 @@ const I18N = {
     th_phases: 'Phases',
     print_porutham: 'Print Porutham Report',
     title_print_porutham: 'Print the compatibility report',
+    upagrahas_title: 'Upagrahas (Sub-planets)',
+    upagrahas_sub: "Kaala, Mrityu, Artha Praharaka and Yama Ghantaka rise mid-way through their lord's part of the day or night, Gulika at the start of Saturn's; the Dhuma group is derived from the Sun.",
+    th_upagraha: 'Upagraha',
+    yogini_mode: 'Yogini Dasa',
+    yogini_title: 'Yogini Dasa (36-Year Cycle)',
+    yogini_sub: 'Eight yoginis ruled by the Moon, Sun, Jupiter, Mars, Mercury, Saturn, Venus and Rahu; the birth star fixes the first.',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -690,6 +696,12 @@ const I18N = {
     th_phases: 'கட்டங்கள்',
     print_porutham: 'பொருத்த அறிக்கை அச்சிடு',
     title_print_porutham: 'திருமணப் பொருத்த அறிக்கையை அச்சிடவும்',
+    upagrahas_title: 'உபகிரகங்கள்',
+    upagrahas_sub: 'காலன், மிருத்யு, அர்த்தப்பிரகரன், எமகண்டன் தங்கள் அதிபதியின் பகல்/இரவுப் பகுதியின் நடுவிலும், குளிகன் சனியின் பகுதியின் தொடக்கத்திலும் உதிக்கின்றனர்; தூமம் முதலியவை சூரியனிலிருந்து கணிக்கப்படுகின்றன.',
+    th_upagraha: 'உபகிரகம்',
+    yogini_mode: 'யோகினி தசை',
+    yogini_title: 'யோகினி தசை (36 ஆண்டு சுழற்சி)',
+    yogini_sub: 'சந்திரன், சூரியன், குரு, செவ்வாய், புதன், சனி, சுக்கிரன், ராகு ஆளும் எட்டு யோகினிகள்; ஜென்ம நட்சத்திரமே முதல் யோகினியைத் தீர்மானிக்கிறது.',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -1027,6 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Timeline View Mode Switcher (Timeline Predictions vs Tabular Date Cycles)
   $('#btn-mode-timeline')?.addEventListener('click', () => setDasaViewMode('timeline'));
   $('#btn-mode-cycles')?.addEventListener('click', () => setDasaViewMode('cycles'));
+  $('#btn-mode-yogini')?.addEventListener('click', () => setDasaViewMode('yogini'));
 
   // Timeline Filter Buttons
   $$('.timeline-filter-btn').forEach(btn => {
@@ -1160,6 +1173,8 @@ function toggleLanguage() {
     renderAshtakavarga();
     renderYogasAndDoshas();
     renderDashaAccordion();
+    renderYoginiAccordion();
+    renderUpagrahas();
     renderJathagaKurippu();
     renderLifeReadings();
     renderDasaTimelineView();
@@ -1358,9 +1373,11 @@ async function handleFormSubmit(e) {
     renderQuickStats();
     renderCurrentChart();
     renderPlanetsTable();
+    renderUpagrahas();
     renderAshtakavarga();
     renderYogasAndDoshas();
     renderDashaAccordion();
+    renderYoginiAccordion();
     renderDasaTimelineView();
     renderLifeReadings();
     renderJathagaKurippu();
@@ -2229,15 +2246,59 @@ function renderDashaAccordion() {
   });
 }
 
+// Yogini Dasa accordion: each yogini with its ruling graha, then its eight bhuktis
+function renderYoginiAccordion() {
+  const container = $('#yogini-accordion');
+  const rows = currentChart?.yogini_dasha;
+  if (!container || !rows) return;
+  const yName = y => txt(`${y.yogini} (${grahaName(y.lord)})`, `${y.yogini_ta} (${grahaName(y.lord)})`);
+  container.innerHTML = rows.map(d => `
+    <details class="dasa-item"${d.is_active ? ' open' : ''}>
+      <summary class="dasa-summary ${d.is_active ? 'active-period' : ''}">
+        <div>
+          <span class="dasa-name">${esc(yName(d))} · ${d.years} ${txt(d.years === 1 ? 'year' : 'years', 'ஆண்டு')}</span>
+          ${d.is_active ? `<span class="status-pill success" style="margin-left:8px">${txt('ACTIVE', 'நடப்பில்')}</span>` : ''}
+        </div>
+        <span class="dasa-dates">${localDate(d.start)} → ${localDate(d.end)}</span>
+      </summary>
+      <table class="luxury-table bhukti-table">
+        <thead><tr><th>${txt('Bhukti', 'புக்தி')}</th><th>${txt('Start', 'தொடக்கம்')}</th><th>${txt('End', 'முடிவு')}</th></tr></thead>
+        <tbody>${d.subperiods.map(b => `
+          <tr class="${b.is_active ? 'active-period' : ''}">
+            <td><strong>${esc(yName(b))}</strong>${b.is_active ? ` <span class="status-pill success">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
+            <td>${localDate(b.start)}</td><td>${localDate(b.end)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </details>`).join('');
+}
+
+function renderUpagrahas() {
+  const tbody = $('#upagrahas-tbody');
+  const rows = currentChart?.south_indian?.upagrahas;
+  if (!tbody || !rows) return;
+  tbody.innerHTML = rows.map(u => `
+    <tr>
+      <td><strong>${esc(txt(u.name, u.name_ta))}</strong></td>
+      <td>${esc(signName(u.sign_index))}</td>
+      <td>${formatDegrees(u.degree)}</td>
+      <td>${esc(starName(u.nakshatra))} (${txt('Pada', 'பாதம்')} ${u.pada})</td>
+      <td>${txt(`House ${u.house}`, `${u.house}-ம் பாவம்`)}</td>
+    </tr>`).join('');
+}
+
 // Dasa View Switcher & Timeline Predictions Engine
 function setDasaViewMode(mode) {
   currentDasaMode = mode;
   $('#btn-mode-timeline')?.classList.toggle('active', mode === 'timeline');
   $('#btn-mode-cycles')?.classList.toggle('active', mode === 'cycles');
+  $('#btn-mode-yogini')?.classList.toggle('active', mode === 'yogini');
   const tView = $('#dasa-timeline-view');
   const cView = $('#dasa-tabular-view');
+  const yView = $('#dasa-yogini-view');
   if (tView) tView.hidden = (mode !== 'timeline');
   if (cView) cView.hidden = (mode !== 'cycles');
+  if (yView) yView.hidden = (mode !== 'yogini');
 }
 
 function handleTimelineYearJump() {

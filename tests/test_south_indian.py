@@ -235,6 +235,50 @@ class ClassicalTableTests(unittest.TestCase):
         self.assertEqual(self.match(5, 2, 7, 3)['graha_maitri'], 1)
 
 
+class UpagrahaYoginiTests(unittest.TestCase):
+    def test_solar_upagrahas(self):
+        from joroscope.core.south_indian import solar_upagraha_longitudes
+        dhuma, vyatipata, parivesha, indrachapa, upaketu = solar_upagraha_longitudes(256.86)
+        self.assertAlmostEqual(dhuma, 30.1933, places=3)
+        self.assertAlmostEqual((dhuma + vyatipata) % 360, 0, places=6)
+        self.assertAlmostEqual((parivesha - vyatipata) % 360, 180, places=6)
+        self.assertAlmostEqual((indrachapa + parivesha) % 360, 0, places=6)
+        self.assertAlmostEqual((upaketu - indrachapa) % 360, 16 + 40 / 60, places=6)
+
+    def test_gulika_rises_at_the_start_of_saturns_part(self):
+        from joroscope.core.south_indian import vedic_day, upagrahas
+        r = calculate(dict(name='T', date='1990-01-01', time='12:00', timezone='Asia/Kolkata',
+                           latitude='13.0827', longitude='80.2707', ayanamsa='Lahiri'))
+        swe.set_sid_mode(AYAN['Lahiri'])
+        jd = utc_to_jd(datetime.fromisoformat(r['utc']))
+        day, events = vedic_day(jd, CHENNAI['tz'], CHENNAI['lat'], CHENNAI['lon'])
+        gulika = next(u for u in upagrahas(jd, events, 1, CHENNAI['lat'], CHENNAI['lon'], r['planets']) if u['name'] == 'Gulika')
+        # Monday's day parts run Moon, Mars, Mercury, Jupiter, Venus, Saturn...: Saturn owns the 6th
+        start = events['sunrise'] + 5 * (events['sunset'] - events['sunrise']) / 8
+        asc = swe.houses_ex(start, CHENNAI['lat'], CHENNAI['lon'], b'P', swe.FLG_SIDEREAL)[1][0]
+        self.assertAlmostEqual(gulika['longitude'], asc, places=6)
+        self.assertEqual(len(r['south_indian']['upagrahas']), 10)
+
+    def test_yogini_dasa(self):
+        from joroscope.core.engine import yogini_dasha, YOGINIS
+        # PyJHora's star lists (1-based stars) for each yogini's ruling graha
+        stars_of = {'Moon': [6, 14, 22], 'Sun': [7, 15, 23], 'Jupiter': [8, 16, 24], 'Mars': [1, 9, 17, 25],
+                    'Mercury': [2, 10, 18, 26], 'Saturn': [3, 11, 19, 27], 'Venus': [4, 12, 20], 'Rahu': [5, 13, 21]}
+        birth = datetime(2000, 1, 1, tzinfo=ZoneInfo('UTC'))
+        for lord, stars in stars_of.items():
+            for star in stars:
+                rows = yogini_dasha((star - 1) * 40 / 3 + 0.001, birth)
+                self.assertEqual(rows[0]['lord'], lord, star)
+        rows = yogini_dasha(40 / 3 * 5.5, birth)  # halfway through Ardra: Mangala, half of its one year left
+        self.assertEqual(rows[0]['yogini'], 'Mangala')
+        left = datetime.fromisoformat(rows[0]['end']) - birth
+        self.assertAlmostEqual(left.days, round(0.5 * 365.25), delta=1)
+        self.assertEqual(sum(y[3] for y in YOGINIS), 36)
+        for row in rows[:8]:
+            self.assertEqual(row['subperiods'][0]['yogini'], row['yogini'])
+            self.assertEqual(row['subperiods'][-1]['end'], row['end'])
+
+
 class MatchReportTests(unittest.TestCase):
     def test_summaries_and_dosha_adjusted_verdict(self):
         girl = calculate(dict(name='Kalyani Devi', date='1994-05-18', time='08:30', timezone='Asia/Kolkata',

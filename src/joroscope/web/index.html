@@ -466,6 +466,31 @@
             </table>
           </div>
         </div>
+
+        <!-- Upagrahas: Mandi's companions -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="upagrahas_title">Upagrahas (Sub-planets)</h2>
+              <p class="card-subtitle" data-i18n="upagrahas_sub">Kaala, Mrityu, Artha Praharaka and Yama Ghantaka rise mid-way through their lord's part of the day or night, Gulika at the start of Saturn's; the Dhuma group is derived from the Sun.</p>
+            </div>
+            <span class="card-badge">☌</span>
+          </div>
+          <div class="table-responsive">
+            <table class="luxury-table">
+              <thead>
+                <tr>
+                  <th data-i18n="th_upagraha">Upagraha</th>
+                  <th data-i18n="sign">Sign</th>
+                  <th data-i18n="degrees">Degree</th>
+                  <th data-i18n="star_pada">Star / Pada</th>
+                  <th data-i18n="house">House</th>
+                </tr>
+              </thead>
+              <tbody id="upagrahas-tbody"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <!-- VIEW 3: ASHTAKAVARGA -->
@@ -576,6 +601,9 @@
           </button>
           <button type="button" class="view-mode-btn" id="btn-mode-cycles" data-mode="cycles">
             <span>📑</span> <span data-i18n="tabular_cycles_mode">Tabular Date Cycles (3 Tiers)</span>
+          </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-yogini" data-mode="yogini">
+            <span>🔱</span> <span data-i18n="yogini_mode">Yogini Dasa</span>
           </button>
         </div>
 
@@ -727,6 +755,20 @@
           <!-- 3-Tier Dasa Accordion -->
           <div class="cosmic-card lower-space">
             <div id="dasa-accordion" class="dasa-accordion"></div>
+          </div>
+        </div>
+
+        <!-- YOGINI DASA VIEW -->
+        <div id="dasa-yogini-view" hidden>
+          <div class="cosmic-card">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="yogini_title">Yogini Dasa (36-Year Cycle)</h2>
+                <p class="card-subtitle" data-i18n="yogini_sub">Eight yoginis ruled by the Moon, Sun, Jupiter, Mars, Mercury, Saturn, Venus and Rahu; the birth star fixes the first.</p>
+              </div>
+              <span class="card-badge">🔱</span>
+            </div>
+            <div id="yogini-accordion" class="dasa-accordion"></div>
           </div>
         </div>
       </section>

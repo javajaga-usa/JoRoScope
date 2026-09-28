@@ -101,6 +101,20 @@ GOWRI_TA = {
 }
 GOWRI_GOOD = ('Amirdha', 'Uthi', 'Laabam', 'Dhanam', 'Sugam')
 
+# Upagrahas. The day and the night are each split into eight parts ruled in weekday order
+# from the day's lord (the night from the fifth lord), one part being unruled. Kaala, Mrityu,
+# Artha Praharaka and Yama Ghantaka rise at the middle of their lord's part and Gulika at the
+# start of Saturn's (Jagannatha Hora's convention); Mandi keeps the Prasna Marga rule above.
+PART_CYCLE = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', None]
+TIME_UPAGRAHAS = [
+    ('Kaala', 'காலன்', 'Sun', 0.5), ('Mrityu', 'மிருத்யு', 'Mars', 0.5),
+    ('Artha Praharaka', 'அர்த்தப்பிரகரன்', 'Mercury', 0.5), ('Yama Ghantaka', 'எமகண்டன்', 'Jupiter', 0.5),
+    ('Gulika', 'குளிகன்', 'Saturn', 0.0)
+]
+# Sun-based upagrahas (BPHS): Dhuma = Sun + 133°20', then each derived from the previous
+SOLAR_UPAGRAHAS = [('Dhuma', 'தூமம்'), ('Vyatipata', 'வியதீபாதம்'), ('Parivesha', 'பரிவேடம்'),
+                   ('Indrachapa', 'இந்திரசாபம்'), ('Upaketu', 'உபகேது')]
+
 # Mean daily motions (degrees) used to seed the Newton searches
 SUN_RATE, MOON_RATE = 0.9856, 13.176
 
@@ -254,6 +268,40 @@ def mandi_longitude(moment_jd, events, weekday, lat, lon):
     rise_jd = start + span * ghati / 30
     asc = swe.houses_ex(rise_jd, lat, lon, b'P', swe.FLG_SIDEREAL)[1][0]
     return asc, rise_jd
+
+
+def solar_upagraha_longitudes(sun_lon):
+    dhuma = (sun_lon + 133 + 20 / 60) % 360
+    vyatipata = (360 - dhuma) % 360
+    parivesha = (vyatipata + 180) % 360
+    indrachapa = (360 - parivesha) % 360
+    return [dhuma, vyatipata, parivesha, indrachapa, (sun_lon - 30) % 360]
+
+
+def upagrahas(moment_jd, events, weekday, lat, lon, planets):
+    """Time-based upagrahas (the ascendant when each rises) and the Sun-based Dhuma group."""
+    if moment_jd < events['sunset']:
+        start, span, lord = events['sunrise'], events['sunset'] - events['sunrise'], WEEKDAY_LORDS[weekday]
+    else:
+        start, span, lord = events['sunset'], events['next_sunrise'] - events['sunset'], WEEKDAY_LORDS[(weekday + 4) % 7]
+    part = span / 8
+    asc_sign = planets['Ascendant']['sign_index']
+    rows = []
+
+    def add(name, name_ta, lon_value, kind):
+        pl = placement(lon_value)
+        rows.append(dict(name=name, name_ta=name_ta, kind=kind, longitude=lon_value,
+                         sign=pl['sign'], tamil=pl['tamil'], sign_index=pl['sign_index'], degree=pl['degree'],
+                         nakshatra=pl['nakshatra'], tamil_nakshatra=pl['tamil_nakshatra'], pada=pl['pada'],
+                         house=_house_from(pl['sign_index'], asc_sign)))
+
+    for name, name_ta, ruler, offset in TIME_UPAGRAHAS:
+        index = (PART_CYCLE.index(ruler) - PART_CYCLE.index(lord)) % 8
+        rise = start + (index + offset) * part
+        add(name, name_ta, swe.houses_ex(rise, lat, lon, b'P', swe.FLG_SIDEREAL)[1][0], 'time')
+    for (name, name_ta), lon_value in zip(SOLAR_UPAGRAHAS, solar_upagraha_longitudes(planets['Sun']['longitude'])):
+        add(name, name_ta, lon_value, 'solar')
+    return rows
 
 
 def chevvai_dosham(planets):
@@ -508,6 +556,7 @@ def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
         dasa_irruppu=dasa_irruppu(moon['longitude']),
         birth_star=birth_star_attributes(birth_star),
         mandi=mandi,
+        upagrahas=upagrahas(jd, events, weekday, lat, lon, planets),
         papa_points=papa_points(planets),
         upcoming=dict(
             chandrashtamam=upcoming_chandrashtamam(now_jd, moon['sign_index'], tz),
