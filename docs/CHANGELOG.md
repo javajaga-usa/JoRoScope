@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Windows launcher
+- `Launch.ps1` and `Start JoRoScope.cmd` now work like the macOS launcher: they find Python 3.11 or newer (the `py` launcher, then `python`), create a private `.venv` and install the requirements on the first run, then start the server. They no longer look for a developer-machine runtime under `.cache\codex-runtimes` or require exactly Python 3.12.
+
 ### Faster chart loading
 - The chart response keeps the six detailed readings (career, wealth, health, family, milestones, remedy) only for the running Dasa-Bhukti; the other 80 periods' readings load from the new `/api/timeline` endpoint the first time a card is opened.
 - JSON responses are gzip-compressed when the browser accepts it. A chart now transfers about 80 KB instead of about 950 KB.

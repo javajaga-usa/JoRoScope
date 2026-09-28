@@ -1,28 +1,72 @@
-$ErrorActionPreference = 'Stop'
-$appFolder = $PSScriptRoot
-$serverScript = Join-Path $appFolder 'server.py'
+# JoRoScope launcher for Windows: run .\Launch.ps1, or double-click "Start JoRoScope.cmd".
+# The first run creates a private Python environment (.venv) and installs the Swiss
+# Ephemeris; later runs start straight away. Extra arguments go to server.py
+# (a port number, --no-browser).
+# Exit codes are checked explicitly: under 'Stop', Windows PowerShell 5.1 turns any stderr
+# output of python or pip (even a warning) into a terminating error.
+$ErrorActionPreference = 'Continue'
+Set-Location -LiteralPath $PSScriptRoot
+$Host.UI.RawUI.WindowTitle = 'JoRoScope - Vedic Astrology'
 
-# 1. Check bundled runtime
-$bundledPython = Join-Path $env:USERPROFILE '.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe'
-if (Test-Path -LiteralPath $bundledPython) {
-    & $bundledPython $serverScript
-    exit $LASTEXITCODE
+function Stop-WithMessage([string]$Message) {
+    Write-Host ''
+    Write-Host $Message -ForegroundColor Yellow
+    Read-Host 'Press Enter to close'
+    exit 3  # already paused; the .cmd launcher pauses only for other failures
 }
 
-# 2. Check py -3.12 launcher
-$pyCmd = Get-Command py -ErrorAction SilentlyContinue
-if ($pyCmd) {
-    & py -3.12 $serverScript
-    if ($LASTEXITCODE -eq 0) { exit 0 }
+# Python 3.11 or newer: the py launcher first (newest version it knows), then python on the PATH.
+# The Microsoft Store "python" alias only opens the Store, so it fails the version check.
+function Find-Python {
+    $check = 'import sys; sys.exit(sys.version_info < (3, 11))'
+    $candidates = @()
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+        $candidates += , @('py', '-3.13')
+        $candidates += , @('py', '-3.12')
+        $candidates += , @('py', '-3.11')
+        $candidates += , @('py', '-3')
+    }
+    if (Get-Command python -ErrorAction SilentlyContinue) {
+        $candidates += , @('python')
+    }
+    foreach ($candidate in $candidates) {
+        $exe = $candidate[0]
+        $prefix = @($candidate | Select-Object -Skip 1)
+        try {
+            & $exe @prefix -c $check 2>$null | Out-Null
+            if ($LASTEXITCODE -eq 0) { return , $candidate }
+        } catch {
+            continue
+        }
+    }
+    return $null
 }
 
-# 3. Check default python
-$pythonCmd = Get-Command python -ErrorAction SilentlyContinue
-if ($pythonCmd) {
-    & python $serverScript
-    if ($LASTEXITCODE -eq 0) { exit 0 }
+$venvPython = Join-Path $PSScriptRoot '.venv\Scripts\python.exe'
+if (-not (Test-Path -LiteralPath $venvPython)) {
+    $python = Find-Python
+    if (-not $python) {
+        Stop-WithMessage 'JoRoScope needs Python 3.11 or newer (64-bit). Install it from https://www.python.org/downloads/windows/ (tick "Add python.exe to PATH") and open this launcher again.'
+    }
+    Write-Host 'First run: creating a Python environment for JoRoScope...'
+    $exe = $python[0]
+    $prefix = @($python | Select-Object -Skip 1)
+    & $exe @prefix -m venv .venv
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $venvPython)) {
+        Stop-WithMessage 'Could not create the Python environment in .venv.'
+    }
 }
 
-Write-Host "JoRoScope requires Python 3.12 (64-bit) with swisseph." -ForegroundColor Yellow
-Write-Host "Please ensure Python 3.12 is installed or run 'py -3.12 server.py'." -ForegroundColor Cyan
-Read-Host "Press Enter to close"
+& $venvPython -c 'import swisseph' 2>$null
+if ($LASTEXITCODE -ne 0) {
+    Write-Host 'Installing the Swiss Ephemeris and time-zone data (one time)...'
+    & $venvPython -m pip install --quiet --disable-pip-version-check -r requirements.txt
+    if ($LASTEXITCODE -ne 0) {
+        Stop-WithMessage 'Installing the requirements failed. Check the internet connection and try again.'
+    }
+}
+
+& $venvPython server.py @args
+if ($LASTEXITCODE -ne 0) {
+    Stop-WithMessage 'JoRoScope stopped with an error (shown above).'
+}

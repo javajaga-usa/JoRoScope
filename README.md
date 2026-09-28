@@ -76,13 +76,14 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 
 ### 1. Requirements
 - **Operating System**: Windows, macOS, or Linux.
-- **Python**: 3.11 or 3.12 (64-bit recommended).
+- **Python**: 3.11 or newer (64-bit recommended).
 
 ### 2. Launch on Windows (1-Click)
 Double-click `Start JoRoScope.cmd` or run with PowerShell:
 ```powershell
 .\Launch.ps1
 ```
+The first launch needs Python 3.11+ (64-bit, from [python.org](https://www.python.org/downloads/windows/)) and an internet connection: it creates a private `.venv` and installs the Swiss Ephemeris. Later launches start straight away and open the app in your browser. Extra arguments go to the server, for example a port number or `--no-browser`.
 
 ### Print & PDF
 Use **Print / PDF** to choose a Traditional Jathagam, a Detailed Horoscope or a Complete Report, pick sections and the language, then print or choose "Save as PDF" in the print window.
