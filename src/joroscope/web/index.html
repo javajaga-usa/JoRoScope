@@ -272,6 +272,9 @@
                   <button class="action-btn" id="save-profile-btn" title="Save to local browser storage" data-i18n-title="title_save_local">
                     <span>💾</span> <span data-i18n="save_profile">Save Profile</span>
                   </button>
+                  <button class="action-btn" id="print-jathagam-btn" title="Print a traditional horoscope sheet: birth notes, Rasi and Navamsa, planets and Dasa-Bhukti" data-i18n-title="title_print_jathagam">
+                    <span>📜</span> <span data-i18n="print_jathagam">Print Jathagam</span>
+                  </button>
                   <button class="action-btn" id="quick-print-btn" title="Export as PDF / Print" data-i18n-title="title_export_pdf">
                     <span>🖨️</span> <span data-i18n="export_pdf">Export PDF</span>
                   </button>
@@ -1666,6 +1669,9 @@
       </footer>
     </main>
   </div>
+
+  <!-- Printable Jathagam, assembled on demand by printJathagam() -->
+  <section id="print-jathagam" class="print-jathagam" aria-hidden="true"></section>
 
   <!-- Interactive Toast Notification -->
   <div id="toast" class="toast-popup" role="status" hidden></div>

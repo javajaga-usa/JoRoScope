@@ -102,6 +102,18 @@ class PredictionLogicTests(unittest.TestCase):
         self.assertEqual(by_planet['Sun']['functional_role'], 'malefic')  # 6th lord for Pisces
         self.assertIsNone(by_planet['Rahu']['functional_role'])
 
+    def test_period_dates_use_the_birthplace_calendar(self):
+        from datetime import datetime
+        from zoneinfo import ZoneInfo
+        ist = ZoneInfo('Asia/Kolkata')
+        periods = chart('1990-01-01', '12:00')['predictions']['timeline_predictions']['periods']
+        shifted = 0
+        for p in periods:
+            local = datetime.fromisoformat(p['start_iso']).astimezone(ist).date().isoformat()
+            self.assertEqual(p['start_date'], local)
+            shifted += local != p['start_iso'][:10]
+        self.assertGreater(shifted, 0)  # some boundaries fall after 18:30 UTC, the next day in IST
+
     def test_active_dasa_reading_names_both_lords(self):
         r = chart('2001-07-15', '03:10')
         ad = r['active_dasha']

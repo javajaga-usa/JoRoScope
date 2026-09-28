@@ -328,6 +328,8 @@ const I18N = {
     annual_projections_sub: 'Milestones and astrological favorability score for current era',
     open_timeline_studio: 'Open Interactive 81-Period Timeline Studio →',
     city_helper: 'Search historical database or use coordinates below.',
+    print_jathagam: 'Print Jathagam',
+    title_print_jathagam: 'Print a traditional horoscope sheet: birth notes, Rasi and Navamsa, planets and Dasa-Bhukti',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -663,6 +665,8 @@ const I18N = {
     annual_projections_sub: 'ஒவ்வொரு ஆண்டின் வயது, இயங்கும் தசை மற்றும் சாதக சுட்டெண்',
     open_timeline_studio: '81 தசா-புக்தி காலவரிசை ஸ்டுடியோவைக் காண்க →',
     city_helper: 'நகரத் தரவுத்தளத்தில் தேடவும் அல்லது கீழே அட்சரேகை, தீர்க்கரேகையை உள்ளிடவும்.',
+    print_jathagam: 'ஜாதகம் அச்சிடு',
+    title_print_jathagam: 'பிறப்புக் குறிப்பு, இராசி, அம்சம், கிரக நிலை, தசா புக்தி அடங்கிய ஜாதகத் தாளை அச்சிடவும்',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -961,6 +965,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Print buttons
   $('#print-btn').addEventListener('click', () => window.print());
   $('#quick-print-btn').addEventListener('click', () => window.print());
+  $('#print-jathagam-btn').addEventListener('click', printJathagam);
+  window.addEventListener('afterprint', () => document.body.classList.remove('printing-jathagam'));
 
   // Save profile button (results banner & form)
   $('#save-profile-btn')?.addEventListener('click', saveCurrentProfile);
@@ -1379,8 +1385,8 @@ function renderQuickStats() {
       `${ad.dasa} Maha Dasa → ${ad.bhukti} Bhukti → ${ad.pratyantar} Pratyantar`,
       `${grahaName(ad.dasa)} மகா தசை → ${grahaName(ad.bhukti)} புக்தி → ${grahaName(ad.pratyantar)} அந்தரம்`);
     $('#hero-dasa-dates').textContent = txt(
-      `Active through ${ad.end.slice(0, 10)} (Maha Dasa ends ${ad.dasa_end.slice(0, 10)})`,
-      `${ad.end.slice(0, 10)} வரை நடைமுறையில் (மகா தசை ${ad.dasa_end.slice(0, 10)} அன்று முடிகிறது)`);
+      `Active through ${localDate(ad.end)} (Maha Dasa ends ${localDate(ad.dasa_end)})`,
+      `${localDate(ad.end)} வரை நடைமுறையில் (மகா தசை ${localDate(ad.dasa_end)} அன்று முடிகிறது)`);
   } else {
     $('#stat-dasa').textContent = '—';
   }
@@ -1392,6 +1398,9 @@ function renderQuickStats() {
   $('#calc-jd').textContent = currentChart.julian_day.toFixed(6);
   $('#calc-ayanamsa-val').textContent = formatDegrees(currentChart.ayanamsa_degrees);
 }
+
+// Calendar date (YYYY-MM-DD) of a UTC timestamp at the chart's birthplace
+const localDate = iso => new Date(iso).toLocaleDateString('en-CA', { timeZone: currentChart?.profile?.timezone || undefined });
 
 // "HH:MM" from an ISO timestamp that carries its own UTC offset
 const clockTime = iso => (iso || '').slice(11, 16);
@@ -1413,6 +1422,17 @@ function renderJathagaKurippu() {
   $('#jathaga-kurippu-card').hidden = !si;
   if (!si) return;
 
+  grid.innerHTML = kurippuRows().map(([label, value]) => `
+    <div class="kurippu-item">
+      <small>${esc(label)}</small>
+      <strong>${esc(value)}</strong>
+    </div>
+  `).join('');
+}
+
+// [label, value] rows of the Tamil birth notes, shared by the card and the printed Jathagam
+function kurippuRows() {
+  const si = currentChart.south_indian;
   const isTa = currentLang === 'ta';
   const p = currentChart.planets;
   const panch = currentChart.panchanga;
@@ -1443,13 +1463,100 @@ function renderJathagaKurippu() {
     [pick('Papa Points (L / C / S)', 'பாப புள்ளிகள் (ல / ச / சு)'),
       `${si.papa_points.total} (${si.papa_points.breakdown.map(b => b.points).join(' / ')})`]
   ];
+  return rows;
+}
 
-  grid.innerHTML = rows.map(([label, value]) => `
-    <div class="kurippu-item">
-      <small>${esc(label)}</small>
-      <strong>${esc(value)}</strong>
-    </div>
-  `).join('');
+// Printable Jathagam: the sheet a Tamil family prints and shares for marriage matching
+function buildJathagamSheet() {
+  const c = currentChart;
+  const prof = c.profile;
+  const d = c.doshas;
+  const bodies = chartBodies();
+
+  const details = [
+    [txt('Name', 'பெயர்'), prof.name || '—'],
+    [txt('Date & Time of Birth', 'பிறந்த தேதி & நேரம்'), `${prof.date} · ${prof.time}`],
+    [txt('Place', 'பிறந்த ஊர்'), `${prof.city || '—'} (${Number(prof.latitude).toFixed(2)}°, ${Number(prof.longitude).toFixed(2)}°)`],
+    [txt('Timezone · Ayanamsa', 'நேர வலயம் · அயனாம்சம்'), `${prof.timezone} · ${ayanamsaLabel(prof.ayanamsa)} (${formatDegrees(c.ayanamsa_degrees)})`],
+    ...kurippuRows()
+  ];
+
+  const planetRows = bodies.map(([name, pl]) => {
+    const flags = [
+      pl.retrograde && !['Rahu', 'Ketu'].includes(name) ? txt('Retrograde', 'வக்ரம்') : '',
+      pl.combust ? txt('Combust', 'அஸ்தங்கம்') : ''
+    ].filter(Boolean).join(', ');
+    return `<tr>
+      <td><strong>${esc(grahaName(name))}</strong></td>
+      <td>${esc(signName(pl.sign_index))}</td>
+      <td>${formatDegrees(pl.degree)}</td>
+      <td>${esc(starName(pl.nakshatra))} · ${pl.pada}</td>
+      <td>${esc(grahaName(pl.nakshatra_lord))}</td>
+      <td>${pl.dignity ? esc(dignityLabel(pl.dignity)) : '—'}</td>
+      <td>${esc(flags || '—')}</td>
+    </tr>`;
+  }).join('');
+
+  const status = (present, cancelled) => !present ? txt('Not present', 'இல்லை')
+    : (cancelled ? txt('Present, cancelled', 'உண்டு, நிவர்த்தி') : txt('Present', 'உண்டு'));
+  const doshaRows = [
+    [txt('Chevvai Dosham', 'செவ்வாய் தோஷம்'), status(d.chevvai.present, d.chevvai.cancelled)],
+    [txt('Rahu-Ketu Dosham', 'ராகு-கேது தோஷம்'), status(d.rahu_ketu.present, false)],
+    [txt('Kaal Sarp Dosham', 'கால சர்ப்ப தோஷம்'), d.kaal_sarp.present ? txt(d.kaal_sarp.type, d.kaal_sarp.type_ta) : txt('Not present', 'இல்லை')],
+    [txt('Yogas', 'யோகங்கள்'), (c.yogas || []).map(y => txt(y.name, y.name_ta)).join(', ') || '—']
+  ];
+
+  const dasaBlocks = c.dasha.map(md => `
+    <div class="pj-dasa-block${md.is_active ? ' active' : ''}">
+      <strong>${esc(txt(`${md.lord} Dasa`, `${grahaName(md.lord)} தசை`))}</strong>
+      <span>${localDate(md.start)} → ${localDate(md.end)}</span>
+      <ul>${md.subperiods.map(b => `<li class="${b.is_active ? 'active' : ''}">${esc(grahaName(b.lord))} <em>${localDate(b.start)}</em></li>`).join('')}</ul>
+    </div>`).join('');
+
+  const kv = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('');
+  $('#print-jathagam').innerHTML = `
+    <header class="pj-header">
+      <span class="pj-om">ௐ</span>
+      <h1>${txt('Horoscope', 'ஜாதகம்')}</h1>
+      <p>${esc(prof.name || '')}</p>
+    </header>
+    <section class="pj-section"><h2>${txt('Birth Details', 'பிறப்பு விவரங்கள்')}</h2><div class="pj-grid">${kv(details)}</div></section>
+    <section class="pj-charts">
+      <div id="pj-rasi" class="south-chart-grid compact"></div>
+      <div id="pj-amsa" class="south-chart-grid compact"></div>
+    </section>
+    <section class="pj-section">
+      <h2>${txt('Planetary Positions', 'கிரக நிலைகள்')}</h2>
+      <table class="pj-table">
+        <thead><tr>
+          <th>${txt('Graha', 'கிரகம்')}</th><th>${txt('Rasi', 'ராசி')}</th><th>${txt('Degree', 'பாகை')}</th>
+          <th>${txt('Star · Pada', 'நட்சத்திரம் · பாதம்')}</th><th>${txt('Star Lord', 'நட்சத்திர அதிபதி')}</th>
+          <th>${txt('Dignity', 'நிலை')}</th><th>${txt('Motion', 'கதி')}</th>
+        </tr></thead>
+        <tbody>${planetRows}</tbody>
+      </table>
+    </section>
+    <section class="pj-section"><h2>${txt('Doshas & Yogas', 'தோஷங்கள் & யோகங்கள்')}</h2><div class="pj-grid">${kv(doshaRows)}</div></section>
+    <section class="pj-section pj-dasa">
+      <h2>${txt('Vimshottari Dasa-Bhukti Periods (local dates)', 'விம்சோத்தரி தசா புக்தி காலங்கள்')}</h2>
+      <div class="pj-dasa-grid">${dasaBlocks}</div>
+    </section>
+    <footer class="pj-footer">${esc(txt(
+      `Calculated by JoRoScope with the Swiss Ephemeris · ${ayanamsaLabel(prof.ayanamsa)} ayanamsa · printed ${new Date().toLocaleDateString('en-GB')}`,
+      `ஜோரோஸ்கோப் சுவிஸ் எபிமெரிஸ் கணிதம் · ${ayanamsaLabel(prof.ayanamsa)} அயனாம்சம் · அச்சிட்ட நாள் ${new Date().toLocaleDateString('ta-IN')}`))}</footer>
+  `;
+  renderSouthChart($('#pj-rasi'), 'D1', true);
+  renderSouthChart($('#pj-amsa'), 'D9', true);
+}
+
+function printJathagam() {
+  if (!currentChart) {
+    notify(txt('Generate a chart first.', 'முதலில் ஜாதகம் கணிக்கவும்.'));
+    return;
+  }
+  buildJathagamSheet();
+  document.body.classList.add('printing-jathagam');
+  window.print();
 }
 
 // Chart Style & Varga Switching
@@ -2004,7 +2111,7 @@ function renderDashaAccordion() {
         <span class="dasa-name">${txt(`${d.lord} Maha Dasa`, `${grahaName(d.lord)} மகா தசை`)}</span>
         ${d.is_active ? `<span class="status-pill success" style="margin-left:8px">${txt('ACTIVE', 'நடப்பில்')}</span>` : ''}
       </div>
-      <span class="dasa-dates">${d.start.slice(0, 10)} → ${d.end.slice(0, 10)}</span>
+      <span class="dasa-dates">${localDate(d.start)} → ${localDate(d.end)}</span>
     `;
     details.append(summary);
 
@@ -2016,8 +2123,8 @@ function renderDashaAccordion() {
         <tr>
           <th>${txt('Bhukti', 'புக்தி')}</th>
           <th>${txt('Pratyantardasa Details', 'அந்தர விவரங்கள்')}</th>
-          <th>${txt('Start (UTC)', 'தொடக்கம் (UTC)')}</th>
-          <th>${txt('End (UTC)', 'முடிவு (UTC)')}</th>
+          <th>${txt('Start', 'தொடக்கம்')}</th>
+          <th>${txt('End', 'முடிவு')}</th>
         </tr>
       </thead>
       <tbody>
@@ -2025,8 +2132,8 @@ function renderDashaAccordion() {
           <tr class="${b.is_active ? 'active-period' : ''}">
             <td><strong>${grahaName(b.lord)}</strong> ${b.is_active ? `<span class="status-pill success">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
             <td>${(b.pratyantars || []).map(p => `<span class="planet-badge ${p.is_active ? 'asc' : ''}" style="margin:2px">${grahaName(p.lord)}</span>`).join('')}</td>
-            <td>${b.start.slice(0, 10)}</td>
-            <td>${b.end.slice(0, 10)}</td>
+            <td>${localDate(b.start)}</td>
+            <td>${localDate(b.end)}</td>
           </tr>
         `).join('')}
       </tbody>

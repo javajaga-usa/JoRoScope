@@ -10,6 +10,8 @@ Available in both English and authentic Tamil (தமிழ்).
 """
 
 import math
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 try:
     from .timeline import calculate_timeline_predictions
@@ -512,7 +514,7 @@ def generate_planet_house_predictions(planets):
     return planet_insights
 
 # 5. Dasa-Bhukti Comprehensive Forecast
-def generate_dasa_forecast(active_dasa, dasha_rows, planets):
+def generate_dasa_forecast(active_dasa, dasha_rows, planets, tz_name='UTC'):
     maha_general = {
         'Sun': {
             'en': 'Sun (Surya) Maha Dasa (6 Years): Fosters government recognition, leadership promotion, fatherly connections, and inner vitality. Maintain ego balance.',
@@ -594,7 +596,7 @@ def generate_dasa_forecast(active_dasa, dasha_rows, planets):
             tone_en, tone_ta = 'The lords are under strain, so progress needs patience and remedies.', 'அதிபதிகள் பலவீனமாக உள்ளதால் முன்னேற்றத்திற்குப் பொறுமையும் பரிகாரமும் தேவை.'
         else:
             tone_en, tone_ta = 'The period gives mixed results that respond well to effort.', 'இக்காலம் கலவையான பலன்களைத் தரும்; முயற்சிக்கு நல்ல பலன் உண்டு.'
-        until = active_dasa['bhukti_end'][:10]
+        until = datetime.fromisoformat(active_dasa['bhukti_end']).astimezone(ZoneInfo(tz_name)).date().isoformat()
 
         if d == b:  # the Maha Dasa's own bhukti
             bhukti_en = f"In its own bhukti {d} gives these results in their purest form."
@@ -2130,7 +2132,7 @@ def generate_comprehensive_predictions(chart):
     lagna_pred = LAGNA_PREDICTIONS.get(asc['sign'], LAGNA_PREDICTIONS['Aries'])
     bhavas = generate_bhava_predictions(house_details, planets)
     planets_in_houses = generate_planet_house_predictions(planets)
-    dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows, planets)
+    dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows, planets, chart.get('timezone') or 'UTC')
     transits = generate_transit_forecast(moon['sign_index'], chart['gochara'])
     luck = generate_lucky_factors(asc['sign_index'])
 

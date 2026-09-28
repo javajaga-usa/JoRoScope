@@ -2956,6 +2956,11 @@ input:focus, select:focus {
   }
 }
 
+/* Printable Jathagam sheet: only ever shown on paper */
+.print-jathagam {
+  display: none;
+}
+
 /* Print Stylesheet for High-Quality PDF Reports */
 @media print {
   body {
@@ -3006,5 +3011,137 @@ input:focus, select:focus {
   }
   .app-page[hidden] {
     display: none !important;
+  }
+
+  /* Printing a Jathagam replaces the whole app with the assembled sheet */
+  @page {
+    size: A4;
+    margin: 12mm;
+  }
+  body.printing-jathagam .app-layout,
+  body.printing-jathagam .cosmic-bg,
+  body.printing-jathagam .toast-popup {
+    display: none !important;
+  }
+  body.printing-jathagam .print-jathagam {
+    display: block !important;
+    color: #000000;
+    font-size: 10pt;
+    line-height: 1.4;
+  }
+  .print-jathagam .pj-header {
+    text-align: center;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
+  .print-jathagam .pj-om {
+    font-size: 18pt;
+  }
+  .print-jathagam h1 {
+    font-family: var(--font-serif);
+    font-size: 20pt;
+    margin: 0;
+  }
+  .print-jathagam h2 {
+    font-size: 11pt;
+    border-bottom: 1px solid #999999;
+    margin: 12px 0 6px;
+    padding-bottom: 2px;
+  }
+  .print-jathagam .pj-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 18px;
+  }
+  .print-jathagam .pj-kv {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    border-bottom: 1px dotted #bbbbbb;
+    padding: 2px 0;
+    break-inside: avoid;
+  }
+  .print-jathagam .pj-kv span {
+    color: #444444;
+  }
+  .print-jathagam .pj-charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 10px 0;
+    break-inside: avoid;
+  }
+  .print-jathagam .south-chart-grid,
+  .print-jathagam .chart-center-box,
+  .print-jathagam .house-cell {
+    background: #ffffff !important;
+    box-shadow: none !important;
+  }
+  .print-jathagam .house-cell.lagna-cell::after {
+    background: linear-gradient(to top right,
+      transparent calc(50% - 1px), #000000 calc(50% - 1px),
+      #000000 calc(50% + 1px), transparent calc(50% + 1px));
+  }
+  .print-jathagam .sign-label,
+  .print-jathagam .house-num-badge,
+  .print-jathagam .center-title,
+  .print-jathagam .center-sub,
+  .print-jathagam .center-meta,
+  .print-jathagam .center-irruppu {
+    color: #000000 !important;
+    background: none !important;
+  }
+  .print-jathagam .pj-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .print-jathagam .pj-table th,
+  .print-jathagam .pj-table td {
+    border: 1px solid #999999;
+    padding: 3px 5px;
+    text-align: left;
+  }
+  .print-jathagam .pj-dasa {
+    break-before: page;
+  }
+  .print-jathagam .pj-dasa-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .print-jathagam .pj-dasa-block {
+    border: 1px solid #999999;
+    padding: 5px 7px;
+    break-inside: avoid;
+  }
+  .print-jathagam .pj-dasa-block.active {
+    border: 2px solid #000000;
+  }
+  .print-jathagam .pj-dasa-block > span {
+    display: block;
+    font-size: 8.5pt;
+    color: #444444;
+  }
+  .print-jathagam .pj-dasa-block ul {
+    list-style: none;
+    margin: 4px 0 0;
+    font-size: 8.5pt;
+  }
+  .print-jathagam .pj-dasa-block li {
+    display: flex;
+    justify-content: space-between;
+  }
+  .print-jathagam .pj-dasa-block li.active {
+    font-weight: 700;
+  }
+  .print-jathagam .pj-dasa-block em {
+    font-style: normal;
+  }
+  .print-jathagam .pj-footer {
+    margin-top: 12px;
+    font-size: 8pt;
+    color: #555555;
+    text-align: center;
   }
 }

@@ -1396,7 +1396,8 @@ def calculate(data):
         lon=lon,
         utc=utc,
         kp_cusps=kp_cusps,
-        gochara=gochara
+        gochara=gochara,
+        timezone=data['timezone']
     )
     predictions = generate_comprehensive_predictions(chart_summary)
 

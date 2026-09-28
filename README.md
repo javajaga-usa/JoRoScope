@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 62 Passed](https://img.shields.io/badge/tests-62%20passed-success)](tests/)
+[![Tests: 63 Passed](https://img.shields.io/badge/tests-63%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -41,6 +41,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 ### 🪔 South Indian (Tamil) Jathagam
 - **Traditional Jathaga Kattam**: Tamil graha abbreviations (சூ, சந், செ…), the Lagna diagonal, (வ) Vakra markers, degrees, Mandi (மா), and house numbers counted from each varga's own Lagna.
 - **Rasi + Navamsa View**: Rasi and Amsam charts side by side, as printed in a Tamil horoscope.
+- **Printable Jathagam**: A one-click, print-ready horoscope sheet (Tamil or English) with birth notes, Rasi and Navamsa, planets, doshas, yogas and the Dasa-Bhukti table.
 - **Jathaga Kurippu**: Tamil year (60-year cycle), Tamil month and date (sunset rule), Vaaram (sunrise to sunrise), Udayadi Nazhigai, Dinamanam, Dasa Irruppu, Gana / Yoni / Rajju / Nadi, and Papa points.
 - **Mandi (Maandhi)**: Rising point per the Prasna Marga ghatika rule, scaled to the actual day or night length.
 - **Chevvai & Rahu-Ketu Doshams**: Mars in 2, 4, 7, 8, 12 from Lagna, Moon and Venus with the classical sign exemptions and cancellations; nodes in 1, 2, 7, 8 from Lagna or Moon.

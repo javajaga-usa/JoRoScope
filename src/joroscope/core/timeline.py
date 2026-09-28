@@ -6,6 +6,7 @@ aspects, dignities, house rulerships, ratings, and bilingual predictions (Englis
 
 from datetime import datetime, timezone
 from typing import Dict, Any
+from zoneinfo import ZoneInfo
 
 PLANET_TAMIL = {
     'Sun': 'சூரியன்', 'Moon': 'சந்திரன்', 'Mars': 'செவ்வாய்', 'Mercury': 'புதன்',
@@ -880,6 +881,11 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
     dasha_rows = chart.get('dasha', [])
     planets = chart.get('planets', {})
     now_dt = datetime.now(timezone.utc)
+    zone = ZoneInfo(chart.get('timezone') or 'UTC')
+
+    def local_day(iso):
+        """Calendar date of a period boundary at the birthplace."""
+        return datetime.fromisoformat(iso).astimezone(zone).date().isoformat()
 
     utc_val = chart.get('utc')
     if isinstance(utc_val, datetime):
@@ -988,8 +994,8 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
                 'bhukti_lord_ta': b_lord_ta,
                 'start_iso': start_iso,
                 'end_iso': end_iso,
-                'start_date': start_iso[:10],
-                'end_date': end_iso[:10],
+                'start_date': local_day(start_iso),
+                'end_date': local_day(end_iso),
                 'age_start': age_start,
                 'age_end': age_end,
                 'duration_days': duration_days,
@@ -1036,8 +1042,8 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
                     'dasa_lord_ta': d_lord_ta,
                     'bhukti_lord': b_lord,
                     'bhukti_lord_ta': b_lord_ta,
-                    'start_date': start_iso[:10],
-                    'end_date': end_iso[:10],
+                    'start_date': local_day(start_iso),
+                    'end_date': local_day(end_iso),
                     'elapsed_days': elapsed_days,
                     'remaining_days': remaining_days,
                     'percent': percent,

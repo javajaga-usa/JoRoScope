@@ -9,6 +9,10 @@
 - Daily Panchangam page now shows today's (or any date's) panchangam for the form location instead of the birth moment.
 - Hora (Orai) table with the current hora, upcoming Chandrashtamam periods, and the next Nakshatra birthday.
 
+### Printable Jathagam
+- One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.
+- Dasa-Bhukti dates everywhere are calendar dates at the birthplace; they were UTC dates, a day early for boundaries after 18:30 UTC in India.
+
 ### Detailed Predictions
 - 12 Bhava readings are chart-specific: lord dignity and placement (with Vipareeta for dusthana lords), benefic and malefic occupants, Jupiter/Saturn/Mars aspects and Ashtakavarga bindus produce a strength verdict and a list of contributing factors.
 - Planet readings weigh dignity, functional lordship from the Lagna (Yogakaraka, functional benefic or malefic), Dig Bala, combustion, retrogression and Jupiter's aspect.
