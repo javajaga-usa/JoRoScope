@@ -340,5 +340,51 @@ class PersonalAlmanacTests(unittest.TestCase):
         return tamil_calendar(d, CHENNAI['tz'], CHENNAI['lat'], CHENNAI['lon'])['month_index']
 
 
+class GowriBhavaSandhiTests(unittest.TestCase):
+    def test_gowri_matches_published_tables_and_rahu_kalam(self):
+        p = daily_panchangam('2026-09-28', '10:00:00', 'Asia/Kolkata', 13.0827, 80.2707)  # Monday
+        gowri = p['gowri']
+        self.assertEqual(len(gowri), 16)
+        self.assertEqual([g['name'] for g in gowri[:8]],
+                         ['Amirdha', 'Visham', 'Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi'])
+        visham = next(g for g in gowri[:8] if g['name'] == 'Visham')
+        self.assertEqual(f"{visham['start_local'][11:16]} - {visham['end_local'][11:16]}", p['rahu_kalam_local'])
+        self.assertEqual(sum(g['current'] for g in gowri), 1)
+        self.assertEqual(gowri[7]['end_local'], gowri[8]['start_local'])  # night starts at sunset
+
+    def test_gowri_day_visham_is_always_rahu_kalam(self):
+        from joroscope.core.south_indian import GOWRI_DAY
+        rahu_segment = [8, 2, 7, 5, 6, 4, 3]  # Sunday first, 1-based
+        for weekday, row in enumerate(GOWRI_DAY):
+            self.assertEqual(row.index('Visham') + 1, rahu_segment[weekday])
+
+    def test_dasa_sandhi(self):
+        from joroscope.core.south_indian import dasa_sandhi
+        now = datetime(2026, 1, 1, tzinfo=ZoneInfo('UTC'))
+        rows = lambda *ends: [{'lord': lord, 'end': end} for lord, end in zip(('Venus', 'Sun', 'Moon'), ends)]
+        close = dasa_sandhi(rows('2030-03-01T00:00:00+00:00', '2036-03-01T00:00:00+00:00', '2046-03-01T00:00:00+00:00'),
+                            rows('2030-06-01T00:00:00+00:00', '2040-03-01T00:00:00+00:00', '2050-03-01T00:00:00+00:00'), now)
+        self.assertTrue(close['present'])
+        self.assertEqual((close['conflicts'][0]['gap_days'], close['conflicts'][0]['groom_to']), (92, 'Sun'))
+        apart = dasa_sandhi(rows('2030-03-01T00:00:00+00:00', '2036-03-01T00:00:00+00:00', '2046-03-01T00:00:00+00:00'),
+                            rows('2031-06-01T00:00:00+00:00', '2040-03-01T00:00:00+00:00', '2050-03-01T00:00:00+00:00'), now)
+        self.assertFalse(apart['present'])
+
+    def test_sripati_bhavas(self):
+        from joroscope.core.engine import bhava_of
+        differs = 0
+        for d, t in [('1990-01-01', '12:00'), ('1994-05-18', '08:30'), ('2001-07-15', '03:10'), ('1975-02-20', '17:25')]:
+            r = calculate(dict(name='T', date=d, time=t, timezone='Asia/Kolkata', latitude='13.0827',
+                               longitude='80.2707', ayanamsa='Lahiri'))
+            bc = r['bhava_chakra']
+            self.assertAlmostEqual(bc['madhya'][0], r['planets']['Ascendant']['longitude'], places=4)
+            self.assertEqual(r['planets']['Ascendant']['bhava'], 1)
+            for p in r['planets'].values():
+                self.assertEqual(p['bhava'], bhava_of(p['longitude'], bc['sandhi']))
+                self.assertIn(abs(p['bhava'] - p['house']) % 12, (0, 1, 11))  # never more than one house away
+                differs += p['bhava'] != p['house']
+        self.assertGreater(differs, 0)
+
+
 if __name__ == '__main__':
     unittest.main()

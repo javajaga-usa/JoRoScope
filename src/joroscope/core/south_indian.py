@@ -74,6 +74,33 @@ HORA_SEQUENCE = ['Sun', 'Venus', 'Mercury', 'Moon', 'Saturn', 'Jupiter', 'Mars']
 WEEKDAY_LORDS = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']  # Sunday first
 SUBHA_HORAS = ('Moon', 'Mercury', 'Jupiter', 'Venus')
 
+# Gowri Panchangam (Nalla Neram): eight equal parts of the day and of the night, Sunday first.
+# Tables as published by Drik Panchang (from the Pambu Panchangam), including the repeated
+# Soram in Saturday's night.
+GOWRI_DAY = [
+    ['Uthi', 'Amirdha', 'Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Visham'],
+    ['Amirdha', 'Visham', 'Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi'],
+    ['Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi', 'Visham', 'Amirdha'],
+    ['Laabam', 'Dhanam', 'Sugam', 'Soram', 'Visham', 'Uthi', 'Amirdha', 'Rogam'],
+    ['Dhanam', 'Sugam', 'Soram', 'Uthi', 'Amirdha', 'Visham', 'Rogam', 'Laabam'],
+    ['Sugam', 'Soram', 'Uthi', 'Visham', 'Amirdha', 'Rogam', 'Laabam', 'Dhanam'],
+    ['Soram', 'Uthi', 'Visham', 'Amirdha', 'Rogam', 'Laabam', 'Dhanam', 'Sugam']
+]
+GOWRI_NIGHT = [
+    ['Dhanam', 'Sugam', 'Soram', 'Visham', 'Uthi', 'Amirdha', 'Rogam', 'Laabam'],
+    ['Sugam', 'Soram', 'Uthi', 'Amirdha', 'Visham', 'Rogam', 'Laabam', 'Dhanam'],
+    ['Soram', 'Uthi', 'Visham', 'Amirdha', 'Rogam', 'Laabam', 'Dhanam', 'Sugam'],
+    ['Uthi', 'Amirdha', 'Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Visham'],
+    ['Amirdha', 'Visham', 'Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi'],
+    ['Rogam', 'Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi', 'Visham', 'Amirdha'],
+    ['Laabam', 'Dhanam', 'Sugam', 'Soram', 'Uthi', 'Visham', 'Amirdha', 'Soram']
+]
+GOWRI_TA = {
+    'Amirdha': 'அமிர்தம்', 'Uthi': 'உத்தி', 'Laabam': 'லாபம்', 'Dhanam': 'தனம்', 'Sugam': 'சுகம்',
+    'Rogam': 'ரோகம்', 'Soram': 'சோரம்', 'Visham': 'விஷம்'
+}
+GOWRI_GOOD = ('Amirdha', 'Uthi', 'Laabam', 'Dhanam', 'Sugam')
+
 # Mean daily motions (degrees) used to seed the Newton searches
 SUN_RATE, MOON_RATE = 0.9856, 13.176
 
@@ -308,9 +335,42 @@ def papa_points(planets):
     return dict(total=sum(b['points'] for b in breakdown), breakdown=breakdown)
 
 
-def compare_dosha_samyam(boy_planets, girl_planets):
+DASA_SANDHI_DAYS = 182      # changes this close together form a Dasa Sandhi
+DASA_SANDHI_HORIZON = 30    # years ahead that are checked
+
+
+def dasa_sandhi(boy_dasha, girl_dasha, now=None):
+    """Dasa Sandhi: the bride's and groom's Maha Dasas changing within about six months
+    of each other in the coming years, traditionally a strain on the marriage."""
+    now = now or datetime.now(timezone.utc)
+    horizon = now + timedelta(days=DASA_SANDHI_HORIZON * 365.25)
+
+    def changes(rows):
+        out = []
+        for current, following in zip(rows, rows[1:]):
+            when = datetime.fromisoformat(current['end'])
+            if now < when < horizon:
+                out.append((when, current['lord'], following['lord']))
+        return out
+
+    conflicts = []
+    for b_when, b_from, b_to in changes(boy_dasha):
+        for g_when, g_from, g_to in changes(girl_dasha):
+            gap = abs((b_when - g_when).days)
+            if gap <= DASA_SANDHI_DAYS:
+                conflicts.append(dict(
+                    groom_date=b_when.isoformat(timespec='seconds'), groom_from=b_from, groom_to=b_to,
+                    bride_date=g_when.isoformat(timespec='seconds'), bride_from=g_from, bride_to=g_to,
+                    gap_days=gap
+                ))
+    return dict(present=bool(conflicts), window_days=DASA_SANDHI_DAYS,
+                horizon_years=DASA_SANDHI_HORIZON, conflicts=conflicts)
+
+
+def compare_dosha_samyam(boy_planets, girl_planets, boy_dasha=None, girl_dasha=None):
     """Dosha Samyam: Chevvai Dosham should be present in both or neither chart,
-    and the bride's Papa points should not exceed the groom's."""
+    and the bride's Papa points should not exceed the groom's. Dasa Sandhi is
+    reported alongside when both Dasa tables are given."""
     boy = dict(chevvai=chevvai_dosham(boy_planets), rahu_ketu=rahu_ketu_dosham(boy_planets),
                papa=papa_points(boy_planets))
     girl = dict(chevvai=chevvai_dosham(girl_planets), rahu_ketu=rahu_ketu_dosham(girl_planets),
@@ -322,7 +382,8 @@ def compare_dosha_samyam(boy_planets, girl_planets):
         girl=girl,
         chevvai_balanced=chevvai_balanced,
         papa_balanced=papa_balanced,
-        balanced=chevvai_balanced and papa_balanced
+        balanced=chevvai_balanced and papa_balanced,
+        dasa_sandhi=dasa_sandhi(boy_dasha, girl_dasha) if boy_dasha and girl_dasha else None
     )
 
 
@@ -354,6 +415,23 @@ def hora_table(events, weekday, tz, moment_jd=None):
             start_local=_local_iso(start, tz), end_local=_local_iso(end, tz),
             current=moment_jd is not None and start <= moment_jd < end
         ))
+    return rows
+
+
+def gowri_panchangam(events, weekday, tz, moment_jd=None):
+    """Gowri Panchangam: the day and the night each split into eight equal parts."""
+    rows = []
+    for daytime, start, end, table in (
+            (True, events['sunrise'], events['sunset'], GOWRI_DAY),
+            (False, events['sunset'], events['next_sunrise'], GOWRI_NIGHT)):
+        part = (end - start) / 8
+        for i, name in enumerate(table[weekday]):
+            t0, t1 = start + i * part, start + (i + 1) * part
+            rows.append(dict(
+                name=name, name_ta=GOWRI_TA[name], good=name in GOWRI_GOOD, daytime=daytime,
+                start_local=_local_iso(t0, tz), end_local=_local_iso(t1, tz),
+                current=moment_jd is not None and t0 <= moment_jd < t1
+            ))
     return rows
 
 
@@ -476,7 +554,9 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
         karana=_local_iso(_next_boundary(jd, _elongation, 6), tz)
     )
     panch['moment_local'] = utc.astimezone(tz).isoformat(timespec='seconds')
-    panch['horas'] = hora_table(sun_events(civil, tz, lat, lon), weekday, tz, jd)
+    civil_events = sun_events(civil, tz, lat, lon)
+    panch['horas'] = hora_table(civil_events, weekday, tz, jd)
+    panch['gowri'] = gowri_panchangam(civil_events, weekday, tz, jd)
     panch['tamil_calendar'] = tamil_calendar(civil, tz, lat, lon)
     panch['vaaram'] = dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1])
     direction, direction_ta, remedy, remedy_ta = SOOLAM[weekday]

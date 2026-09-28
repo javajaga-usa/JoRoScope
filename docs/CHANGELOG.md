@@ -9,6 +9,11 @@
 - Daily Panchangam page now shows today's (or any date's) panchangam for the form location instead of the birth moment.
 - Hora (Orai) table with the current hora, upcoming Chandrashtamam periods, and the next Nakshatra birthday.
 
+### Benchmark gaps closed (vs Jagannatha Hora / PyJHora, Astro-Vision, Prokerala, Drik Panchang)
+- Gowri Panchangam (Nalla Neram) for day and night, matching Drik Panchang's published weekday tables.
+- Sripati Bhava Chakra: bhava madhyas by Porphyry trisection, sandhis midway; shown as a "Bhava" chart and a planets-table column.
+- Dasa Sandhi in matching: Maha Dasa changes of bride and groom within 182 days of each other over the next 30 years.
+
 ### Printable Jathagam
 - One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.
 - Dasa-Bhukti dates everywhere are calendar dates at the birthplace; they were UTC dates, a day early for boundaries after 18:30 UTC in India.

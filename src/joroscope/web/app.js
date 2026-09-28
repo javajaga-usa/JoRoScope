@@ -47,7 +47,8 @@ const VARGA_NAMES = {
   D4: ['Chaturthamsa', 'சதுர்த்தாம்சம்'], D7: ['Saptamsa', 'சப்தாம்சம்'], D9: ['Navamsa', 'நவாம்சம்'],
   D10: ['Dasamsa', 'தசாம்சம்'], D12: ['Dwadasamsa', 'துவாதசாம்சம்'], D16: ['Shodasamsa', 'ஷோடசாம்சம்'],
   D20: ['Vimsamsa', 'விம்சாம்சம்'], D24: ['Chaturvimsamsa', 'சதுர்விம்சாம்சம்'],
-  D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்']
+  D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்'],
+  Bhava: ['Bhava Chakra', 'பாவ சக்கரம்']
 };
 
 const DIGNITY_TA = {
@@ -330,6 +331,9 @@ const I18N = {
     city_helper: 'Search historical database or use coordinates below.',
     print_jathagam: 'Print Jathagam',
     title_print_jathagam: 'Print a traditional horoscope sheet: birth notes, Rasi and Navamsa, planets and Dasa-Bhukti',
+    bhava_col: 'Bhava (Sripati)',
+    gowri_title: 'Gowri Panchangam (Nalla Neram)',
+    gowri_sub: 'Amirdham, Uthi, Laabam, Dhanam and Sugam are good times; Rogam, Soram and Visham are avoided.',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -667,6 +671,9 @@ const I18N = {
     city_helper: 'நகரத் தரவுத்தளத்தில் தேடவும் அல்லது கீழே அட்சரேகை, தீர்க்கரேகையை உள்ளிடவும்.',
     print_jathagam: 'ஜாதகம் அச்சிடு',
     title_print_jathagam: 'பிறப்புக் குறிப்பு, இராசி, அம்சம், கிரக நிலை, தசா புக்தி அடங்கிய ஜாதகத் தாளை அச்சிடவும்',
+    bhava_col: 'பாவம் (ஸ்ரீபதி)',
+    gowri_title: 'கௌரி பஞ்சாங்கம் (நல்ல நேரம்)',
+    gowri_sub: 'அமிர்தம், உத்தி, லாபம், தனம், சுகம் நல்ல நேரங்கள்; ரோகம், சோரம், விஷம் தவிர்க்க வேண்டியவை.',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -1164,7 +1171,7 @@ function applyLanguage() {
   });
   $$('.varga-pill').forEach(btn => {
     const [en, ta] = VARGA_NAMES[btn.dataset.varga];
-    btn.textContent = `${btn.dataset.varga} ${txt(en, ta)}`;
+    btn.textContent = btn.dataset.varga === 'Bhava' ? txt(en, ta) : `${btn.dataset.varga} ${txt(en, ta)}`;
   });
   const activeNav = $('.nav-item.active .nav-text');
   if (activeNav) $('#current-page-badge').textContent = activeNav.textContent;
@@ -1578,7 +1585,7 @@ function setVarga(varga) {
 
 function vargaTitle(varga) {
   const [en, ta] = VARGA_NAMES[varga] || [varga, varga];
-  return currentLang === 'ta' ? ta : `${en} (${varga})`;
+  return currentLang === 'ta' ? ta : (varga === 'Bhava' ? `${en} (Sripati)` : `${en} (${varga})`);
 }
 
 function renderCurrentChart() {
@@ -1942,6 +1949,7 @@ function renderPlanetsTable() {
       <td>${formatDegrees(p.degree)}</td>
       <td>${starName} (${txt('Pada', 'பாதம்')} ${p.pada})</td>
       <td><strong>${txt(`House ${p.house}`, `${p.house}-ம் பாவம்`)}</strong></td>
+      <td>${p.bhava ? txt(`Bhava ${p.bhava}`, `${p.bhava}-ம் பாவம்`) : '—'}${p.bhava && p.bhava !== p.house ? ' ⇄' : ''}</td>
       <td><span class="dignity-badge ${dignityClass}">${dignityLabel(p.dignity)}</span></td>
       <td>${p.retrograde ? `<span class="legend-badge retro">${txt('Retrograde (Rx)', 'வக்ரம் (வ)')}</span>` : txt('Direct', 'நேர்கதி')} ${p.combust ? `<span class="legend-badge combust">🔥 ${txt('Combust', 'அஸ்தங்கம்')}</span>` : ''}</td>
       <td>${aspectsCastStr}</td>
@@ -3188,6 +3196,7 @@ function populatePanchangamView(panch) {
     : `${panch.timezone} · day length ${panch.day_length_hours} h`;
 
   renderHoraTable(panch.horas);
+  renderGowriTable(panch.gowri);
   renderPersonalBalam(panch.personal);
 }
 
@@ -3245,6 +3254,18 @@ function renderHoraTable(horas) {
       <span class="hora-time">${clockTime(h.start_local)}–${clockTime(h.end_local)}</span>
       <strong>${esc(isTa ? `${h.lord_ta} ஓரை` : `${h.lord} Hora`)}</strong>
       <small>${h.daytime ? (isTa ? 'பகல்' : 'Day') : (isTa ? 'இரவு' : 'Night')}${h.current ? (isTa ? ' · இப்போது' : ' · now') : ''}</small>
+    </div>
+  `).join('');
+}
+
+function renderGowriTable(gowri) {
+  const grid = $('#gowri-grid');
+  if (!grid || !gowri) return;
+  grid.innerHTML = gowri.map(g => `
+    <div class="hora-item ${g.good ? 'auspicious' : 'inauspicious'}${g.current ? ' current' : ''}">
+      <span class="hora-time">${clockTime(g.start_local)}–${clockTime(g.end_local)}</span>
+      <strong>${esc(txt(g.name, g.name_ta))}</strong>
+      <small>${g.daytime ? txt('Day', 'பகல்') : txt('Night', 'இரவு')} · ${g.good ? txt('Nalla Neram', 'நல்ல நேரம்') : txt('Avoid', 'தவிர்க்கவும்')}${g.current ? txt(' · now', ' · இப்போது') : ''}</small>
     </div>
   `).join('');
 }
@@ -3460,6 +3481,21 @@ function renderMatchResult(match) {
   renderDoshaSamyam(match);
 }
 
+// Dasa Sandhi: both Maha Dasas changing within about six months of each other
+function dasaSandhiRows(sandhi) {
+  if (!sandhi) return [];
+  const label = txt('Dasa Sandhi', 'தசா சந்தி');
+  if (!sandhi.present) {
+    return [[label, '—', '—', `<span class="status-pill success">${txt(`None in the next ${sandhi.horizon_years} years ✔`, `அடுத்த ${sandhi.horizon_years} ஆண்டுகளில் இல்லை ✔`)}</span>`]];
+  }
+  return sandhi.conflicts.map(c => [
+    label,
+    `${grahaName(c.bride_from)} → ${grahaName(c.bride_to)}<br><small>${localDate(c.bride_date)}</small>`,
+    `${grahaName(c.groom_from)} → ${grahaName(c.groom_to)}<br><small>${localDate(c.groom_date)}</small>`,
+    `<span class="status-pill danger">${txt(`${c.gap_days} days apart ✖`, `${c.gap_days} நாள் இடைவெளி ✖`)}</span>`
+  ]);
+}
+
 function renderDoshaSamyam(match) {
   const card = $('#dosha-samyam-card');
   const hint = $('#dosha-samyam-hint');
@@ -3484,7 +3520,8 @@ function renderDoshaSamyam(match) {
   $('#dosha-samyam-tbody').innerHTML = [
     [isTa ? 'செவ்வாய் தோஷம்' : 'Chevvai Dosham', chevvaiText(ds.girl.chevvai), chevvaiText(ds.boy.chevvai), pill(ds.chevvai_balanced)],
     [isTa ? 'ராகு-கேது தோஷம்' : 'Rahu-Ketu Dosham', rkText(ds.girl.rahu_ketu), rkText(ds.boy.rahu_ketu), pill(rkBalanced)],
-    [isTa ? 'பாப புள்ளிகள் (ல / ச / சு)' : 'Papa Points (L / C / S)', papaText(ds.girl.papa), papaText(ds.boy.papa), pill(ds.papa_balanced)]
+    [isTa ? 'பாப புள்ளிகள் (ல / ச / சு)' : 'Papa Points (L / C / S)', papaText(ds.girl.papa), papaText(ds.boy.papa), pill(ds.papa_balanced)],
+    ...dasaSandhiRows(ds.dasa_sandhi)
   ].map(([label, girl, boy, state]) => `<tr><td><strong>${label}</strong></td><td>${girl}</td><td>${boy}</td><td>${state}</td></tr>`).join('');
 
   const status = $('#dosha-samyam-status');

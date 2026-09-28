@@ -401,6 +401,21 @@ def calculate_gochara(jd, planets, ashtakavarga):
                                  house_from_moon=(ketu_to - moon_sign) % 12 + 1))
     return dict(computed_at=jd_to_utc(jd).isoformat(timespec='seconds'), planets=rows, peyarchi=peyarchi)
 
+def sripati_bhavas(jd, lat, lon):
+    """Sripati bhavas: madhyas trisect each quadrant (Porphyry cusps, the 1st being the
+    Ascendant) and each sandhi lies midway between neighbouring madhyas."""
+    madhya = list(swe.houses_ex(jd, lat, lon, b'O', swe.FLG_SIDEREAL)[0][-12:])
+    sandhi = [(m + ((madhya[(i + 1) % 12] - m) % 360) / 2) % 360 for i, m in enumerate(madhya)]
+    return madhya, sandhi
+
+def bhava_of(lon, sandhi):
+    """Bhava number (1-12) of a longitude; bhava n runs from sandhi[n-2] to sandhi[n-1]."""
+    for n in range(1, 13):
+        start = sandhi[n - 2]
+        if (lon - start) % 360 < (sandhi[n - 1] - start) % 360:
+            return n
+    return 1
+
 def calculate_vargas(lon):
     """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
     lon = lon % 360
@@ -1207,7 +1222,7 @@ def calculate_match(boy, girl):
     if 'planets' in boy and 'planets' in girl:
         # Imported here: south_indian builds on this module's primitives.
         from .south_indian import compare_dosha_samyam
-        dosha_samyam = compare_dosha_samyam(boy['planets'], girl['planets'])
+        dosha_samyam = compare_dosha_samyam(boy['planets'], girl['planets'], boy.get('dasha'), girl.get('dasha'))
 
     return {
         'poruthams': poruthams,
@@ -1305,6 +1320,12 @@ def calculate(data):
     for p in planets.values():
         p['house'] = (p['sign_index'] - asc_sign) % 12 + 1
 
+    # Sripati Bhava Chakra: the 'Bhava' chart places each graha in its bhava counted from the Lagna sign
+    bhava_madhya, bhava_sandhi = sripati_bhavas(jd, lat, lon)
+    for p in planets.values():
+        p['bhava'] = bhava_of(p['longitude'], bhava_sandhi)
+        p['vargas']['Bhava'] = (asc_sign + p['bhava'] - 1) % 12
+
     # Calculate Dignities and Combustion
     sun_lon = planets['Sun']['longitude']
     combust_thresholds = {'Moon': 12, 'Mars': 17, 'Mercury': 14, 'Jupiter': 11, 'Venus': 10, 'Saturn': 15}
@@ -1348,6 +1369,9 @@ def calculate(data):
     doshas['chevvai'] = chevvai_dosham(planets)
     doshas['rahu_ketu'] = rahu_ketu_dosham(planets)
     south_indian = build_south_indian_details(planets, utc, data['timezone'], lat, lon)
+    mandi = south_indian['mandi']
+    mandi['bhava'] = bhava_of(mandi['longitude'], bhava_sandhi)
+    mandi['vargas']['Bhava'] = (asc_sign + mandi['bhava'] - 1) % 12
 
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
@@ -1374,7 +1398,7 @@ def calculate(data):
 
     # Vargas quick map for frontend renderers
     vargas_map = {}
-    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D60']
+    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D60', 'Bhava']
     for v_key in varga_keys:
         vargas_map[v_key] = {
             p_name: p['vargas'][v_key]
@@ -1418,6 +1442,7 @@ def calculate(data):
         readings=readings,
         kp_cusps=kp_cusps,
         gochara=gochara,
+        bhava_chakra=dict(system='Sripati', madhya=bhava_madhya, sandhi=bhava_sandhi),
         south_indian=south_indian,
         predictions=predictions,
         method=dict(
