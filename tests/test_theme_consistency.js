@@ -74,13 +74,13 @@ console.log('[PASS] localStorage persistence implemented');
 assert(jsContent.includes("localStorage.getItem('joroscope_theme')"), 'localStorage retrieval missing in app.js');
 console.log('[PASS] localStorage initialization implemented');
 
-assert(jsContent.includes("const isLight = document.documentElement.getAttribute('data-theme') === 'light'"), 'SVG dynamic theme detection missing in app.js');
-console.log('[PASS] Dynamic SVG theme detection verified in renderNorthChart');
+assert(/function chartPalette[\s\S]*?getAttribute\('data-theme'\) === 'light'/.test(jsContent), 'SVG dynamic theme detection missing in app.js');
+console.log('[PASS] Dynamic SVG theme detection verified in chartPalette');
 
-assert(jsContent.includes("signText.setAttribute('fill', signColor)"), 'Dynamic sign text color missing in SVG renderer');
+assert(jsContent.includes("signIdx + 1, 14, pal.accent"), 'Dynamic sign text color missing in SVG renderer');
 console.log('[PASS] Dynamic sign text color applied to SVG');
 
-assert(jsContent.includes("planText.setAttribute('fill', planetColor)"), 'Dynamic planet text color missing in SVG renderer');
+assert(jsContent.includes("line, 14, pal.text"), 'Dynamic planet text color missing in SVG renderer');
 console.log('[PASS] Dynamic planet text color applied to SVG');
 
 console.log('\nALL THEME CONSISTENCY CHECKS PASSED SUCCESSFULLY!');
