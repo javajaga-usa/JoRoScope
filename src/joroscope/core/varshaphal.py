@@ -225,8 +225,9 @@ def calculate_varshaphal(chart, now=None):
         state = 'same' if hl == ylord else ithasala(lons, ylord, hl)
         if state in ('same', 'applying'):
             cards.append(card('✨', f'{en}: promised this year', f'{ta}: இந்த வருடம் கைகூடும்',
-                              f"The year's Lagna lord {ylord} {'also rules' if state == 'same' else 'applies (Ithasala) to'} "
-                              f"the {_ordinal(h)} house lord {hl}: {HOUSE_THEMES[h][0]} come forward this year.",
+                              (f"The year's Lagna lord {ylord} also rules the {_ordinal(h)} house" if state == 'same' else
+                               f"The year's Lagna lord {ylord} applies (Ithasala) to the {_ordinal(h)} house lord {hl}")
+                              + f": {HOUSE_THEMES[h][0]} come forward this year.",
                               f"வருட லக்னாதிபதி {PLANET_TAMIL[ylord]} {h}-ஆம் அதிபதி {PLANET_TAMIL[hl]} உடன் "
                               f"{'ஒன்றே' if state == 'same' else 'இத்தசால யோகம்'}: {HOUSE_THEMES[h][1]} இவ்வருடம் முன்னேறும்.",
                               verdict='good'))
