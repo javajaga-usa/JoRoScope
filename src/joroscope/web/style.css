@@ -2507,11 +2507,13 @@ input:focus, select:focus {
   display: flex;
   gap: 12px;
   margin-bottom: 24px;
-  background: rgba(18, 22, 34, 0.6);
+  flex-wrap: wrap;
+  background: var(--bg-subtle);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
   padding: 6px;
   width: fit-content;
+  max-width: 100%;
 }
 
 .view-mode-btn {
@@ -3109,7 +3111,7 @@ input:focus, select:focus {
     justify-content: center;
   }
   .view-mode-btn {
-    flex: 1;
+    flex: 1 1 auto;
     justify-content: center;
     padding: 8px 12px;
     font-size: 12.5px;

@@ -15,6 +15,7 @@ const PRINT_SECTIONS = [
   { key: 'navamsa', en: 'Navamsa table', ta: 'நவாம்ச அட்டவணை', build: printNavamsa },
   { key: 'doshas', en: 'Doshas, yogas & matching notes', ta: 'தோஷங்கள், யோகங்கள் & பொருத்தக் குறிப்புகள்', build: printDoshas },
   { key: 'dasa', en: 'Dasa-Bhukti periods', ta: 'தசா புக்தி காலங்கள்', build: printDasa, newPage: true },
+  { key: 'otherdasas', en: 'Ashtottari & Chara Dasa', ta: 'அஷ்டோத்தரி & சர தசை', build: printOtherDasas },
   { key: 'vargas', en: 'Shodasavarga charts & table', ta: 'ஷோடசவர்க்கச் சக்கரங்கள் & அட்டவணை', build: printVargas, newPage: true },
   { key: 'bhavas', en: 'Bhava chakra & house table', ta: 'பாவ சக்கரம் & பாவ அட்டவணை', build: printBhavas, newPage: true },
   { key: 'strength', en: 'Shadbala, Bhava Bala & Vimsopaka', ta: 'ஷட்பலம், பாவ பலம் & விம்சோபகம்', build: printStrength, newPage: true },
@@ -36,7 +37,7 @@ const PRINT_PRESETS = {
     hint_en: 'Adds the Navamsa and Shodasavarga, Bhava, strength, Ashtakavarga and KP tables an astrologer works from.',
     hint_ta: 'நவாம்சம், ஷோடசவர்க்கம், பாவம், பலம், அஷ்டகவர்க்கம், கே.பி. அட்டவணைகளுடன் ஜோதிடருக்கான விரிவான ஜாதகம்.',
     title_en: 'Detailed Horoscope', title_ta: 'விரிவான ஜாதகம்',
-    sections: ['birth', 'charts', 'planets', 'navamsa', 'doshas', 'dasa', 'vargas', 'bhavas', 'strength', 'ashtakavarga', 'kp']
+    sections: ['birth', 'charts', 'planets', 'navamsa', 'doshas', 'dasa', 'otherdasas', 'vargas', 'bhavas', 'strength', 'ashtakavarga', 'kp']
   },
   complete: {
     en: 'Complete Report', ta: 'முழுமையான ஜாதக அறிக்கை',
@@ -174,6 +175,26 @@ function printDasa(c) {
     <div class="pj-dasa-grid">${blocks}</div>
     ${yogini.length ? `<h3>${txt('Yogini Dasa', 'யோகினி தசை')}</h3>${pjTable([txt('Yogini', 'யோகினி'), txt('Lord', 'அதிபதி'),
       txt('Years', 'ஆண்டுகள்'), txt('From', 'முதல்'), txt('To', 'வரை')], yogini, 'compact')}` : ''}`;
+}
+
+function printOtherDasas(c) {
+  const head = [txt('Dasa', 'தசை'), txt('Years', 'ஆண்டுகள்'), txt('From', 'முதல்'), txt('To', 'வரை')];
+  const mark = (row, label) => row.is_active ? `<strong>${label} ●</strong>` : label;
+  const ashtottari = (c.ashtottari_dasha || []).map(r => [mark(r, esc(grahaName(r.lord))), `${r.years}`, pjDate(r.start), pjDate(r.end)]);
+  const chara = (c.chara_dasha || []).map(r => [
+    mark(r, esc(txt(`${r.sign} (${r.lord})${r.round === 2 ? ' · 2' : ''}`, `${r.sign_ta} (${grahaName(r.lord)})${r.round === 2 ? ' · 2' : ''}`))),
+    `${r.years}`, pjDate(r.start), pjDate(r.end)]);
+  const applies = c.ashtottari_applicable
+    ? txt('Ashtottari applies to this chart (Rahu in a kendra or trikona from the Lagna lord).', 'அஷ்டோத்தரி இந்த ஜாதகத்திற்குப் பொருந்தும் (ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில்).')
+    : txt('Ashtottari is shown for reference; its classical condition does not hold here.', 'அஷ்டோத்தரி குறிப்புக்காக மட்டும்; அதன் பாரம்பரிய நிபந்தனை இங்கு பொருந்தவில்லை.');
+  const year = c.dasa_year ? txt(` Dasa year: ${c.dasa_year.en}.`, ` தசை ஆண்டு: ${c.dasa_year.ta}.`) : '';
+  return `
+    <p class="pj-note">${applies}${year} ${txt('Chara Dasa by K.N. Rao; "· 2" marks the second round. ● is the running period.',
+      'சர தசை கே.என். ராவ் முறைப்படி; "· 2" இரண்டாம் சுற்று. ● நடப்பு காலம்.')}</p>
+    <div class="pj-two">
+      <div><h3>${txt('Ashtottari Dasa', 'அஷ்டோத்தரி தசை')}</h3>${pjTable(head, ashtottari, 'compact')}</div>
+      <div><h3>${txt('Jaimini Chara Dasa', 'ஜைமினி சர தசை')}</h3>${pjTable(head, chara, 'compact')}</div>
+    </div>`;
 }
 
 function printVargas(c) {

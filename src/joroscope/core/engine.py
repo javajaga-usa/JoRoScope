@@ -819,11 +819,11 @@ def detect_yogas(planets):
 
     return yogas, doshas
 
-def dasha(moon, birth, now=None):
+def dasha(moon, birth, now=None, year=YEAR):
     """Calculate 3-Tier Vimshottari Dasa (Maha Dasa, Bhukti, Pratyantardasa)."""
     portion = moon / (40 / 3)
     index = int(portion) % 9
-    start = birth - timedelta(days=(portion % 1) * DASHA_YEARS[index] * YEAR)
+    start = birth - timedelta(days=(portion % 1) * DASHA_YEARS[index] * year)
     rows = []
     if now is None:
         now = datetime.now(timezone.utc)
@@ -831,20 +831,20 @@ def dasha(moon, birth, now=None):
     for k in range(9):
         i = (index + k) % 9
         d_years = DASHA_YEARS[i]
-        end = start + timedelta(days=d_years * YEAR)
+        end = start + timedelta(days=d_years * year)
         subs = []
         substart = start
         for m in range(9):
             j = (i + m) % 9
             b_years = DASHA_YEARS[j]
-            subend = substart + timedelta(days=d_years * b_years / 120 * YEAR)
+            subend = substart + timedelta(days=d_years * b_years / 120 * year)
             # Level 3: Pratyantardasa
             prats = []
             pstart = substart
             for n in range(9):
                 p_idx = (j + n) % 9
                 p_years = DASHA_YEARS[p_idx]
-                pend = pstart + timedelta(days=d_years * b_years * p_years / (120 * 120) * YEAR)
+                pend = pstart + timedelta(days=d_years * b_years * p_years / (120 * 120) * year)
                 is_p_active = (pstart <= now < pend)
                 prats.append(dict(
                     lord=DASHA_NAMES[p_idx],
@@ -880,22 +880,22 @@ YOGINIS = [('Mangala', 'மங்களா', 'Moon', 1), ('Pingala', 'பிங�
            ('Bhramari', 'பிராமரி', 'Mars', 4), ('Bhadrika', 'பத்ரிகா', 'Mercury', 5), ('Ulka', 'உல்கா', 'Saturn', 6),
            ('Siddha', 'சித்தா', 'Venus', 7), ('Sankata', 'சங்கடா', 'Rahu', 8)]
 
-def yogini_dasha(moon, birth, now=None, cycles=4):
+def yogini_dasha(moon, birth, now=None, cycles=4, year=YEAR):
     """Yogini Dasa periods from the birth-star balance, with bhuktis."""
     portion = moon / (40 / 3)
     first = (int(portion) + 1 + 3) % 8 - 1  # zero-based yogini, (star number + 3) mod 8
     first_years = YOGINIS[first][3]
-    start = birth - timedelta(days=(portion % 1) * first_years * YEAR)
+    start = birth - timedelta(days=(portion % 1) * first_years * year)
     now = now or datetime.now(timezone.utc)
     rows = []
     for k in range(8 * cycles):
         i = (first + k) % 8
         name, name_ta, lord, years = YOGINIS[i]
-        end = start + timedelta(days=years * YEAR)
+        end = start + timedelta(days=years * year)
         subs, sub_start = [], start
         for m in range(8):
             j = (i + m) % 8
-            sub_end = sub_start + timedelta(days=years * YOGINIS[j][3] / 36 * YEAR)
+            sub_end = sub_start + timedelta(days=years * YOGINIS[j][3] / 36 * year)
             subs.append(dict(yogini=YOGINIS[j][0], yogini_ta=YOGINIS[j][1], lord=YOGINIS[j][2],
                              start=sub_start.isoformat(), end=sub_end.isoformat(), is_active=sub_start <= now < sub_end))
             sub_start = sub_end
@@ -1405,9 +1405,14 @@ def calculate(data):
 
     # 3-Tier Vimshottari Dasa
     moon_lon = planets['Moon']['longitude']
-    dasha_rows = dasha(moon_lon, utc)
+    from .dasas import DASA_YEARS, year_days, ashtottari_dasha, ashtottari_applicable, chara_dasha
+    dasa_year_kind = data.get('dasa_year') or 'julian'
+    dasa_year = year_days(dasa_year_kind)
+    dasha_rows = dasha(moon_lon, utc, year=dasa_year)
     active_dasha = get_active_dasha(dasha_rows)
-    yogini_rows = yogini_dasha(moon_lon, utc)
+    yogini_rows = yogini_dasha(moon_lon, utc, year=dasa_year)
+    ashtottari_rows = ashtottari_dasha(moon_lon, utc, year=dasa_year)
+    chara_rows = chara_dasha(planets, utc, year=dasa_year)
 
     # Panchangam
     panchangam = calculate_panchangam(utc, lat, lon, sun_lon, moon_lon, data['timezone'])
@@ -1495,7 +1500,7 @@ def calculate(data):
     predictions = generate_comprehensive_predictions(chart_summary)
 
     return dict(
-        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold']},
+        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold', 'dasa_year']},
         utc=utc.isoformat(),
         julian_day=jd,
         ayanamsa_degrees=ayanamsa_degrees,
@@ -1503,6 +1508,10 @@ def calculate(data):
         dasha=dasha_rows,
         active_dasha=active_dasha,
         yogini_dasha=yogini_rows,
+        ashtottari_dasha=ashtottari_rows,
+        ashtottari_applicable=ashtottari_applicable(planets),
+        chara_dasha=chara_rows,
+        dasa_year=dict(key=dasa_year_kind, days=dasa_year, en=DASA_YEARS[dasa_year_kind][1], ta=DASA_YEARS[dasa_year_kind][2]),
         panchanga=panchangam,
         ashtakavarga=ashtakavarga,
         yogas=yogas,
@@ -1522,7 +1531,7 @@ def calculate(data):
             ayanamsa=ayan,
             houses='Whole sign',
             nodes='Mean node',
-            dasha_year_days=YEAR,
+            dasha_year_days=dasa_year,
             ashtakavarga_standard='Parashara (337 points)',
             legacy_match='Enhanced high-precision Vedic & modern algorithms'
         )

@@ -227,6 +227,17 @@
                 </div>
               </div>
 
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="input-dasa-year" data-i18n="dasa_year">Dasa Year</label>
+                  <select id="input-dasa-year" name="dasa_year">
+                    <option value="julian" selected data-i18n="dasa_year_julian">365.25 days (South Indian almanacs)</option>
+                    <option value="sidereal" data-i18n="dasa_year_sidereal">365.2564 days (sidereal, Jagannatha Hora)</option>
+                    <option value="savana" data-i18n="dasa_year_savana">360 days (Savana, classical)</option>
+                  </select>
+                </div>
+              </div>
+
               <button class="primary-btn glow-btn" id="calculate-btn" type="submit">
                 <span class="btn-text" data-i18n="generate_chart">Generate Birth Chart</span>
                 <span class="btn-arrow">➔</span>
@@ -656,6 +667,12 @@
           <button type="button" class="view-mode-btn" id="btn-mode-yogini" data-mode="yogini">
             <span>🔱</span> <span data-i18n="yogini_mode">Yogini Dasa</span>
           </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-ashtottari" data-mode="ashtottari">
+            <span>🕉️</span> <span data-i18n="ashtottari_mode">Ashtottari Dasa</span>
+          </button>
+          <button type="button" class="view-mode-btn" id="btn-mode-chara" data-mode="chara">
+            <span>♈</span> <span data-i18n="chara_mode">Chara Dasa</span>
+          </button>
         </div>
 
         <!-- TIMELINE PREDICTIONS VIEW (Default) -->
@@ -820,6 +837,35 @@
               <span class="card-badge">🔱</span>
             </div>
             <div id="yogini-accordion" class="dasa-accordion"></div>
+          </div>
+        </div>
+
+        <!-- ASHTOTTARI DASA VIEW -->
+        <div id="dasa-ashtottari-view" hidden>
+          <div class="cosmic-card">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="ashtottari_title">Ashtottari Dasa (108-Year Cycle)</h2>
+                <p class="card-subtitle" data-i18n="ashtottari_sub">Eight lords (Ketu excluded) from the birth star's group counted from Ardra; each Dasa has eight bhuktis starting from its own lord.</p>
+              </div>
+              <span class="card-badge">🕉️</span>
+            </div>
+            <p class="muted dasa-note" id="ashtottari-note"></p>
+            <div id="ashtottari-accordion" class="dasa-accordion"></div>
+          </div>
+        </div>
+
+        <!-- JAIMINI CHARA DASA VIEW -->
+        <div id="dasa-chara-view" hidden>
+          <div class="cosmic-card">
+            <div class="card-header">
+              <div>
+                <h2 data-i18n="chara_title">Jaimini Chara Dasa (K.N. Rao)</h2>
+                <p class="card-subtitle" data-i18n="chara_sub">Sign dasas from the Lagna, forward when the 9th sign is odd-footed; each sign runs for its distance to its lord. Twelve antardasas start from the next sign and end with the dasa sign.</p>
+              </div>
+              <span class="card-badge">♈</span>
+            </div>
+            <div id="chara-accordion" class="dasa-accordion"></div>
           </div>
         </div>
       </section>

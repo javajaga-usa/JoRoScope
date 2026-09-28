@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Ashtottari and Jaimini Chara Dasa, and the dasa year
+- Ashtottari Dasa (108 years, eight lords counted from Ardra) with bhuktis from the Dasa lord, and whether its classical condition (Rahu in a kendra or trikona from the Lagna lord) holds. Dates match PyJHora.
+- Jaimini Chara Dasa by K.N. Rao's method: signs from the Lagna in the direction the 9th sign sets, each sign's years from its distance to its lord (the stronger lord for Scorpio and Aquarius), a second round of 12 less the first, and twelve antardasas ending with the dasa sign. It matches PyJHora on 35,548 of 36,000 random sign periods; the differences are Mercury in Virgo (counted as exalted here) and the choice of the stronger co-lord (P.V.R. Narasimha Rao's rules, as for the arudhas).
+- A Dasa Year setting in the birth form: 365.25 days (default, South Indian almanacs), the sidereal year (Jagannatha Hora) or the 360-day Savana year. It applies to Vimshottari, Yogini, Ashtottari and Chara Dasa and is saved with each profile.
+- New Ashtottari and Chara views on the Dasa page, and an "Ashtottari & Chara Dasa" section in the Detailed and Complete print reports. The dasa view switcher now wraps and follows the light theme.
+
 ### Tamil Yogam and Lagna in the Muhurtham finder
 - Amirthathi (Tamil) yogam: Siddha, Amirtha, Marana or Prabalarishta from the weekday and nakshatra, by the table Tamil calendars print (cross-checked with PyJHora; Monday + Purattathi as in the Sringeri Tamil Panchangam). The daily Panchangam shows it with its end time and the yogam that follows.
 - Muhurthams now require Siddha or Amirtha yogam and a clean rising Lagna: no malefic in the 8th, the Moon not in the 6th, 8th or 12th, and not the person's Janma Ashtama rasi. Windows split at each Lagna change and name it; notes flag Jupiter or Venus in a kendra, a clear 7th for marriage and a fixed Lagna for griha pravesam.

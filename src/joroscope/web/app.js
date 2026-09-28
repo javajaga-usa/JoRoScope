@@ -261,6 +261,10 @@ const I18N = {
     longitude: 'Longitude (°E/W)',
     timezone: 'IANA Timezone',
     ayanamsa: 'Ayanamsa',
+    dasa_year: 'Dasa Year',
+    dasa_year_julian: '365.25 days (South Indian almanacs)',
+    dasa_year_sidereal: '365.2564 days (sidereal, Jagannatha Hora)',
+    dasa_year_savana: '360 days (Savana, classical)',
     dst_clock: 'Clock Fold (DST)',
     generate_chart: 'Generate Birth Chart',
     ready_to_reveal: 'Ready to Reveal the Sky',
@@ -354,6 +358,12 @@ const I18N = {
     yogini_mode: 'Yogini Dasa',
     yogini_title: 'Yogini Dasa (36-Year Cycle)',
     yogini_sub: 'Eight yoginis ruled by the Moon, Sun, Jupiter, Mars, Mercury, Saturn, Venus and Rahu; the birth star fixes the first.',
+    ashtottari_mode: 'Ashtottari Dasa',
+    ashtottari_title: 'Ashtottari Dasa (108-Year Cycle)',
+    ashtottari_sub: "Eight lords (Ketu excluded) from the birth star's group counted from Ardra; each Dasa has eight bhuktis starting from its own lord.",
+    chara_mode: 'Chara Dasa',
+    chara_title: 'Jaimini Chara Dasa (K.N. Rao)',
+    chara_sub: 'Sign dasas from the Lagna, forward when the 9th sign is odd-footed; each sign runs for its distance to its lord. Twelve antardasas start from the next sign and end with the dasa sign.',
     month_cal_title: 'Tamil Monthly Calendar',
     month_cal_sub: 'Tithi and star at sunrise with Amavasai, Pournami, Ekadasi, Pradosham, Sashti, Sankatahara Chaturthi, Masa Shivaratri and Karthigai.',
     rasi_navamsa: 'Rasi + Navamsa',
@@ -672,6 +682,10 @@ const I18N = {
     longitude: 'தீர்க்கரேகை',
     timezone: 'IANA நேர வலயம்',
     ayanamsa: 'அயனாம்சம்',
+    dasa_year: 'தசை ஆண்டு',
+    dasa_year_julian: '365.25 நாட்கள் (தென்னிந்திய பஞ்சாங்கங்கள்)',
+    dasa_year_sidereal: '365.2564 நாட்கள் (நட்சத்திர ஆண்டு, ஜெகந்நாத ஹோரா)',
+    dasa_year_savana: '360 நாட்கள் (சாவன ஆண்டு, பாரம்பரியம்)',
     dst_clock: 'கடிகார மாற்றம்',
     generate_chart: 'ஜாதகம் கணிக்கவும்',
     ready_to_reveal: 'வான மண்டலம் கணிக்கத் தயார்',
@@ -765,6 +779,12 @@ const I18N = {
     yogini_mode: 'யோகினி தசை',
     yogini_title: 'யோகினி தசை (36 ஆண்டு சுழற்சி)',
     yogini_sub: 'சந்திரன், சூரியன், குரு, செவ்வாய், புதன், சனி, சுக்கிரன், ராகு ஆளும் எட்டு யோகினிகள்; ஜென்ம நட்சத்திரமே முதல் யோகினியைத் தீர்மானிக்கிறது.',
+    ashtottari_mode: 'அஷ்டோத்தரி தசை',
+    ashtottari_title: 'அஷ்டோத்தரி தசை (108 ஆண்டு சுழற்சி)',
+    ashtottari_sub: 'திருவாதிரை முதல் எண்ணப்படும் ஜென்ம நட்சத்திரக் குழுவின்படி எட்டு அதிபதிகள் (கேது இல்லை); ஒவ்வொரு தசையிலும் அதன் அதிபதியிலிருந்து எட்டு புக்திகள்.',
+    chara_mode: 'சர தசை',
+    chara_title: 'ஜைமினி சர தசை (கே.என். ராவ்)',
+    chara_sub: 'லக்னத்திலிருந்து ராசி தசைகள்; 9-ஆம் ராசி ஓஜபாத ராசியானால் முன்னோக்கி. ஒவ்வொரு ராசிக்கும் அதன் அதிபதி வரையிலான தூரமே காலம். பன்னிரண்டு அந்தர தசைகள் அடுத்த ராசியில் தொடங்கி தசை ராசியில் முடியும்.',
     month_cal_title: 'தமிழ் மாத நாட்காட்டி',
     month_cal_sub: 'சூரிய உதய திதி, நட்சத்திரம் மற்றும் அமாவாசை, பௌர்ணமி, ஏகாதசி, பிரதோஷம், சஷ்டி, சங்கடஹர சதுர்த்தி, மாத சிவராத்திரி, கார்த்திகை.',
     rasi_navamsa: 'இராசி + அம்சம்',
@@ -1162,6 +1182,8 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#btn-mode-timeline')?.addEventListener('click', () => setDasaViewMode('timeline'));
   $('#btn-mode-cycles')?.addEventListener('click', () => setDasaViewMode('cycles'));
   $('#btn-mode-yogini')?.addEventListener('click', () => setDasaViewMode('yogini'));
+  $('#btn-mode-ashtottari')?.addEventListener('click', () => setDasaViewMode('ashtottari'));
+  $('#btn-mode-chara')?.addEventListener('click', () => setDasaViewMode('chara'));
 
   // Timeline Filter Buttons
   $$('.timeline-filter-btn').forEach(btn => {
@@ -1299,6 +1321,7 @@ function toggleLanguage() {
     renderYogasAndDoshas();
     renderDashaAccordion();
     renderYoginiAccordion();
+    renderExtraDasas();
     renderUpagrahas();
     renderJathagaKurippu();
     renderNavamsaTable();
@@ -1506,6 +1529,7 @@ async function handleFormSubmit(e) {
     renderYogasAndDoshas();
     renderDashaAccordion();
     renderYoginiAccordion();
+    renderExtraDasas();
     renderDasaTimelineView();
     renderLifeReadings();
     renderJathagaKurippu();
@@ -2321,6 +2345,51 @@ function renderYoginiAccordion() {
     </details>`).join('');
 }
 
+// Ashtottari and Chara Dasa accordions share one layout: a dasa row, then its sub-periods
+function renderPeriodAccordion(container, rows, nameOf, subNameOf, subLabel) {
+  if (!container || !rows) return;
+  const yearsText = y => txt(`${y} ${y === 1 ? 'year' : 'years'}`, `${y} ஆண்டு`);
+  container.innerHTML = rows.map(d => `
+    <details class="dasa-item"${d.is_active ? ' open' : ''}>
+      <summary class="dasa-summary ${d.is_active ? 'active-period' : ''}">
+        <div>
+          <span class="dasa-name">${esc(nameOf(d))} · ${yearsText(d.years)}</span>
+          ${d.is_active ? `<span class="status-pill success" style="margin-left:8px">${txt('ACTIVE', 'நடப்பில்')}</span>` : ''}
+        </div>
+        <span class="dasa-dates">${localDate(d.start)} → ${localDate(d.end)}</span>
+      </summary>
+      <table class="luxury-table bhukti-table">
+        <thead><tr><th>${subLabel}</th><th>${txt('Start', 'தொடக்கம்')}</th><th>${txt('End', 'முடிவு')}</th></tr></thead>
+        <tbody>${d.subperiods.map(b => `
+          <tr class="${b.is_active ? 'active-period' : ''}">
+            <td><strong>${esc(subNameOf(b))}</strong>${b.is_active ? ` <span class="status-pill success">${txt('Active', 'நடப்பில்')}</span>` : ''}</td>
+            <td>${localDate(b.start)}</td><td>${localDate(b.end)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </details>`).join('');
+}
+
+function renderExtraDasas() {
+  const chart = currentChart;
+  if (!chart) return;
+  const yearNote = chart.dasa_year ? txt(` Dasa year: ${chart.dasa_year.en}.`, ` தசை ஆண்டு: ${chart.dasa_year.ta}.`) : '';
+  const note = $('#ashtottari-note');
+  if (note) {
+    note.textContent = (chart.ashtottari_applicable
+      ? txt('Applies to this chart: Rahu is in a kendra or trikona from the Lagna lord, not in the Lagna.',
+        'இந்த ஜாதகத்திற்குப் பொருந்தும்: ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில், லக்னத்தில் இல்லை.')
+      : txt('Classically used when Rahu is in a kendra or trikona from the Lagna lord; that does not hold here, so read it alongside Vimshottari.',
+        'ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில் இருக்கும்போது பாரம்பரியமாகப் பயன்படும்; இங்கு அது இல்லை, எனவே விம்சோத்தரியுடன் சேர்த்துப் பார்க்கவும்.')) + yearNote;
+  }
+  renderPeriodAccordion($('#ashtottari-accordion'), chart.ashtottari_dasha, d => grahaName(d.lord), b => grahaName(b.lord),
+    txt('Bhukti', 'புக்தி'));
+  renderPeriodAccordion($('#chara-accordion'), chart.chara_dasha,
+    d => txt(`${d.sign} (lord ${d.lord})${d.round === 2 ? ', 2nd round' : ''}`,
+      `${d.sign_ta} (அதிபதி ${grahaName(d.lord)})${d.round === 2 ? ', 2-ஆம் சுற்று' : ''}`),
+    b => txt(b.sign, b.sign_ta), txt('Antardasa', 'அந்தர தசை'));
+}
+
 function renderUpagrahas() {
   const tbody = $('#upagrahas-tbody');
   const rows = currentChart?.south_indian?.upagrahas;
@@ -2341,6 +2410,11 @@ function setDasaViewMode(mode) {
   $('#btn-mode-timeline')?.classList.toggle('active', mode === 'timeline');
   $('#btn-mode-cycles')?.classList.toggle('active', mode === 'cycles');
   $('#btn-mode-yogini')?.classList.toggle('active', mode === 'yogini');
+  ['ashtottari', 'chara'].forEach(m => {
+    $(`#btn-mode-${m}`)?.classList.toggle('active', mode === m);
+    const view = $(`#dasa-${m}-view`);
+    if (view) view.hidden = (mode !== m);
+  });
   const tView = $('#dasa-timeline-view');
   const cView = $('#dasa-tabular-view');
   const yView = $('#dasa-yogini-view');
@@ -4080,6 +4154,7 @@ function loadProfileIntoForm(p) {
   if (form.elements['timezone']) form.elements['timezone'].value = p.timezone || 'Asia/Kolkata';
   if (form.elements['ayanamsa']) form.elements['ayanamsa'].value = p.ayanamsa || 'Lahiri';
   if (form.elements['fold']) form.elements['fold'].value = p.fold ?? '';
+  if (form.elements['dasa_year']) form.elements['dasa_year'].value = p.dasa_year || 'julian';
 
   const qSelect = $('#quick-profile-select');
   if (qSelect) qSelect.value = p.id || p.name;
@@ -4109,6 +4184,7 @@ function saveCurrentProfile() {
   const timezone = form.elements['timezone']?.value || 'Asia/Kolkata';
   const ayanamsa = form.elements['ayanamsa']?.value || 'Lahiri';
   const fold = form.elements['fold']?.value || '';
+  const dasa_year = form.elements['dasa_year']?.value || 'julian';
 
   const list = getSavedProfiles();
   const existingIndex = list.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
@@ -4154,6 +4230,7 @@ function saveCurrentProfile() {
     timezone,
     ayanamsa,
     fold,
+    dasa_year,
     lagna: lagna || (existingIndex >= 0 ? list[existingIndex].lagna : ''),
     lagna_ta: lagna_ta || (existingIndex >= 0 ? list[existingIndex].lagna_ta : ''),
     moon_sign: moon_sign || (existingIndex >= 0 ? list[existingIndex].moon_sign : ''),
