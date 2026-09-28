@@ -22,6 +22,7 @@ from .readings.timing import calculate_double_transit, calculate_kakshya_transit
 from .readings.career_health import calculate_career_vocation_d10, calculate_ayur_jyotish
 from .readings.strength_kp import get_kp_sublord, calculate_shadbala, calculate_kp_system
 from .readings.numerology import calculate_numerology
+from .readings.remedies import calculate_remedies
 from .readings.classical import (
     calculate_bhrigu_nandi_nadi, calculate_planetary_avasthas, calculate_nakshatra_pada_reading, calculate_sahams,
     generate_panchanga_phala, calculate_sudarshana_chakra, lajjitadi_avasthas, _bnn_link, _saham
@@ -29,7 +30,7 @@ from .readings.classical import (
 
 # Re-exported for callers of this module and the tests
 __all__ = [
-    'generate_comprehensive_predictions', 'calculate_timeline_predictions', 'calculate_numerology', 'SIGNS', 'TAMIL_SIGNS',
+    'generate_comprehensive_predictions', 'calculate_timeline_predictions', 'calculate_numerology', 'calculate_remedies', 'SIGNS', 'TAMIL_SIGNS',
     'SIGN_LORDS', 'PLANET_TAMIL', 'STARS', 'TAMIL_STARS', 'DASA_LORDS', 'VIMSHOTTARI_YEARS',
     'DIGNITY_SCORE', 'DIGNITY_PHRASE', 'HOUSE_THEMES', '_functional_role', '_house_list',
     '_ordinal', 'NAKSHATRA_PREDICTIONS', 'LAGNA_PREDICTIONS', 'generate_bhava_predictions',
@@ -114,5 +115,6 @@ def generate_comprehensive_predictions(chart):
         'pada_reading': pada_reading,
         'sahams': sahams,
         'timeline_predictions': timeline_predictions,
-        'numerology': calculate_numerology(chart)
+        'numerology': calculate_numerology(chart),
+        'remedies': calculate_remedies(chart)
     }

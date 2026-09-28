@@ -43,5 +43,25 @@ class NumerologyTests(unittest.TestCase):
         self.assertEqual(relation(4, 8), 1)    # Rahu is read as Saturn
 
 
+
+class RemediesTests(unittest.TestCase):
+    def test_reasons_come_from_the_chart(self):
+        c = calculate(dict(BIRTH, date='1985-06-15', time='21:40:00'))
+        r = c['predictions']['remedies']
+        check_chapter(self, r)
+        titles = [card['title']['en'] for card in r['cards']]
+        self.assertIn('Rahu-Ketu (Naga) Dosham', titles)          # doshas.rahu_ketu is present in this chart
+        jupiter = next(card for card in r['cards'] if card['title']['en'].startswith('Jupiter'))
+        self.assertIn('debilitated', jupiter['sub']['en'])         # Jupiter in Capricorn
+        self.assertIn('Alangudi', jupiter['body']['en'])
+        self.assertIn('19,000', jupiter['body']['en'])
+
+    def test_every_graha_has_a_remedy(self):
+        from joroscope.core.readings.remedies import GRAHA_REMEDIES, FASTING, graha_remedy_text
+        self.assertEqual(set(GRAHA_REMEDIES), set(FASTING))
+        for g in GRAHA_REMEDIES:
+            en, ta = graha_remedy_text(g)
+            self.assertTrue(en and ta)
+
 if __name__ == '__main__':
     unittest.main()
