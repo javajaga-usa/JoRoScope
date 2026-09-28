@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.2.0] - 2026-09-28
 
 Reports in the style of Astro-Vision's, a Tools page for Prasna and birth time rectification, and Malayalam.
 
