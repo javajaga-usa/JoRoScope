@@ -759,4 +759,67 @@ function renderLifeReadings() {
       });
     }
   }
+
+  // Chapters in the shared report shape (numerology and the newer reports)
+  REPORT_CHAPTERS.forEach(key => renderReportChapter(key, pred[key]));
+}
+
+// Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
+const REPORT_CHAPTERS = ['parihara', 'monthly', 'varshaphal', 'marriage', 'career_report', 'chakras', 'numerology'];
+const VERDICT_PILLS = { good: ['success', 'Favourable', 'சாதகம்'], mixed: ['neutral', 'Mixed', 'கலப்பு'], bad: ['danger', 'Needs care', 'கவனம் தேவை'] };
+
+function reportCardHtml(c) {
+  const pill = c.verdict ? VERDICT_PILLS[c.verdict] : null;
+  return `
+    <div class="cosmic-card reading-card">
+      <div class="reading-header">
+        <span class="reading-icon">${esc(c.icon || '✦')}</span>
+        <div>
+          <h3>${esc(txt(c.title.en, c.title.ta))}</h3>
+          ${c.sub && (c.sub.en || c.sub.ta) ? `<small class="muted">${esc(txt(c.sub.en, c.sub.ta))}</small>` : ''}
+        </div>
+        ${pill ? `<span class="status-pill ${pill[0]}">${txt(pill[1], pill[2])}</span>` : ''}
+      </div>
+      <p class="reading-body">${esc(txt(c.body.en, c.body.ta))}</p>
+    </div>`;
+}
+
+function reportTableHtml(t) {
+  return `
+    <div class="cosmic-card report-table-card">
+      <h3>${esc(txt(t.title.en, t.title.ta))}</h3>
+      <div class="table-responsive">
+        <table class="luxury-table">
+          <thead><tr>${t.head.map(h => `<th>${esc(txt(h.en, h.ta))}</th>`).join('')}</tr></thead>
+          <tbody>${t.rows.map(row => `<tr>${row.map(c => `<td>${esc(txt(c.en, c.ta))}</td>`).join('')}</tr>`).join('')}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+// A square chakra (the Sarvatobhadra's 9 x 9 cells), east on top
+function reportGridHtml(grid) {
+  return `<div class="cosmic-card report-table-card"><div class="chakra-grid">${grid.flat().map(c =>
+    `<div class="chakra-cell ${esc(c.cls || '')}">${esc(txt(c.en, c.ta))}</div>`).join('')}</div></div>`;
+}
+
+function renderReportChapter(key, ch) {
+  renderChapterInto(document.getElementById(`ppanel-${key}`), ch);
+}
+
+function renderChapterInto(panel, ch) {
+  if (!panel) return;
+  if (!ch) {
+    panel.innerHTML = `<p class="muted">${txt('Not available for this chart.', 'இந்த ஜாதகத்திற்குக் கிடைக்கவில்லை.')}</p>`;
+    return;
+  }
+  panel.innerHTML = `
+    <div class="cosmic-card report-intro">
+      <h2>${esc(txt(ch.title.en, ch.title.ta))}</h2>
+      <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta))}</p>
+    </div>
+    ${ch.grid ? reportGridHtml(ch.grid) : ''}
+    ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}
+    <div class="readings-grid">${ch.cards.map(reportCardHtml).join('')}</div>
+    ${ch.cards_first ? ch.tables.map(reportTableHtml).join('') : ''}`;
 }

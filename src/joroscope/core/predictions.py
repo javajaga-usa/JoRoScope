@@ -21,6 +21,9 @@ from .readings.jaimini import calculate_jaimini_karakas, jaimini_arudhas, _jaimi
 from .readings.timing import calculate_double_transit, calculate_kakshya_transits
 from .readings.career_health import calculate_career_vocation_d10, calculate_ayur_jyotish
 from .readings.strength_kp import get_kp_sublord, calculate_shadbala, calculate_kp_system
+from .readings.numerology import calculate_numerology
+from .readings.remedies import calculate_remedies
+from .readings.life_reports import calculate_marriage_report, calculate_career_report
 from .readings.classical import (
     calculate_bhrigu_nandi_nadi, calculate_planetary_avasthas, calculate_nakshatra_pada_reading, calculate_sahams,
     generate_panchanga_phala, calculate_sudarshana_chakra, lajjitadi_avasthas, _bnn_link, _saham
@@ -28,7 +31,7 @@ from .readings.classical import (
 
 # Re-exported for callers of this module and the tests
 __all__ = [
-    'generate_comprehensive_predictions', 'calculate_timeline_predictions', 'SIGNS', 'TAMIL_SIGNS',
+    'generate_comprehensive_predictions', 'calculate_timeline_predictions', 'calculate_numerology', 'calculate_remedies', 'calculate_marriage_report', 'calculate_career_report', 'SIGNS', 'TAMIL_SIGNS',
     'SIGN_LORDS', 'PLANET_TAMIL', 'STARS', 'TAMIL_STARS', 'DASA_LORDS', 'VIMSHOTTARI_YEARS',
     'DIGNITY_SCORE', 'DIGNITY_PHRASE', 'HOUSE_THEMES', '_functional_role', '_house_list',
     '_ordinal', 'NAKSHATRA_PREDICTIONS', 'LAGNA_PREDICTIONS', 'generate_bhava_predictions',
@@ -44,6 +47,11 @@ __all__ = [
 
 
 def generate_comprehensive_predictions(chart):
+    # Modules that need the ephemeris import the engine, which imports this module
+    from .monthly import calculate_monthly_transits
+    from .varshaphal import calculate_varshaphal
+    from .chakras import calculate_chakras
+
     planets = chart['planets']
     asc = planets['Ascendant']
     moon = planets['Moon']
@@ -112,5 +120,12 @@ def generate_comprehensive_predictions(chart):
         'avasthas': avasthas,
         'pada_reading': pada_reading,
         'sahams': sahams,
-        'timeline_predictions': timeline_predictions
+        'timeline_predictions': timeline_predictions,
+        'numerology': calculate_numerology(chart),
+        'parihara': calculate_remedies(chart),
+        'monthly': calculate_monthly_transits(chart),
+        'varshaphal': calculate_varshaphal(chart),
+        'marriage': calculate_marriage_report(chart, jaimini_karakas, double_transit),
+        'career_report': calculate_career_report(chart, jaimini_karakas, career_d10, double_transit),
+        'chakras': calculate_chakras(chart)
     }

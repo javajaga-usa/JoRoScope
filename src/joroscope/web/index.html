@@ -7,7 +7,7 @@
   <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 16 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -67,6 +67,10 @@
         <button class="nav-item" data-page="panchangam" id="nav-panchangam">
           <span class="nav-icon">🌅</span>
           <span class="nav-text" data-i18n="daily_panchangam">Daily Panchangam</span>
+        </button>
+        <button class="nav-item" data-page="tools" id="nav-tools">
+          <span class="nav-icon">🔮</span>
+          <span class="nav-text" data-i18n="nav_tools">Prasna & Tools</span>
         </button>
         <button class="nav-item" data-page="profiles" id="nav-profiles">
           <span class="nav-icon">📁</span>
@@ -883,6 +887,7 @@
             <span class="eyebrow" data-i18n="astrological_synthesis">COMPREHENSIVE HOROSCOPE PREDICTION REPORT</span>
             <h1 data-i18n="life_readings">Life Interpretations & Guidance</h1>
             <p class="muted" data-i18n="predictions_sub">Traditional Parashara and Tamil astrological readings: Nakshatra, Lagna, 12 Bhavas, Planets in Houses, Dasa-Bhukti, Transits & Lucky Gemstones.</p>
+            <p class="muted ml-only" data-i18n="ml_readings_note">Detailed readings appear in English until their Malayalam translation is complete.</p>
           </div>
         </div>
 
@@ -894,6 +899,12 @@
           <button class="pred-tab" data-ptab="dasa" id="ptab-dasa" data-i18n="pt_dasa">⏳ Dasa-Bhukti Forecast</button>
           <button class="pred-tab" data-ptab="transits" id="ptab-transits" data-i18n="pt_transits">🌌 Transits (Gochara)</button>
           <button class="pred-tab" data-ptab="remedies" id="ptab-remedies" data-i18n="pt_remedies">💎 Lucky Gems & Remedies</button>
+          <button class="pred-tab" data-ptab="monthly" id="ptab-monthly" data-i18n="pt_monthly">🗓️ Monthly Transits</button>
+          <button class="pred-tab" data-ptab="varshaphal" id="ptab-varshaphal" data-i18n="pt_varshaphal">🎉 Varshaphal (Annual)</button>
+          <button class="pred-tab" data-ptab="marriage" id="ptab-marriage" data-i18n="pt_marriage">💞 Marriage Report</button>
+          <button class="pred-tab" data-ptab="career_report" id="ptab-career_report" data-i18n="pt_career_report">📈 Career Report</button>
+          <button class="pred-tab" data-ptab="chakras" id="ptab-chakras" data-i18n="pt_chakras">🔷 Sarvatobhadra & Kota</button>
+          <button class="pred-tab" data-ptab="numerology" id="ptab-numerology" data-i18n="pt_numerology">🔢 Numerology</button>
           <button class="pred-tab" data-ptab="jaimini" id="ptab-jaimini" data-i18n="pt_jaimini">🪷 Jaimini Karakas</button>
           <button class="pred-tab" data-ptab="timing" id="ptab-timing" data-i18n="pt_timing">⏱️ Double Transit (BVB)</button>
           <button class="pred-tab" data-ptab="career" id="ptab-career" data-i18n="pt_career">💼 D-10 Career & Vocation</button>
@@ -905,6 +916,7 @@
           <button class="pred-tab" data-ptab="avasthas" id="ptab-avasthas" data-i18n="pt_avasthas">✨ Planetary Avasthas</button>
           <button class="pred-tab" data-ptab="pada" id="ptab-pada" data-i18n="pt_pada">🎯 Nakshatra Pada Reading</button>
           <button class="pred-tab" data-ptab="sahams" id="ptab-sahams" data-i18n="pt_sahams">🔮 Sensitive Sahams</button>
+          <button class="pred-tab" data-ptab="parihara" id="ptab-parihara" data-i18n="pt_parihara">🕉️ Parihara (Remedies)</button>
         </div>
 
         <!-- Chapter 1: Natal Elements & Personality -->
@@ -1524,6 +1536,15 @@
           </div>
           <div class="readings-grid" id="sahams-cards-grid"></div>
         </div>
+
+        <!-- Chapters in the shared report shape, drawn by renderReportChapter -->
+        <div class="pred-panel report-panel" id="ppanel-parihara" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-monthly" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-varshaphal" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-marriage" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-career_report" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-chakras" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-numerology" hidden></div>
       </section>
 
       <!-- VIEW 7: HOROSCOPE MATCHING (PORUTHAM) -->
@@ -1747,6 +1768,7 @@
             <div class="anga-item">
               <small data-i18n="next_chandrashtamam">NEXT CHANDRASHTAMAM</small>
               <div id="panch-next-chandrashtamam" class="upcoming-list">—</div>
+              <button class="link-btn ics-btn" id="chandrashtamam-ics-btn" type="button" data-i18n="ics_add">📅 Add to calendar</button>
             </div>
             <div class="anga-item">
               <small data-i18n="star_birthday">NAKSHATRA BIRTHDAY</small>
@@ -1866,6 +1888,7 @@
           </div>
           <div class="month-grid" id="month-grid"></div>
           <div class="month-observances" id="month-observances"></div>
+          <button class="action-btn ics-btn" id="month-ics-btn" type="button" data-i18n="ics_month">📅 Add this month's observances to a calendar</button>
         </div>
 
         <!-- Gowri Panchangam (Nalla Neram) -->
@@ -1905,9 +1928,60 @@
             <button class="action-btn" id="muhurtham-btn" type="button" data-i18n="mh_find">Find Muhurthams</button>
           </div>
           <p class="muted" id="muhurtham-summary"></p>
+          <button class="action-btn ics-btn" id="muhurtham-ics-btn" type="button" data-i18n="ics_muhurtham" hidden>📅 Add these muhurthams to a calendar</button>
           <div class="muhurtham-list" id="muhurtham-list"></div>
           <p class="muted" style="font-size:11.5px" data-i18n="mh_note">Published Tamil calendars also fix the Lagna and follow regional customs; confirm the final time with your family astrologer.</p>
         </div>
+      </section>
+
+      <!-- VIEW: PRASNA & TOOLS -->
+      <section id="page-tools" class="app-page" hidden>
+        <div class="page-intro">
+          <div>
+            <span class="eyebrow" data-i18n="tools_eyebrow">HORARY & RECTIFICATION</span>
+            <h1 data-i18n="nav_tools">Prasna & Tools</h1>
+            <p class="muted" data-i18n="tools_sub">Ask a question for the present moment, or check a birth time against the events of a life.</p>
+          </div>
+        </div>
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="prasna_title">Prasna (Horary)</h2>
+              <p class="card-subtitle" data-i18n="prasna_sub">The chart of the moment you ask, at the place in the birth form, judged by Prasna Marga and Tajika rules. Optionally think of your question and pick a number from 1 to 12 (the Arudha).</p>
+            </div>
+            <span class="card-badge">🔮</span>
+          </div>
+          <div class="muhurtham-controls">
+            <select id="prasna-question" aria-label="Question"></select>
+            <input id="prasna-arudha" type="number" min="1" max="12" placeholder="Arudha 1-12" data-i18n-placeholder="prasna_arudha" aria-label="Arudha number">
+            <input id="prasna-date" type="date" aria-label="Date">
+            <input id="prasna-time" type="time" aria-label="Time">
+            <button class="action-btn" id="prasna-btn" type="button" data-i18n="prasna_ask">Ask now</button>
+          </div>
+          <p class="muted" style="font-size:11.5px" data-i18n="prasna_hint">Leave the date and time empty to use this moment.</p>
+        </div>
+        <div class="report-panel" id="prasna-result"></div>
+
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="rect_title">Birth Time Rectification</h2>
+              <p class="card-subtitle" data-i18n="rect_sub">Unsure of the birth time? Add dated events from your life; candidate times around the birth form's time are tested against their dasas and transits. Five or more events give the best result.</p>
+            </div>
+            <span class="card-badge">🕰️</span>
+          </div>
+          <div id="rect-events" class="rect-events"></div>
+          <div class="muhurtham-controls">
+            <button class="action-btn" id="rect-add" type="button" data-i18n="rect_add">➕ Add event</button>
+            <select id="rect-window" aria-label="Window">
+              <option value="30" data-i18n="rect_w30">± 30 minutes</option>
+              <option value="60" selected data-i18n="rect_w60">± 1 hour</option>
+              <option value="120" data-i18n="rect_w120">± 2 hours</option>
+            </select>
+            <button class="action-btn" id="rect-run" type="button" data-i18n="rect_run">Test birth times</button>
+          </div>
+        </div>
+        <div class="report-panel" id="rect-result"></div>
       </section>
 
       <!-- VIEW 9: SAVED PROFILES -->
@@ -1983,6 +2057,7 @@
         <select id="print-language">
           <option value="ta">தமிழ்</option>
           <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
         </select>
       </label>
       <label class="print-language">
@@ -1998,7 +2073,9 @@
   </dialog>
 
   <script src="i18n.js"></script>
+  <script src="lang-ml.js"></script>
   <script src="profiles.js"></script>
+  <script src="ics.js"></script>
   <script src="app.js"></script>
   <script src="chart-views.js"></script>
   <script src="dasa.js"></script>

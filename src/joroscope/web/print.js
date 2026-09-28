@@ -21,7 +21,8 @@ const PRINT_SECTIONS = [
   { key: 'strength', en: 'Shadbala, Bhava Bala & Vimsopaka', ta: 'ஷட்பலம், பாவ பலம் & விம்சோபகம்', build: printStrength, newPage: true },
   { key: 'ashtakavarga', en: 'Ashtakavarga & Sodhya Pinda', ta: 'அஷ்டகவர்க்கம் & சோத்ய பிண்டம்', build: printAshtakavarga, newPage: true },
   { key: 'kp', en: 'KP cusps & significators', ta: 'கே.பி. பாவ ஆரம்பங்கள் & காரகத்துவம்', build: printKP, newPage: true },
-  { key: 'predictions', en: 'Life predictions', ta: 'வாழ்க்கைப் பலன்கள்', build: printPredictions, newPage: true }
+  { key: 'predictions', en: 'Life predictions', ta: 'வாழ்க்கைப் பலன்கள்', build: printPredictions, newPage: true },
+  { key: 'reports', en: 'Special reports', ta: 'சிறப்பு அறிக்கைகள்', build: printReportChapters, newPage: true }
 ];
 
 const PRINT_PRESETS = {
@@ -61,11 +62,20 @@ const PRINT_CHART_STYLES = {
 
 // ---------- small builders ----------
 const pjKV = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${v}</strong></div>`).join('');
-const pjTable = (head, rows, cls = '') => `
+// Tables are kept whole on a page; long ones go out in chunks that each carry the header row,
+// since WebKit (Safari) does not repeat a table header after a page break
+const PJ_TABLE_CHUNK = 28;
+const pjTable = (head, rows, cls = '') => {
+  const chunks = [];
+  for (let i = 0; i < rows.length; i += PJ_TABLE_CHUNK) chunks.push(rows.slice(i, i + PJ_TABLE_CHUNK));
+  if (!chunks.length) chunks.push([]);
+  const header = `<thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+  return chunks.map(chunk => `
   <table class="pj-table ${cls}">
-    <thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
-  </table>`;
+    ${header}
+    <tbody>${chunk.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`).join('');
+};
 const pjChart = (varga, caption) => {
   const id = `pj-chart-${varga}-${pendingCharts.length}`;
   pendingCharts.push([id, varga]);
@@ -205,6 +215,19 @@ function printOtherDasas(c) {
       <div><h3>${txt('Ashtottari Dasa', 'அஷ்டோத்தரி தசை')}</h3>${pjTable(head, ashtottari, 'compact')}</div>
       <div><h3>${txt('Jaimini Chara Dasa', 'ஜைமினி சர தசை')}</h3>${pjTable(head, chara, 'compact')}</div>
     </div>`;
+}
+
+// The chapters in the shared report shape (numerology and the newer reports), one after another
+function printReportChapters(c) {
+  const pred = c.predictions || {};
+  const cell = x => esc(txt(x.en, x.ta));
+  return REPORT_CHAPTERS.filter(key => pred[key]).map(key => {
+    const ch = pred[key];
+    const tables = ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
+    const grid = ch.grid ? `<div class="pj-chakra">${ch.grid.flat().map(g => `<div class="${esc(g.cls || '')}">${cell(g)}</div>`).join('')}</div>` : '';
+    const cards = ch.cards.map(k => `<div class="pj-reading"><h4>${cell(k.title)}</h4><p>${cell(k.body)}</p></div>`).join('');
+    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${grid}${tables}${cards}`;
+  }).join('');
 }
 
 function printVargas(c) {
@@ -382,6 +405,7 @@ function printWithLanguage(lang, build) {
   currentLang = lang || saved;
   try {
     build();
+    if (currentLang === 'ml') translateTree(document.getElementById('print-jathagam'));
   } finally {
     currentLang = saved;
   }

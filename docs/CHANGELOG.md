@@ -1,5 +1,27 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+Reports in the style of Astro-Vision's, a Tools page for Prasna and birth time rectification, and Malayalam.
+
+### New report chapters (Life Predictions page and the Complete print report)
+- **Parihara (remedies):** remedies drawn from what the chart shows: Chevvai, Kaal Sarp and Rahu-Ketu doshams, a running Sade Sati, Ashtama or Kandaka Sani, grahas below their required Shadbala or debilitated, the running dasa lords and difficult yogas. Each graha's Navagraha temple in Tamil Nadu, deity, day, beeja mantra with its japa count, charity and fasting.
+- **Monthly transits:** the next twelve months from the Moon sign, with the Vedha (obstruction) rule, Ashtakavarga bindus, dated sign changes and Chandrashtamam days; months ranked for the chart.
+- **Varshaphal (annual horoscope):** the Tajika chart for the Sun's return (matches PyJHora's Varsha Pravesh to the minute), Muntha, the lord of the year from the five office-bearers and Pancha-vargeeya Bala, Ithasala promises for wealth, marriage, career and other matters, and the Mudda Dasa.
+- **Marriage (Kalatra) and career reports:** the 7th and 10th houses, their lords, occupants and aspects, the karakas, Darakaraka, Upapada, Amatyakaraka and the Navamsa and Dasamsa, with the Dasa-Bhukti periods that bring them and the double-transit windows.
+- **Sarvatobhadra and Kota Chakra:** today's transit Vedha on the birth star, its special stars and the birth sign, drawn on the 9 x 9 chakra; the Kota Chakra's rings with malefics entering or leaving the fort.
+- **Numerology:** Chaldean birth, destiny and name numbers, their ruling grahas and whether they agree.
+
+### Tools page
+- **Prasna (horary):** a chart for the moment the question is asked, judged by Prasna Marga (Shirshodaya Lagna, Mandi, benefics and malefics in the kendras, the Moon) and Tajika (Ithasala between the Lagna lord and the lord of the matter), with an optional Arudha number and a timing estimate.
+- **Birth time rectification:** candidate times around the stated one are tested against dated life events by their Dasa, Bhukti and Pratyantar lords and Saturn-Jupiter double transits; candidates are grouped by Lagna and Navamsa and ranked. It narrows the time; an astrologer confirms it.
+
+### Also
+- **Malayalam:** the language button cycles English, Tamil and Malayalam. The interface, astrological names (signs, stars, grahas, weekdays, tithis, yogas, karanas, months) and labels are in Malayalam; long readings stay in English until translated.
+- **Calendar export:** muhurthams, the month's observances and Chandrashtamam periods download as .ics files for phone and desktop calendars.
+- **Printing:** long tables print in chunks that each carry their header row, as Safari does not repeat table headers.
+- New API routes `/api/prasna` and `/api/rectify`; a markup test checks that element ids are unique and every interface key has English, Tamil and Malayalam text.
+
 ## [2.1.0] - 2026-09-28
 
 The South Indian (Tamil) jathagam release: Tamil calendar and panchangam, accurate Shadbala, about 75 classical yogas, KP, Jaimini (arudhas, Chara Dasa), Ashtottari Dasa, a Muhurtham finder with Tamil yogam and Lagna Shuddhi, chart-specific Dasa-Bhukti ratings, Sri Lankan charts, a restructured print report checked on paper, safer profile backups, one-click launchers for macOS and Windows, and a faster, smaller chart response.

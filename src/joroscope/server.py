@@ -18,6 +18,8 @@ from . import __version__
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
 from .core.muhurtham import find_muhurthams
+from .core.prasna import calculate_prasna
+from .core.rectification import rectify
 from .core.timeline import defer_timeline_details, timeline_details
 
 MODULE_DIR = Path(__file__).resolve().parent
@@ -68,7 +70,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify'):
             self.send(b'{}', 404)
             return
 
@@ -137,6 +139,15 @@ class Handler(BaseHTTPRequestHandler):
                     float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
                     natal_star=None if natal_star in (None, '') else int(natal_star),
                     natal_sign=None if natal_sign in (None, '') else int(natal_sign))
+                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/prasna':
+                found = calculate_prasna(
+                    data.get('question', 'general'), data.get('date') or '', data.get('time') or '',
+                    data.get('timezone', 'Asia/Kolkata'), float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
+                    arudha=data.get('arudha') or None, ayanamsa=data.get('ayanamsa') or 'Lahiri')
+                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
+            elif req_path == '/api/rectify':
+                found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2))
                 self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/calendar':
                 cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),

@@ -87,6 +87,7 @@ function renderMuhurthams(data) {
   $('#muhurtham-summary').textContent = txt(
     `${data.days_found} suitable day${data.days_found === 1 ? '' : 's'} for ${data.event_en} in the ${data.days} days from ${data.start}.${personal}`,
     `${data.start} முதல் ${data.days} நாட்களில் ${data.event_ta} செய்ய ${data.days_found} உகந்த நாட்கள்.${personal}`);
+  $('#muhurtham-ics-btn').hidden = !data.results.length;
   $('#muhurtham-list').innerHTML = data.results.map(d => `
     <div class="muhurtham-day">
       <h4>${d.date} · ${esc(txt(d.weekday, d.weekday_ta))} <small class="muted">(${esc(d.tamil_date)})</small></h4>
@@ -395,4 +396,142 @@ function renderPersonalBalam(personal) {
   status.textContent = good ? (isTa ? 'சாதகமான நாள்' : 'Favourable day')
     : (bad ? (isTa ? 'கவனம் தேவை' : 'Take care') : (isTa ? 'கலப்பு' : 'Mixed'));
   renderUpcomingDates();
+}
+
+// Calendar (.ics) export of muhurthams, the month's observances and Chandrashtamam periods, in
+// the page language
+function exportMuhurthamsIcs() {
+  const data = lastMuhurthams;
+  if (!data || !data.results.length) return;
+  const events = data.results.flatMap(d => d.windows.map((w, i) => ({
+    uid: `muhurtham-${data.event}-${d.date}-${i}`,
+    title: txt(`Muhurtham: ${data.event_en}`, `முகூர்த்தம்: ${data.event_ta}`),
+    description: txt(`${w.nakshatra} · ${w.tithi} (${w.paksha}) · ${w.lagna} Lagna · ${w.tamil_yogam.en}${w.notes_en.length ? ' · ' + w.notes_en.join(', ') : ''}`,
+      `${w.nakshatra_ta} · ${w.tithi_ta} · ${w.lagna_ta} லக்னம் · ${w.tamil_yogam.ta}${w.notes_ta.length ? ' · ' + w.notes_ta.join(', ') : ''}`),
+    start: w.start_local, end: w.end_local
+  })));
+  downloadText(`JoRoScope-Muhurtham-${data.event}-${data.start}.ics`, buildIcs(events, txt('JoRoScope Muhurthams', 'ஜோரோஸ்கோப் முகூர்த்தங்கள்')), 'text/calendar');
+}
+
+function exportMonthIcs() {
+  const cal = lastCalendar;
+  if (!cal) return;
+  const events = cal.days.flatMap(d => d.observances.map(o => ({
+    uid: `observance-${o.key}-${d.date}`, title: txt(o.en, o.ta),
+    description: txt(`${d.tithi_name} · ${d.nakshatra} · ${d.tamil_month} ${d.tamil_day}`, `${d.tithi_ta} · ${d.nakshatra_ta} · ${d.tamil_month_ta} ${d.tamil_day}`),
+    start: d.date
+  })));
+  if (!events.length) {
+    notify(txt('No observances this month.', 'இம்மாதம் விரத நாட்கள் இல்லை.'));
+    return;
+  }
+  downloadText(`JoRoScope-Observances-${cal.days[0].date.slice(0, 7)}.ics`, buildIcs(events, txt('JoRoScope Tamil calendar', 'ஜோரோஸ்கோப் தமிழ் நாட்காட்டி')), 'text/calendar');
+}
+
+function exportChandrashtamamIcs() {
+  const up = currentChart?.south_indian?.upcoming;
+  if (!up) return;
+  const name = currentChart.profile?.name || 'JoRoScope';
+  const events = up.chandrashtamam.periods.map(pr => ({
+    uid: `chandrashtamam-${name.replace(/\W+/g, '')}-${pr.start_local.slice(0, 10)}`,
+    title: txt(`Chandrashtamam (${name})`, `சந்திராஷ்டமம் (${name})`),
+    description: txt('The Moon transits the 8th sign from the birth Moon: avoid starting important work.',
+      'சந்திரன் ஜன்ம ராசிக்கு 8-ஆம் ராசியில்: முக்கிய காரியங்களைத் தொடங்குவதைத் தவிர்க்கவும்.'),
+    start: pr.start_local, end: pr.end_local
+  }));
+  downloadText(`JoRoScope-Chandrashtamam-${name.replace(/\W+/g, '-')}.ics`, buildIcs(events, txt('Chandrashtamam', 'சந்திராஷ்டமம்')), 'text/calendar');
+}
+
+// Prasna (horary): the question list comes from the server's answer, so the first ask fills it
+const PRASNA_QUESTIONS = [
+  ['general', 'General question', 'பொதுக் கேள்வி'], ['marriage', 'Marriage or relationship', 'திருமணம் / உறவு'],
+  ['career', 'Job, career or promotion', 'வேலை / தொழில் / பதவி உயர்வு'], ['money', 'Money, loans or business gain', 'பணம் / கடன் / வியாபார லாபம்'],
+  ['health', 'Health or recovery', 'உடல்நலம் / குணமடைதல்'], ['travel', 'Travel or going abroad', 'பயணம் / வெளிநாடு'],
+  ['children', 'Children or conception', 'குழந்தை / கருத்தரிப்பு'], ['property', 'House, land or vehicle', 'வீடு / நிலம் / வாகனம்'],
+  ['education', 'Studies or examinations', 'படிப்பு / தேர்வு'], ['lost', 'A lost or stolen object', 'தொலைந்த / திருடுபோன பொருள்'],
+  ['dispute', 'Dispute or court case', 'வழக்கு / தகராறு']
+];
+let lastPrasna = null;
+
+function fillPrasnaQuestions() {
+  const sel = $('#prasna-question');
+  if (!sel) return;
+  const chosen = sel.value || 'general';
+  sel.innerHTML = PRASNA_QUESTIONS.map(([k, en, ta]) => `<option value="${k}">${esc(txt(en, ta))}</option>`).join('');
+  sel.value = chosen;
+}
+
+async function askPrasna() {
+  const form = $('#birth-form');
+  const payload = {
+    question: $('#prasna-question').value, arudha: $('#prasna-arudha').value || null,
+    date: $('#prasna-date').value || '', time: $('#prasna-time').value || '',
+    latitude: form.elements['latitude']?.value, longitude: form.elements['longitude']?.value,
+    timezone: form.elements['timezone']?.value || 'Asia/Kolkata', ayanamsa: form.elements['ayanamsa']?.value || 'Lahiri'
+  };
+  const btn = $('#prasna-btn');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/prasna', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Prasna failed.');
+    lastPrasna = data;
+    renderChapterInto($('#prasna-result'), data);
+  } catch (err) {
+    notify(errorText(err.message));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Birth time rectification: an editable list of dated life events
+const RECT_EVENTS = [
+  ['marriage', 'Marriage', 'திருமணம்'], ['child', 'Birth of a child', 'குழந்தை பிறப்பு'],
+  ['career', 'Job, promotion or business start', 'வேலை / பதவி உயர்வு / தொழில் தொடக்கம்'],
+  ['education', 'Degree or education milestone', 'பட்டம் / கல்வி நிலை'], ['relocation', 'Moving house or abroad', 'இடமாற்றம் / வெளிநாடு'],
+  ['property', 'Buying property or a vehicle', 'சொத்து / வாகனம் வாங்குதல்'], ['illness', 'Illness, surgery or accident', 'நோய் / அறுவை சிகிச்சை / விபத்து'],
+  ['father', 'Loss of father', 'தந்தை இழப்பு'], ['mother', 'Loss of mother', 'தாய் இழப்பு']
+];
+let rectEvents = [{ date: '', type: 'marriage' }];
+let lastRectification = null;
+
+function renderRectEvents() {
+  const box = $('#rect-events');
+  if (!box) return;
+  box.innerHTML = rectEvents.map((ev, i) => `
+    <div class="rect-event-row">
+      <input type="date" value="${esc(ev.date)}" data-rect-date="${i}" aria-label="Event date">
+      <select data-rect-type="${i}" aria-label="Event">${RECT_EVENTS.map(([k, en, ta]) =>
+        `<option value="${k}"${k === ev.type ? ' selected' : ''}>${esc(txt(en, ta))}</option>`).join('')}</select>
+      <button class="link-btn" type="button" data-rect-remove="${i}" aria-label="Remove">✕</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-rect-date]').forEach(el => el.addEventListener('change', () => { rectEvents[el.dataset.rectDate].date = el.value; }));
+  box.querySelectorAll('[data-rect-type]').forEach(el => el.addEventListener('change', () => { rectEvents[el.dataset.rectType].type = el.value; }));
+  box.querySelectorAll('[data-rect-remove]').forEach(el => el.addEventListener('click', () => {
+    rectEvents.splice(Number(el.dataset.rectRemove), 1);
+    if (!rectEvents.length) rectEvents.push({ date: '', type: 'marriage' });
+    renderRectEvents();
+  }));
+}
+
+async function runRectification() {
+  const form = $('#birth-form');
+  const birth = Object.fromEntries(new FormData(form));
+  const events = rectEvents.filter(ev => ev.date);
+  const btn = $('#rect-run');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/rectify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birth, events, window: Number($('#rect-window').value), step: 2 })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Rectification failed.');
+    lastRectification = data;
+    renderChapterInto($('#rect-result'), data);
+  } catch (err) {
+    notify(errorText(err.message));
+  } finally {
+    btn.disabled = false;
+  }
 }

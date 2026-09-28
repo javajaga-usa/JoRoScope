@@ -47,7 +47,7 @@
   --time-badge-color: var(--gold);
   
   --font-serif: 'Cinzel', Georgia, serif;
-  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Tamil', 'Noto Sans Malayalam', sans-serif;
   --font-tamil: 'Noto Sans Tamil', sans-serif;
   
   --radius-sm: 8px;
@@ -3553,6 +3553,7 @@ input:focus, select:focus {
     background: none !important;
   }
   .print-jathagam .pj-table {
+    break-inside: avoid;
     width: 100%;
     border-collapse: collapse;
     margin: 2px 0 6px;
@@ -3648,3 +3649,94 @@ input:focus, select:focus {
 /* Tamil (Amirthathi) yogam */
 .tamil-day-facts .good-text { color: var(--emerald); }
 .tamil-day-facts .bad-text { color: var(--ruby); }
+
+/* Report chapters in the shared shape */
+.report-panel .report-intro,
+.report-panel .report-table-card {
+  margin-bottom: 18px;
+}
+.report-panel .report-table-card h3 {
+  margin-bottom: 10px;
+}
+
+/* Calendar export buttons */
+.ics-btn {
+  margin-top: 10px;
+}
+.link-btn.ics-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+/* Sarvatobhadra Chakra grid */
+.chakra-grid {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  border: 1px solid var(--border-active);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.chakra-cell {
+  border: 1px solid var(--border-subtle);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.2;
+  padding: 2px;
+  overflow: hidden;
+  color: var(--text-secondary);
+}
+.chakra-cell.star { color: var(--text-primary); font-weight: 600; }
+.chakra-cell.sign { color: var(--gold); font-weight: 600; }
+.chakra-cell.birth { background: var(--gold-glow); }
+.chakra-cell.struck { box-shadow: inset 0 0 0 2px var(--ruby); }
+@media print {
+  .print-jathagam .pj-chakra {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    border: 1px solid #444;
+    width: 70%;
+    margin: 4px auto 8px;
+    break-inside: avoid;
+    font-size: 6.5pt;
+  }
+  .print-jathagam .pj-chakra > div {
+    border: 0.5px solid #999;
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    overflow: hidden;
+  }
+  .print-jathagam .pj-chakra .birth { background: #f1ece0; font-weight: 700; }
+  .print-jathagam .pj-chakra .struck { outline: 1.5px solid #000; outline-offset: -2px; }
+}
+
+/* Rectification events editor */
+.rect-events {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.rect-event-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.rect-event-row select {
+  flex: 1 1 220px;
+}
+
+/* Shown only when the page is in Malayalam */
+.ml-only { display: none; }
+html[lang="ml"] .ml-only { display: block; }

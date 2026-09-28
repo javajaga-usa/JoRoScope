@@ -105,7 +105,15 @@ const ERROR_TA = {
   'Invalid request size.': 'கோரிக்கையின் அளவு தவறானது.'
 };
 
-const txt = (en, ta) => (currentLang === 'ta' ? ta : en);
+// The text for the page language: Malayalam falls back to its term dictionary, then English
+const txt = (en, ta, ml) => {
+  if (currentLang === 'ta') return ta;
+  if (currentLang === 'ml') return ml !== undefined ? ml : mlTerm(en);
+  return en;
+};
+const LANGUAGES = ['en', 'ta', 'ml'];
+const LANGUAGE_NAMES = { en: 'English', ta: 'தமிழ்', ml: 'മലയാളം' };
+const nextLanguage = lang => LANGUAGES[(LANGUAGES.indexOf(lang) + 1) % LANGUAGES.length];
 const VAARAM_SHORT = [['Sun', 'ஞா'], ['Mon', 'தி'], ['Tue', 'செ'], ['Wed', 'பு'], ['Thu', 'வி'], ['Fri', 'வெ'], ['Sat', 'ச']];
 const grahaName = name => PLANET_NAMES[name] ? txt(PLANET_NAMES[name].en, PLANET_NAMES[name].ta) : name;
 const grahaNames = (list, sep = ', ') => (list || []).map(grahaName).join(sep);
@@ -267,6 +275,7 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
+  if (pageName === 'tools') fillPrasnaQuestions();
   if (pageName === 'panchangam') {
     loadDailyPanchangam();
     loadMonthCalendar();
@@ -386,6 +395,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Profiles toolbar buttons
   $('#export-profiles-btn')?.addEventListener('click', exportProfilesJSON);
+  $('#muhurtham-ics-btn')?.addEventListener('click', exportMuhurthamsIcs);
+  $('#prasna-btn')?.addEventListener('click', askPrasna);
+  $('#rect-add')?.addEventListener('click', () => { if (rectEvents.length < 12) { rectEvents.push({ date: '', type: 'career' }); renderRectEvents(); } });
+  $('#rect-run')?.addEventListener('click', runRectification);
+  renderRectEvents();
+  fillPrasnaQuestions();
+  $('#month-ics-btn')?.addEventListener('click', exportMonthIcs);
+  $('#chandrashtamam-ics-btn')?.addEventListener('click', exportChandrashtamamIcs);
   $('#import-profiles-input')?.addEventListener('change', importProfilesJSON);
   $('#profile-search')?.addEventListener('input', renderProfilesList);
   $('#profiles-add-new-btn')?.addEventListener('click', () => {
@@ -421,9 +438,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Restore the language choice before anything renders
   try {
-    if (localStorage.getItem('joroscope_lang') === 'ta') currentLang = 'ta';
+    const saved = localStorage.getItem('joroscope_lang');
+    if (LANGUAGES.includes(saved)) currentLang = saved;
   } catch (e) {}
-  $('#lang-label').textContent = currentLang === 'en' ? 'தமிழ்' : 'English';
+  $('#lang-label').textContent = LANGUAGE_NAMES[nextLanguage(currentLang)];
+  // In Malayalam, terms that renderers write in English (signs, stars, labels) are translated in place
+  new MutationObserver(records => {
+    if (currentLang !== 'ml') return;
+    records.forEach(r => r.addedNodes.forEach(node => {
+      if (node.nodeType === Node.TEXT_NODE) translateTree(node.parentNode);
+      else if (node.nodeType === Node.ELEMENT_NODE) translateTree(node);
+    }));
+  }).observe(document.body, { childList: true, subtree: true });
   applyLanguage();
 
   // Load cities
@@ -467,11 +493,11 @@ function switchPredictionTab(ptab) {
 
 // Language Management
 function toggleLanguage() {
-  currentLang = currentLang === 'en' ? 'ta' : 'en';
+  currentLang = nextLanguage(currentLang);
   try {
     localStorage.setItem('joroscope_lang', currentLang);
   } catch (e) {}
-  $('#lang-label').textContent = currentLang === 'en' ? 'தமிழ்' : 'English';
+  $('#lang-label').textContent = LANGUAGE_NAMES[nextLanguage(currentLang)];
   applyLanguage();
   if (currentChart) {
     renderCurrentChart();
@@ -492,13 +518,17 @@ function toggleLanguage() {
   if (lastCalendar) renderMonthCalendar(lastCalendar);
   if (lastMuhurthams) renderMuhurthams(lastMuhurthams);
   if (lastMatch) renderMatchResult(lastMatch);
+  fillPrasnaQuestions();
+  if (lastPrasna) renderChapterInto($('#prasna-result'), lastPrasna);
+  renderRectEvents();
+  if (lastRectification) renderChapterInto($('#rect-result'), lastRectification);
   populateQuickProfileDropdown();
   renderProfilesList();
   populateMatchDropdowns();
 }
 
 function applyLanguage() {
-  const dict = I18N[currentLang];
+  const dict = { ...I18N.en, ...I18N[currentLang] };
   document.documentElement.lang = currentLang;
   $$('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
@@ -524,6 +554,7 @@ function applyLanguage() {
       ? (currentTheme === 'dark' ? 'இருள்' : 'ஒளி')
       : (currentTheme === 'dark' ? 'Dark' : 'Light');
   }
+  if (currentLang === 'ml') translateTree(document.body);
 }
 
 // Geolocation
