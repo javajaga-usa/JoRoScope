@@ -61,6 +61,7 @@ jobs:
         run: |
           node --check src/joroscope/web/app.js
           node --check src/joroscope/web/print.js
+          node --check src/joroscope/web/profiles.js
           python server.py 8765 --no-browser &
           for i in $(seq 1 30); do curl -sf http://127.0.0.1:8765/api/health && break; sleep 1; done
           for t in tests/*.js; do node "$t"; done

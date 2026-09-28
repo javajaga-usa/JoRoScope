@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Safer profile backups
+- Profile backups carry the app name, format version, export time and count. Import accepts these, older backups and bare lists of profiles.
+- Every imported profile is checked (name, a real calendar date, time, latitude and longitude) and reduced to the known fields; bad entries are skipped and named in the summary, which also counts new, updated and already-saved profiles.
+- A newer copy of a saved person (same id, or same name, date and time) replaces the older one instead of being ignored. Files from other applications are refused.
+- The backup logic lives in `web/profiles.js` with its own Node test.
+
 ### Chart styles on screen and in print
 - Sri Lankan (Sinhala kendaraya) chart: the diamond drawing with the Lagna at the top and the houses running clockwise.
 - The print dialog has a chart style: South Indian (also the Kerala layout), North Indian, East Indian or Sri Lankan. Every chart in the report, including the Shodasavarga pages, uses it, drawn black on white.

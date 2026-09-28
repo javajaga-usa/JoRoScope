@@ -4522,43 +4522,38 @@ function renderProfilesList() {
 
 function exportProfilesJSON() {
   const profiles = getSavedProfiles();
-  const blob = new Blob([JSON.stringify({ version: 2, app: 'JoRoScope', profiles }, null, 2)], { type: 'application/json' });
+  const blob = new Blob([JSON.stringify(profileBackup(profiles), null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
   a.download = `JoRoScope-Profiles-${new Date().toISOString().slice(0, 10)}.json`;
   a.click();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
-  notify(txt('Exported profiles backup', 'ஜாதகங்கள் பேக்கப் எடுக்கப்பட்டது'));
+  notify(txt(`Exported ${profiles.length} profiles to a backup file`, `${profiles.length} ஜாதகங்கள் பேக்கப் கோப்பில் சேமிக்கப்பட்டன`));
 }
 
 async function importProfilesJSON(e) {
   try {
     const file = e.target.files[0];
     if (!file) return;
-    const text = await file.text();
-    const data = JSON.parse(text);
-    if (!Array.isArray(data.profiles)) throw new Error('Invalid JoRoScope backup format.');
-    const existing = getSavedProfiles();
-    // Merge avoiding duplicate IDs or exact name+date+time matches
-    const merged = [...existing];
-    let addedCount = 0;
-
-    data.profiles.forEach(newP => {
-      const match = merged.some(ep => (ep.id && ep.id === newP.id) || (ep.name.toLowerCase() === (newP.name || '').toLowerCase() && ep.date === newP.date && ep.time === newP.time));
-      if (!match) {
-        merged.unshift(newP);
-        addedCount++;
-      }
-    });
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    if (file.size > 20 * 1024 * 1024) throw new Error(txt('The file is too large for a profile backup.', 'இந்தக் கோப்பு பேக்கப்பிற்கு மிகப் பெரியது.'));
+    let data;
+    try {
+      data = JSON.parse(await file.text());
+    } catch {
+      throw new Error(txt('The file is not valid JSON.', 'கோப்பு சரியான JSON அல்ல.'));
+    }
+    const result = mergeProfileBackup(data, getSavedProfiles(), () => crypto.randomUUID());
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(result.merged));
     populateQuickProfileDropdown();
     renderProfilesList();
     populateMatchDropdowns();
-    notify(txt(`Imported ${addedCount} new profiles successfully.`, `${addedCount} புதிய ஜாதகங்கள் இறக்குமதி செய்யப்பட்டன.`));
+    const skipped = result.rejected.length;
+    notify(txt(
+      `Imported: ${result.added} new, ${result.updated} updated, ${result.unchanged} already saved${skipped ? `, ${skipped} skipped (${result.rejected.slice(0, 3).join('; ')})` : ''}.`,
+      `இறக்குமதி: ${result.added} புதியவை, ${result.updated} புதுப்பிக்கப்பட்டவை, ${result.unchanged} ஏற்கனவே உள்ளவை${skipped ? `, ${skipped} தவிர்க்கப்பட்டவை (${result.rejected.slice(0, 3).join('; ')})` : ''}.`));
   } catch (err) {
-    notify(`${txt('Import error', 'இறக்குமதிப் பிழை')}: ${err.message}`);
+    notify(`${txt('Import error', 'இறக்குமதிப் பிழை')}: ${errorText(err.message)}`);
   } finally {
     e.target.value = '';
   }
