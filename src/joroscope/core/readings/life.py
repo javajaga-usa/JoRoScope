@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 
 from .common import (
     DIGNITY_PHRASE, DIGNITY_PHRASE_ML, DIGNITY_SCORE, DIG_BALA_HOUSE, DUSTHANAS, HOUSE_THEMES, HOUSE_THEMES_ML, KENDRAS,
-    MALAYALAM_SIGNS, NATURAL_BENEFICS, PLANET_ML, PLANET_TAMIL, SIGNS, SIGN_LORDS, TRIKONAS, UPACHAYAS, VERDICT_ML, VERDICT_TAMIL,
+    MALAYALAM_SIGNS, NATURAL_BENEFICS, PLANET_ML, PLANET_ML_CASE, PLANET_TAMIL, SIGNS, SIGN_LORDS, TRIKONAS, UPACHAYAS, VERDICT_ML, VERDICT_TAMIL,
     _functional_role, _house_list, _ordinal, _owned_houses, _verdict
 )
 
@@ -263,7 +263,7 @@ def generate_bhava_predictions(house_details, planets, lang='en', bhava_bala=Non
         for mal in ('Saturn', 'Mars'):
             if mal in aspected_by and h_num not in UPACHAYAS:
                 factors.append((f"{mal}'s aspect brings pressure and delays", f"{PLANET_TAMIL[mal]} பார்வை தடைகளையும் அழுத்தத்தையும் தரும்", -1,
-                                f"{PLANET_ML[mal]}യുടെ ദൃഷ്ടി തടസ്സങ്ങളും സമ്മർദ്ദവും നൽകും"))
+                                f"{PLANET_ML_CASE['gen'][mal]} ദൃഷ്ടി തടസ്സങ്ങളും സമ്മർദ്ദവും നൽകും"))
         rupas = round(bhava_bala[h_num - 1]['rupas'], 2) if bhava_bala else None
         if rupas is not None and rupas >= 9:
             factors.append((f"Bhava Bala of {rupas} rupas, well above the minimum of 7",
@@ -293,7 +293,7 @@ def generate_bhava_predictions(house_details, planets, lang='en', bhava_bala=Non
         elif verdict == 'weak':
             close_en = f"Overall this house needs care: {themes_en} may meet delays, and strengthening {lord} through its remedies helps."
             close_ta = f"மொத்தத்தில் இப்பாவம் கவனம் தேவைப்படுவது: {themes_ta} ஆகியவற்றில் தாமதங்கள் வரலாம்; {lord_ta} கிரகத்திற்கான பரிகாரங்கள் நலம் தரும்."
-            close_ml = f"മൊത്തത്തിൽ ഈ ഭാവത്തിന് ശ്രദ്ധ വേണം: {themes_ml} എന്നിവയിൽ കാലതാമസം ഉണ്ടാകാം; {lord_ml}ക്കുള്ള പരിഹാരങ്ങൾ ഗുണം ചെയ്യും."
+            close_ml = f"മൊത്തത്തിൽ ഈ ഭാവത്തിന് ശ്രദ്ധ വേണം: {themes_ml} എന്നിവയിൽ കാലതാമസം ഉണ്ടാകാം; {PLANET_ML_CASE['dat'].get(lord, lord_ml)} വേണ്ടിയുള്ള പരിഹാരങ്ങൾ ഗുണം ചെയ്യും."
         else:
             close_en = f"Overall a moderate house: {themes_en} give mixed results that improve with effort."
             close_ta = f"மொத்தத்தில் மத்திமமான பாவம்: {themes_ta} ஆகியவை முயற்சிக்கேற்ப மேம்படும்."
