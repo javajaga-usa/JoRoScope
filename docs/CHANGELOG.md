@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### macOS launcher
+- `Start JoRoScope.command` starts the app with a double-click on macOS: it finds Python 3.11+, sets up a private `.venv` with the Swiss Ephemeris on first run, and opens the browser.
+
 ### South Indian (Tamil) Jathagam
 - New `joroscope.core.south_indian` module: Tamil calendar (60-year cycle, month and date by the sunset rule), Vaaram, Udayadi Nazhigai, Dasa Irruppu, Mandi, Chevvai and Rahu-Ketu Doshams, Papa Samyam, and a Tamil daily panchangam.
 - Chart API adds `south_indian` (Jathaga Kurippu) and `doshas.chevvai` / `doshas.rahu_ketu`; `/api/match` adds `dosha_samyam` when full birth details are sent.

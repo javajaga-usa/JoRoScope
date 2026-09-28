@@ -84,7 +84,16 @@ Double-click `Start JoRoScope.cmd` or run with PowerShell:
 .\Launch.ps1
 ```
 
-### 3. Run with Python CLI
+### 3. Launch on macOS (1-Click)
+Double-click `Start JoRoScope.command` in Finder, or run it from Terminal:
+```bash
+./"Start JoRoScope.command"
+```
+The first launch needs Python 3.11+ (from [python.org](https://www.python.org/downloads/macos/)) and an internet connection: it creates a private `.venv` and installs the Swiss Ephemeris. Later launches start straight away and open the app in your browser. Extra arguments go to the server, for example a port number or `--no-browser`.
+
+If macOS says the file is from an unidentified developer (a downloaded ZIP), Control-click it and choose **Open** once. If Finder opens it as text, run `chmod +x "Start JoRoScope.command"`.
+
+### 4. Run with Python CLI
 ```bash
 # Install dependencies
 pip install -r requirements.txt
