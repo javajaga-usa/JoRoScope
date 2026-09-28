@@ -162,7 +162,7 @@ def calculate_remedies(chart):
     ref_rows = [((g, PLANET_TAMIL[g]), (GRAHA_REMEDIES[g][0], GRAHA_REMEDIES[g][1]), (GRAHA_REMEDIES[g][2], GRAHA_REMEDIES[g][3]),
                  (GRAHA_REMEDIES[g][4], GRAHA_REMEDIES[g][5]), f'{GRAHA_REMEDIES[g][7]:,}') for g in GRAHA_REMEDIES]
     return chapter(
-        'remedies', 'Parihara (Remedies)', 'பரிகாரங்கள்',
+        'parihara', 'Parihara (Remedies)', 'பரிகாரங்கள்',
         'Remedies for what this chart shows: its doshas, the Saturn cycle running now, weak or debilitated grahas and the running '
         'dasa lords. They are worship, mantra, charity and conduct; begin on the graha\'s weekday, in its hora if you can.',
         'இந்த ஜாதகம் காட்டுவதற்கான பரிகாரங்கள்: தோஷங்கள், தற்போதைய சனி சுழற்சி, பலவீனமான அல்லது நீச கிரகங்கள், நடப்பு தசா அதிபதிகள். '

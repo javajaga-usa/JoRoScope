@@ -47,7 +47,7 @@ class NumerologyTests(unittest.TestCase):
 class RemediesTests(unittest.TestCase):
     def test_reasons_come_from_the_chart(self):
         c = calculate(dict(BIRTH, date='1985-06-15', time='21:40:00'))
-        r = c['predictions']['remedies']
+        r = c['predictions']['parihara']
         check_chapter(self, r)
         titles = [card['title']['en'] for card in r['cards']]
         self.assertIn('Rahu-Ketu (Naga) Dosham', titles)          # doshas.rahu_ketu is present in this chart

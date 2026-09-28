@@ -122,7 +122,7 @@ def generate_comprehensive_predictions(chart):
         'sahams': sahams,
         'timeline_predictions': timeline_predictions,
         'numerology': calculate_numerology(chart),
-        'remedies': calculate_remedies(chart),
+        'parihara': calculate_remedies(chart),
         'monthly': calculate_monthly_transits(chart),
         'varshaphal': calculate_varshaphal(chart),
         'marriage': calculate_marriage_report(chart, jaimini_karakas, double_transit),
