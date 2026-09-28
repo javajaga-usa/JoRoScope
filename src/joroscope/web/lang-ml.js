@@ -947,15 +947,17 @@ function learnMalayalam(value) {
   }
   if (!value || typeof value !== 'object') return;
   if (typeof value.en === 'string' && typeof value.ml === 'string') ML_DYNAMIC.set(value.en.trim(), value.ml);
-  for (const [key, v] of Object.entries(value)) {
-    if (key.endsWith('_en')) {
-      const ml = value[key.slice(0, -3) + '_ml'];
-      if (typeof v === 'string' && typeof ml === 'string') ML_DYNAMIC.set(v.trim(), ml);
-      else if (Array.isArray(v) && Array.isArray(ml)) v.forEach((item, i) => {
+  for (const [key, ml] of Object.entries(value)) {
+    if (key.endsWith('_ml')) {
+      // The English beside it is "name_en" or plain "name"
+      const base = key.slice(0, -3);
+      const en = value[base + '_en'] ?? value[base];
+      if (typeof en === 'string' && typeof ml === 'string') ML_DYNAMIC.set(en.trim(), ml);
+      else if (Array.isArray(en) && Array.isArray(ml)) en.forEach((item, i) => {
         if (typeof item === 'string' && typeof ml[i] === 'string') ML_DYNAMIC.set(item.trim(), ml[i]);
       });
-    } else if (v && typeof v === 'object') {
-      learnMalayalam(v);
+    } else if (ml && typeof ml === 'object') {
+      learnMalayalam(ml);
     }
   }
 }
