@@ -359,6 +359,71 @@ def next_sign_change(jd, body, max_days):
         t += 1
     return None, None
 
+def sign_ingresses(body, jd_start, jd_end, step=5.0):
+    """Every sign change of a graha between two dates, found in one sweep and
+    bisected to about a second; retrograde re-entries appear as their own changes."""
+    changes = []
+    sign = int(sidereal_position(jd_start, body)[0] // 30)
+    t = jd_start
+    while t < jd_end:
+        t_next = min(t + step, jd_end)
+        next_sign = int(sidereal_position(t_next, body)[0] // 30)
+        if next_sign != sign:
+            lo, hi = t, t_next
+            for _ in range(24):
+                mid = (lo + hi) / 2
+                if int(sidereal_position(mid, body)[0] // 30) == sign:
+                    lo = mid
+                else:
+                    hi = mid
+            changes.append((hi, sign, next_sign))
+            sign = next_sign
+        t = t_next
+    return changes
+
+# Saturn's transit from the natal Moon sign that Tamil astrology tracks through life
+SATURN_CYCLES = {12: ('sade_sati', 1), 1: ('sade_sati', 2), 2: ('sade_sati', 3),
+                 4: ('ardhashtama', None), 7: ('kandaka', None), 8: ('ashtama', None)}
+
+def saturn_life_cycles(birth_jd, moon_sign, years=100, now_jd=None):
+    """Ezharai Sani (Sade Sati, with its three phases), Ardhashtama, Kandaka and Ashtama
+    Sani periods over a lifetime, merging retrograde back-and-forth into one period."""
+    end_jd = birth_jd + years * YEAR
+    boundaries = [birth_jd] + [c[0] for c in sign_ingresses(swe.SATURN, birth_jd, end_jd)] + [end_jd]
+    stretches = []
+    for start, stop in zip(boundaries, boundaries[1:]):
+        house = (int(sidereal_position((start + stop) / 2, swe.SATURN)[0] // 30) - moon_sign) % 12 + 1
+        kind, phase = SATURN_CYCLES.get(house, (None, None))
+        if kind:
+            stretches.append(dict(kind=kind, phase=phase, house=house, start=start, end=stop))
+
+    # Almanacs quote each cycle from first entry to final exit, so stretches of one kind
+    # separated only by a retrograde excursion (under ~13 months) form one period.
+    periods = []
+    for kind in ('sade_sati', 'ardhashtama', 'kandaka', 'ashtama'):
+        for st in (x for x in stretches if x['kind'] == kind):
+            last = next((pd for pd in reversed(periods) if pd['kind'] == kind), None)
+            if last and st['start'] - last['_end'] < 400:
+                last['_end'] = st['end']
+            else:
+                last = dict(kind=kind, _start=st['start'], _end=st['end'], _phases={})
+                periods.append(last)
+            if st['phase']:
+                span = last['_phases'].setdefault(st['phase'], [st['start'], st['end']])
+                span[0], span[1] = min(span[0], st['start']), max(span[1], st['end'])
+    periods.sort(key=lambda pd: pd['_start'])
+
+    iso = lambda jd: jd_to_utc(jd).isoformat(timespec='seconds')
+    now_jd = now_jd if now_jd is not None else utc_to_jd(datetime.now(timezone.utc))
+    for period in periods:
+        period.update(start=iso(period['_start']), end=iso(period['_end']),
+                      age_start=round((period['_start'] - birth_jd) / YEAR, 1),
+                      active=period['_start'] <= now_jd < period['_end'],
+                      from_birth=period['_start'] <= birth_jd, to_horizon=period['_end'] >= end_jd,
+                      phases=[dict(phase=n, start=iso(a), end=iso(b)) for n, (a, b) in sorted(period['_phases'].items())])
+        del period['_start'], period['_end'], period['_phases']
+    return periods
+
 def calculate_gochara(jd, planets, ashtakavarga):
     """Current transits (Gochara) against the natal chart, with Ashtakavarga bindus
     and the next sign change (Peyarchi) of Saturn, Jupiter and Rahu-Ketu."""
@@ -1351,6 +1416,7 @@ def calculate(data):
 
     # Current transits (Gochara), in this chart's ayanamsa
     gochara = calculate_gochara(utc_to_jd(datetime.now(timezone.utc)), planets, ashtakavarga)
+    gochara['saturn_cycles'] = saturn_life_cycles(jd, planets['Moon']['sign_index'])
 
     # Yogas and Doshas
     yogas, doshas = detect_yogas(planets)

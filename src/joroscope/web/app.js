@@ -334,6 +334,12 @@ const I18N = {
     bhava_col: 'Bhava (Sripati)',
     gowri_title: 'Gowri Panchangam (Nalla Neram)',
     gowri_sub: 'Amirdham, Uthi, Laabam, Dhanam and Sugam are good times; Rogam, Soram and Visham are avoided.',
+    saturn_cycles_title: 'Saturn Cycles Through Life',
+    saturn_cycles_sub: 'Ezharai (Sade Sati), Ardhashtama, Kandaka and Ashtama Sani, counted from your Moon sign, from first entry to final exit.',
+    th_cycle: 'Cycle',
+    th_period: 'Period',
+    th_age: 'Age',
+    th_phases: 'Phases',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -674,6 +680,12 @@ const I18N = {
     bhava_col: 'பாவம் (ஸ்ரீபதி)',
     gowri_title: 'கௌரி பஞ்சாங்கம் (நல்ல நேரம்)',
     gowri_sub: 'அமிர்தம், உத்தி, லாபம், தனம், சுகம் நல்ல நேரங்கள்; ரோகம், சோரம், விஷம் தவிர்க்க வேண்டியவை.',
+    saturn_cycles_title: 'வாழ்நாள் சனி சஞ்சார காலங்கள்',
+    saturn_cycles_sub: 'உங்கள் சந்திர ராசியிலிருந்து ஏழரை, அர்த்தாஷ்டம, கண்ட, அஷ்டமச் சனி காலங்கள், முதல் நுழைவு முதல் இறுதி வெளியேற்றம் வரை.',
+    th_cycle: 'சுழற்சி',
+    th_period: 'காலம்',
+    th_age: 'வயது',
+    th_phases: 'கட்டங்கள்',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -3225,6 +3237,7 @@ function renderGochara() {
     </tr>
   `).join('');
 
+  renderSaturnCycles(g.saturn_cycles);
   $('#gochara-computed-at').textContent = isTa
     ? `${formatLocalDateTime(g.computed_at)} நிலவரப்படி · சந்திர ராசியிலிருந்து`
     : `As of ${formatLocalDateTime(g.computed_at)} · counted from the Moon sign`;
@@ -3241,6 +3254,37 @@ function renderGochara() {
         <td>${houseLabel(t.house_from_moon)}</td>
         <td>${bindus}</td>
         <td><span class="status-pill ${t.favourable ? 'success' : 'neutral'}">${result}</span></td>
+      </tr>`;
+  }).join('');
+}
+
+const SATURN_CYCLE_LABELS = {
+  sade_sati: ['Ezharai Sani (Sade Sati)', 'ஏழரைச் சனி'],
+  ardhashtama: ['Ardhashtama Sani (4th)', 'அர்த்தாஷ்டமச் சனி (4-ம் இடம்)'],
+  kandaka: ['Kandaka Sani (7th)', 'கண்டச் சனி (7-ம் இடம்)'],
+  ashtama: ['Ashtama Sani (8th)', 'அஷ்டமச் சனி (8-ம் இடம்)']
+};
+const SADE_SATI_PHASES = {
+  1: ['Rising (12th)', 'விரயச் சனி (12)'],
+  2: ['Janma (1st)', 'ஜென்மச் சனி (1)'],
+  3: ['Setting (2nd)', 'பாதச் சனி (2)']
+};
+
+function renderSaturnCycles(cycles) {
+  const tbody = $('#saturn-cycles-tbody');
+  if (!tbody || !cycles) return;
+  tbody.innerHTML = cycles.map(c => {
+    const [en, ta] = SATURN_CYCLE_LABELS[c.kind];
+    const phases = c.phases.map(ph => {
+      const [pen, pta] = SADE_SATI_PHASES[ph.phase];
+      return `<div><small>${txt(pen, pta)}: ${localDate(ph.start)} → ${localDate(ph.end)}</small></div>`;
+    }).join('') || '—';
+    return `
+      <tr class="${c.active ? 'active-period' : ''}">
+        <td><strong>${txt(en, ta)}</strong>${c.active ? ` <span class="status-pill danger">${txt('Now', 'நடப்பில்')}</span>` : ''}</td>
+        <td>${c.from_birth ? txt('from birth', 'பிறப்பு முதல்') : localDate(c.start)} → ${localDate(c.end)}</td>
+        <td>${c.age_start < 0 ? 0 : c.age_start}</td>
+        <td>${phases}</td>
       </tr>`;
   }).join('');
 }

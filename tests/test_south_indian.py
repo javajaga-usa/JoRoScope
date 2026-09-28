@@ -275,6 +275,22 @@ class GocharaTests(unittest.TestCase):
                          (saturn['sign_index'] - moon_sign) % 12 + 1)
         self.assertEqual(saturn['bindus'], r['ashtakavarga']['BAV']['Saturn'][saturn['sign_index']])
 
+    def test_saturn_life_cycles(self):
+        r = self.chart()  # Aquarius Moon
+        cycles = r['gochara']['saturn_cycles']
+        self.assertEqual([c['start'] for c in cycles], sorted(c['start'] for c in cycles))
+        current = next(c for c in cycles if c['kind'] == 'sade_sati' and c['start'][:4] == '2020')
+        # Saturn entered sidereal Capricorn (12th from Aquarius) on 24 Jan 2020 and Pisces on 29 Mar 2025
+        self.assertEqual(current['start'][:10], '2020-01-24')
+        self.assertEqual([ph['phase'] for ph in current['phases']], [1, 2, 3])
+        self.assertEqual(current['phases'][2]['start'][:10], '2025-03-29')
+        for c in cycles:
+            self.assertLess(c['start'], c['end'])
+            for ph in c['phases']:
+                self.assertTrue(c['start'] <= ph['start'] < ph['end'] <= c['end'])
+        # Roughly three Ezharai Sani cycles in a hundred years
+        self.assertIn(sum(c['kind'] == 'sade_sati' for c in cycles), (3, 4))
+
     def test_fixed_date_gochara_and_peyarchi(self):
         r = self.chart()
         swe.set_sid_mode(AYAN['Lahiri'])

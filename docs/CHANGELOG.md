@@ -12,6 +12,7 @@
 ### Benchmark gaps closed (vs Jagannatha Hora / PyJHora, Astro-Vision, Prokerala, Drik Panchang)
 - Gowri Panchangam (Nalla Neram) for day and night, matching Drik Panchang's published weekday tables.
 - Sripati Bhava Chakra: bhava madhyas by Porphyry trisection, sandhis midway; shown as a "Bhava" chart and a planets-table column.
+- Lifetime Saturn cycles: Ezharai Sani with its three phases, Ardhashtama, Kandaka and Ashtama Sani from the natal Moon, found by sweeping Saturn's exact sign changes.
 - Dasa Sandhi in matching: Maha Dasa changes of bride and groom within 182 days of each other over the next 30 years.
 
 ### Printable Jathagam
