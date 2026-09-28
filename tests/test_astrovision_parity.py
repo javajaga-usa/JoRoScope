@@ -228,3 +228,17 @@ class MuhurthamTests(unittest.TestCase):
                 jd = utc_to_jd(datetime.fromisoformat(w['start_local']).astimezone(timezone.utc)) + 1 / 1440
                 moon_sign = int(sidereal_position(jd, swe.MOON)[0] // 30)
                 self.assertNotEqual(moon_sign, 7)  # Scorpio is 8th from an Aries Moon
+
+
+class NavamsaTableTests(unittest.TestCase):
+    def test_navamsa_rows(self):
+        chart = calculate(BIRTH)
+        rows = {r['body']: r for r in chart['navamsa_table']}
+        self.assertEqual(len(rows), 10)
+        # Moon at Aquarius 6°28' is in the 2nd navamsa of an air sign: Scorpio, its debilitation
+        self.assertEqual((rows['Moon']['navamsa'], rows['Moon']['navamsa_part'], rows['Moon']['dignity']), ('Scorpio', 2, 'Debilitated'))
+        # Saturn at Sagittarius 21°55': 7th navamsa of a fire sign is Libra, exalted and Pushkara
+        self.assertEqual((rows['Saturn']['navamsa'], rows['Saturn']['dignity'], rows['Saturn']['pushkara']), ('Libra', 'Exalted', True))
+        self.assertTrue(rows['Mars']['vargottama'])
+        for name, row in rows.items():
+            self.assertEqual(row['navamsa_index'], chart['vargas']['D9'][name])

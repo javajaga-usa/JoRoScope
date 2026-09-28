@@ -416,6 +416,41 @@
                 <div class="kurippu-grid" id="kurippu-grid"></div>
               </div>
 
+              <!-- Navamsa (D9) table -->
+              <div class="cosmic-card" id="navamsa-table-card">
+                <div class="card-header">
+                  <div>
+                    <h2 data-i18n="navamsa_table">Navamsa (D9) Table</h2>
+                    <p class="card-subtitle" data-i18n="navamsa_table_sub">Each graha's Navamsa sign and lord, its dignity there, and Vargottama and Pushkara Navamsa</p>
+                  </div>
+                  <span class="card-badge">D9</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="luxury-table" style="font-size:12px">
+                    <thead>
+                      <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_rasi">Rasi</th><th data-i18n="th_navamsa">Navamsa</th><th data-i18n="th_amsa">Amsa</th><th data-i18n="th_navamsa_lord">Navamsa Lord</th><th data-i18n="th_d9_dignity">Dignity in D9</th><th data-i18n="th_notes">Notes</th></tr>
+                    </thead>
+                    <tbody id="navamsa-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Shodasavarga table: every graha in all 16 vargas -->
+              <div class="cosmic-card" id="shodasavarga-card">
+                <div class="card-header">
+                  <div>
+                    <h2 data-i18n="shodasavarga_table">Shodasavarga Table</h2>
+                    <p class="card-subtitle" data-i18n="shodasavarga_sub">The sign of each graha in all 16 divisional charts; highlighted where it repeats the Rasi sign.</p>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="luxury-table varga-table">
+                    <thead><tr id="shodasavarga-head"></tr></thead>
+                    <tbody id="shodasavarga-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+
               <!-- Calculation Metadata Box -->
               <div class="cosmic-card meta-card">
                 <div class="meta-row">

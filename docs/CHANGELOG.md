@@ -30,6 +30,8 @@
 - Replaces the earlier approximation: sign-distance Saptavargaja, a wrong Mercury/Saturn Ojayugma, Kaala Bala with only three parts, speed-bucket Cheshta and ±15 aspect Drik.
 
 ### Astro-Vision (LifeSign) parity
+- **Navamsa (D9) table** on the chart page: each graha's Navamsa sign, amsa number, lord and dignity there, with Vargottama and Pushkara Navamsa. It sits beside a full **Shodasavarga table** (every graha in all 16 vargas).
+- Fixed the "ready to calculate" placeholder staying on screen after a chart was calculated: a component's display rule overrode the `hidden` attribute. The chart page now stacks below 1100px so the Rasi and Navamsa charts are no longer clipped.
 - **Bhava Bala** (BPHS): Bhavadhipati, Bhava Dig and Bhava Drishti Bala for the twelve Sripati bhavas. Each house reading now weighs its Bhava Bala against the 7-rupa minimum.
 - **Shodasavarga** is complete with D40 (Khavedamsa) and D45 (Akshavedamsa). All 16 vargas match PyJHora across 20,000 longitudes; the only exception is D2, where we keep the Parashara Sun/Moon hora.
 - **Vimsopaka Bala and Varga Bheda** in the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes (BPHS weights), with dignity names from Parijatamsa to Sri Vallabhamsa.

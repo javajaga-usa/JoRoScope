@@ -534,6 +534,16 @@ const I18N = {
     th_result: "Result",
     h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
     h_bhava_bala: "Bhava Bala (House Strength)",
+    navamsa_table: "Navamsa (D9) Table",
+    navamsa_table_sub: "Each graha's Navamsa sign and lord, its dignity there, and Vargottama and Pushkara Navamsa",
+    th_rasi: "Rasi",
+    th_navamsa: "Navamsa",
+    th_amsa: "Amsa",
+    th_navamsa_lord: "Navamsa Lord",
+    th_d9_dignity: "Dignity in D9",
+    th_notes: "Notes",
+    shodasavarga_table: "Shodasavarga Table",
+    shodasavarga_sub: "The sign of each graha in all 16 divisional charts; highlighted where it repeats the Rasi sign.",
     muhurtham_title: "Muhurtham Finder",
     muhurtham_sub: "Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.",
     mh_marriage: "Marriage",
@@ -928,6 +938,16 @@ const I18N = {
     th_result: "பலன்",
     h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
     h_bhava_bala: "பாவ பலம்",
+    navamsa_table: "நவாம்ச (D9) அட்டவணை",
+    navamsa_table_sub: "ஒவ்வொரு கிரகத்தின் நவாம்ச ராசி, அதிபதி, அங்கு பெறும் நிலை, வர்கோத்தமம் மற்றும் புஷ்கர நவாம்சம்",
+    th_rasi: "ராசி",
+    th_navamsa: "நவாம்சம்",
+    th_amsa: "அம்சம்",
+    th_navamsa_lord: "நவாம்ச அதிபதி",
+    th_d9_dignity: "நவாம்சத்தில் நிலை",
+    th_notes: "குறிப்பு",
+    shodasavarga_table: "ஷோடசவர்க்க அட்டவணை",
+    shodasavarga_sub: "16 வர்க்கச் சக்கரங்களிலும் ஒவ்வொரு கிரகத்தின் ராசி; இராசியில் உள்ள அதே ராசி வரும் இடங்கள் முன்னிலைப்படுத்தப்பட்டுள்ளன.",
     muhurtham_title: "முகூர்த்த நாள் தேடல்",
     muhurtham_sub: "பாரம்பரிய முகூர்த்த விதிகளின்படி பகல் நேர சுப காலங்கள்: நிகழ்விற்கு உகந்த நட்சத்திரம், நல்ல கிழமை மற்றும் திதி, கடினமான யோகங்கள், பத்திரை கரணம், ராகு காலம், எமகண்டம், குளிகை தவிர்த்து. ஜாதகம் ஏற்றப்பட்டிருந்தால் தாரா பலம், சந்திர பலம் சரிபார்க்கப்பட்டு சந்திராஷ்டம நாட்கள் விலக்கப்படும்.",
     mh_marriage: "திருமணம்",
@@ -1266,6 +1286,7 @@ function toggleLanguage() {
     renderYoginiAccordion();
     renderUpagrahas();
     renderJathagaKurippu();
+    renderNavamsaTable();
     renderLifeReadings();
     renderDasaTimelineView();
   }
@@ -1473,6 +1494,7 @@ async function handleFormSubmit(e) {
     renderDasaTimelineView();
     renderLifeReadings();
     renderJathagaKurippu();
+    renderNavamsaTable();
     if (!$('#page-panchangam').hidden) loadDailyPanchangam();
 
     // Sync calculated astrological attributes with saved profiles if already stored
@@ -1548,6 +1570,47 @@ function pakshaLabel(paksha) {
 }
 
 // Tamil Jathaga Kurippu: the birth notes block of a Tamil horoscope
+// Navamsa (D9) table and the full Shodasavarga table
+const SHODASAVARGA_KEYS = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60'];
+const VARGA_BODIES = ['Ascendant', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
+
+function renderNavamsaTable() {
+  const rows = currentChart?.navamsa_table;
+  const body = $('#navamsa-tbody');
+  if (!body) return;
+  $('#navamsa-table-card').hidden = !rows;
+  if (!rows) return;
+  body.innerHTML = rows.map(r => {
+    const notes = [];
+    if (r.vargottama) notes.push(txt('Vargottama', 'வர்கோத்தமம்'));
+    if (r.pushkara) notes.push(txt('Pushkara Navamsa', 'புஷ்கர நவாம்சம்'));
+    return `<tr>
+      <td><strong>${esc(grahaName(r.body))}</strong></td>
+      <td>${esc(txt(r.rasi, r.rasi_ta))}</td>
+      <td><strong style="color:var(--gold)">${esc(txt(r.navamsa, r.navamsa_ta))}</strong></td>
+      <td>${r.navamsa_part}/9</td>
+      <td>${esc(grahaName(r.lord))}</td>
+      <td>${r.dignity ? dignityLabel(r.dignity) : '—'}</td>
+      <td>${esc(notes.join(', ')) || '—'}</td>
+    </tr>`;
+  }).join('');
+
+  const vargas = currentChart.vargas || {};
+  $('#shodasavarga-head').innerHTML = `<th>${txt('Planet', 'கிரகம்')}</th>` + SHODASAVARGA_KEYS.map(k => {
+    const [en, ta] = VARGA_NAMES[k] || [k, k];
+    return `<th title="${esc(txt(en, ta))}">${k}</th>`;
+  }).join('');
+  $('#shodasavarga-tbody').innerHTML = VARGA_BODIES.filter(b => vargas.D1 && b in vargas.D1).map(b => `<tr>
+      <td><strong>${esc(grahaName(b))}</strong></td>
+      ${SHODASAVARGA_KEYS.map(k => {
+        const s = vargas[k]?.[b];
+        if (s == null) return '<td>—</td>';
+        const same = k !== 'D1' && s === vargas.D1[b];
+        return `<td${same ? ' class="varga-same"' : ''}>${esc(currentLang === 'ta' ? SIGNS_TA[s] : SIGNS_EN[s].slice(0, 3))}</td>`;
+      }).join('')}
+    </tr>`).join('');
+}
+
 function renderJathagaKurippu() {
   const si = currentChart?.south_indian;
   const grid = $('#kurippu-grid');

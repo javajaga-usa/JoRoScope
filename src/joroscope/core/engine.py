@@ -669,6 +669,36 @@ def calculate_dignity(planet_name, sign_idx, deg, planet_positions):
     if combined == -1: return 'Enemy'
     return 'Great Enemy'
 
+def varga_dignity(planet_name, varga_sign, planets):
+    """Dignity of a graha in a divisional sign: exaltation, debilitation or own sign, else its
+    compound relationship with the sign's lord, the temporal part taken from the Rasi chart."""
+    dignity = calculate_dignity(planet_name, varga_sign, -1, planets)  # -1: no Moolatrikona degrees in a varga
+    if dignity in ('Exalted', 'Debilitated', 'Own Sign') or planet_name in ('Rahu', 'Ketu', 'Ascendant'):
+        return dignity
+    lord = SIGN_LORDS[varga_sign]
+    natural = NATURAL_FRIENDS.get(planet_name, {}).get(lord, 0)
+    temporal = 1 if (planets[lord]['sign_index'] - planets[planet_name]['sign_index']) % 12 in (1, 2, 3, 9, 10, 11) else -1
+    return {2: 'Great Friend', 1: 'Friend', 0: 'Neutral', -1: 'Enemy', -2: 'Great Enemy'}[natural + temporal]
+
+# Pushkara navamsas (1-9 within the sign) by the sign's element: fire, earth, air, water
+PUSHKARA_NAVAMSAS = {0: (7, 9), 1: (3, 5), 2: (6, 8), 3: (1, 3)}
+
+
+def navamsa_table(planets):
+    """Each graha's Navamsa: sign and lord, dignity there, Vargottama and Pushkara Navamsa."""
+    rows = []
+    for name in ('Ascendant', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
+        p = planets[name]
+        d9 = p['vargas']['D9']
+        part = int(p['degree'] / (30 / 9)) + 1
+        rows.append(dict(
+            body=name, rasi=SIGNS[p['sign_index']], rasi_ta=TAMIL[p['sign_index']],
+            navamsa_index=d9, navamsa=SIGNS[d9], navamsa_ta=TAMIL[d9], navamsa_part=part,
+            lord=SIGN_LORDS[d9], dignity=None if name == 'Ascendant' else varga_dignity(name, d9, planets),
+            vargottama=d9 == p['sign_index'], pushkara=part in PUSHKARA_NAVAMSAS[p['sign_index'] % 4]
+        ))
+    return rows
+
 def calculate_aspects(planets):
     """Calculate Vedic Drishti (aspects) for all planets."""
     aspects = {name: {'casts_to_houses': [], 'aspects_received_from': []} for name in planets}
@@ -1673,6 +1703,7 @@ def calculate(data):
         readings=readings,
         kp_cusps=kp['cusps'],
         gochara=gochara,
+        navamsa_table=navamsa_table(planets),
         bhava_chakra=dict(system='Sripati', madhya=bhava_madhya, sandhi=bhava_sandhi),
         south_indian=south_indian,
         predictions=predictions,
