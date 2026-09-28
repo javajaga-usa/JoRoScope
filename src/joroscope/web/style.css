@@ -1888,6 +1888,14 @@ input:focus, select:focus {
   text-align: center;
 }
 
+/* Rajju badge with the report button beneath it */
+.rajju-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
 /* Contributing factors under each Bhava reading */
 .bhava-factors {
   list-style: none;

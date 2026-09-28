@@ -235,6 +235,26 @@ class ClassicalTableTests(unittest.TestCase):
         self.assertEqual(self.match(5, 2, 7, 3)['graha_maitri'], 1)
 
 
+class MatchReportTests(unittest.TestCase):
+    def test_summaries_and_dosha_adjusted_verdict(self):
+        girl = calculate(dict(name='Kalyani Devi', date='1994-05-18', time='08:30', timezone='Asia/Kolkata',
+                              latitude='9.9252', longitude='78.1198', ayanamsa='Lahiri'))
+        boy = calculate(dict(name='Vikramaditya', date='1988-11-22', time='18:45', timezone='Asia/Kolkata',
+                             latitude='11.0168', longitude='76.9558', ayanamsa='Lahiri'))
+        m = calculate_match(boy, girl)
+        self.assertEqual((m['bride']['name'], m['bride']['nakshatra']), ('Kalyani Devi', 'Ashlesha'))
+        self.assertEqual(m['groom']['lagna'], boy['planets']['Ascendant']['sign'])
+        self.assertFalse(m['dosha_samyam']['chevvai_balanced'])
+        self.assertEqual(m['verdict'], 'Moderate Match')  # porutham verdict lowered one step
+        self.assertTrue(m['verdict_notes'])
+
+    def test_star_only_match_has_no_dosha_notes(self):
+        m = calculate_match({'nakshatra_index': 3, 'sign_index': 1}, {'nakshatra_index': 9, 'sign_index': 4})
+        self.assertEqual(m['verdict_notes'], [])
+        self.assertNotIn('name', m['bride'])
+        self.assertEqual(m['groom']['rajju'], 'Kantha')
+
+
 class DailyPanchangamTests(unittest.TestCase):
     def test_local_timings_and_end_times(self):
         p = daily_panchangam('2026-09-27', '21:00:00', 'Asia/Kolkata', 13.0827, 80.2707,

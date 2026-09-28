@@ -1092,6 +1092,19 @@ def calculate_match(boy, girl):
     b_star, b_sign = get_indices(boy)
     g_star, g_sign = get_indices(girl)
 
+    def summary(p, star, sign):
+        """Star attributes of one partner, plus name, pada and Lagna when a full chart was given."""
+        gana, yoni, rajju, nadi = STAR_GANAS[star], STAR_YONIS[star][0], STAR_RAJJUS[star], STAR_NADIS[star]
+        out = dict(nakshatra=STARS[star], nakshatra_ta=TAMIL_STARS[star], nakshatra_index=star,
+                   sign=SIGNS[sign], sign_ta=TAMIL[sign], sign_index=sign,
+                   gana=gana, gana_ta=GANA_TA[gana], yoni=yoni, yoni_ta=YONI_TA[yoni],
+                   rajju=rajju, rajju_ta=RAJJU_TA[rajju], nadi=nadi, nadi_ta=NADI_TA[nadi])
+        if 'planets' in p:
+            asc = p['planets']['Ascendant']
+            out.update(name=p.get('profile', {}).get('name', ''), pada=p['planets']['Moon']['pada'],
+                       lagna=asc['sign'], lagna_ta=asc['tamil'])
+        return out
+
     poruthams = []
 
     # 1. Dina Porutham (Health & Prosperity): count from the girl's star to the boy's.
@@ -1284,10 +1297,22 @@ def calculate_match(boy, girl):
 
     # Dosha Samyam needs the full birth charts, not just star and sign.
     dosha_samyam = None
+    verdict_notes = []
     if 'planets' in boy and 'planets' in girl:
         # Imported here: south_indian builds on this module's primitives.
         from .south_indian import compare_dosha_samyam
         dosha_samyam = compare_dosha_samyam(boy['planets'], girl['planets'], boy.get('dasha'), girl.get('dasha'))
+        # An unbalanced dosha or a Dasa Sandhi lowers the porutham verdict by one step
+        if not dosha_samyam['chevvai_balanced']:
+            verdict_notes.append(('Chevvai Dosham is not balanced between the charts',
+                                  'செவ்வாய் தோஷம் இருவருக்கும் சமமாக இல்லை'))
+        if not dosha_samyam['papa_balanced']:
+            verdict_notes.append(("The bride's Papa points exceed the groom's",
+                                  'பெண்ணின் பாப புள்ளிகள் ஆணின் புள்ளிகளை விட அதிகம்'))
+        if dosha_samyam['dasa_sandhi'] and dosha_samyam['dasa_sandhi']['present']:
+            verdict_notes.append(('A Dasa Sandhi falls in the coming years', 'வரும் ஆண்டுகளில் தசா சந்தி ஏற்படுகிறது'))
+        if verdict_notes:
+            verdict = {'Auspicious Match': 'Moderate Match'}.get(verdict, 'Inauspicious / Needs Remedies')
 
     return {
         'poruthams': poruthams,
@@ -1307,8 +1332,11 @@ def calculate_match(boy, girl):
             'max_score': 36
         },
         'dosha_samyam': dosha_samyam,
+        'groom': summary(boy, b_star, b_sign),
+        'bride': summary(girl, g_star, g_sign),
         'verdict': verdict,
-        'verdict_ta': MATCH_VERDICT_TA[verdict]
+        'verdict_ta': MATCH_VERDICT_TA[verdict],
+        'verdict_notes': [{'en': en, 'ta': ta} for en, ta in verdict_notes]
     }
 
 def synthesize_readings(planets, dasha_active, yogas):

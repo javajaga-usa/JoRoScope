@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 68 Passed](https://img.shields.io/badge/tests-68%20passed-success)](tests/)
+[![Tests: 70 Passed](https://img.shields.io/badge/tests-70%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -45,6 +45,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 - **Bhava Chakra (Sripati)**: The bhava chart printed in Tamil horoscopes, available beside every divisional chart.
 - **Saturn Cycles Through Life**: Every Ezharai (Sade Sati, with its three phases), Ardhashtama, Kandaka and Ashtama Sani period from birth, first entry to final exit.
 - **Dasa Sandhi**: Matching flags Maha Dasa changes of bride and groom that fall within six months of each other.
+- **Printable Porutham Report**: Bride and groom star details, the 10 Poruthams, Dosha Samyam with Dasa Sandhi, and Guna Milan; an unbalanced dosha lowers the verdict with the reason stated.
 - **Printable Jathagam**: A one-click, print-ready horoscope sheet (Tamil or English) with birth notes, Rasi and Navamsa, planets, doshas, yogas and the Dasa-Bhukti table.
 - **Jathaga Kurippu**: Tamil year (60-year cycle), Tamil month and date (sunset rule), Vaaram (sunrise to sunrise), Udayadi Nazhigai, Dinamanam, Dasa Irruppu, Gana / Yoni / Rajju / Nadi, and Papa points.
 - **Mandi (Maandhi)**: Rising point per the Prasna Marga ghatika rule, scaled to the actual day or night length.

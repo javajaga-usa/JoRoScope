@@ -340,6 +340,8 @@ const I18N = {
     th_period: 'Period',
     th_age: 'Age',
     th_phases: 'Phases',
+    print_porutham: 'Print Porutham Report',
+    title_print_porutham: 'Print the compatibility report',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -686,6 +688,8 @@ const I18N = {
     th_period: 'காலம்',
     th_age: 'வயது',
     th_phases: 'கட்டங்கள்',
+    print_porutham: 'பொருத்த அறிக்கை அச்சிடு',
+    title_print_porutham: 'திருமணப் பொருத்த அறிக்கையை அச்சிடவும்',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -985,6 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#print-btn').addEventListener('click', () => window.print());
   $('#quick-print-btn').addEventListener('click', () => window.print());
   $('#print-jathagam-btn').addEventListener('click', printJathagam);
+  $('#print-porutham-btn').addEventListener('click', printPorutham);
   window.addEventListener('afterprint', () => document.body.classList.remove('printing-jathagam'));
 
   // Save profile button (results banner & form)
@@ -1574,6 +1579,67 @@ function printJathagam() {
     return;
   }
   buildJathagamSheet();
+  document.body.classList.add('printing-jathagam');
+  window.print();
+}
+
+// Printable Porutham report: both stars, the 10 Poruthams, Guna Milan and Dosha Samyam
+function buildPoruthamSheet(match) {
+  const kv = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${v}</strong></div>`).join('');
+  const person = p => [
+    [txt('Name', 'பெயர்'), esc(p.name || '—')],
+    [txt('Nakshatra', 'நட்சத்திரம்'), esc(txt(p.nakshatra, p.nakshatra_ta) + (p.pada ? ` · ${txt('Pada', 'பாதம்')} ${p.pada}` : ''))],
+    [txt('Rasi', 'ராசி'), esc(txt(p.sign, p.sign_ta))],
+    [txt('Lagna', 'லக்னம்'), esc(p.lagna ? txt(p.lagna, p.lagna_ta) : '—')],
+    [txt('Gana · Yoni', 'கணம் · யோனி'), esc(`${txt(p.gana, p.gana_ta)} · ${txt(p.yoni, p.yoni_ta)}`)],
+    [txt('Rajju · Nadi', 'ரஜ்ஜு · நாடி'), esc(`${txt(p.rajju, p.rajju_ta)} · ${txt(p.nadi, p.nadi_ta)}`)]
+  ];
+  const poruthams = match.poruthams.map(p => `
+    <tr>
+      <td><strong>${esc(txt(p.name, p.tamil))}</strong></td>
+      <td>${esc(txt(p.description, p.description_ta))}</td>
+      <td>${p.passed ? txt('Yes ✔', 'உண்டு ✔') : txt('No ✖', 'இல்லை ✖')}</td>
+      <td>${p.points} / ${p.max_points}</td>
+    </tr>`).join('');
+  const g = match.guna_milan;
+  const gunas = GUNA_LABELS.map(([key, max, en, ta]) => [txt(en, ta), `${g[key]} / ${max}`]);
+  const ds = match.dosha_samyam;
+  const samyam = ds ? `
+    <section class="pj-section"><h2>${txt('Dosha Samyam', 'தோஷ சாம்யம்')}</h2>
+      <table class="pj-table">
+        <thead><tr><th>${txt('Dosha', 'தோஷம்')}</th><th>${txt('Bride', 'பெண்')}</th><th>${txt('Groom', 'ஆண்')}</th><th>${txt('Samyam', 'சாம்யம்')}</th></tr></thead>
+        <tbody>${$('#dosha-samyam-tbody').innerHTML}</tbody>
+      </table>
+    </section>` : '';
+
+  $('#print-jathagam').innerHTML = `
+    <header class="pj-header">
+      <span class="pj-om">ௐ</span>
+      <h1>${txt('Marriage Compatibility Report', 'திருமணப் பொருத்த அறிக்கை')}</h1>
+      <p>${esc(txt(match.verdict, match.verdict_ta))} · ${txt(`${match.passed_count} of 10 Poruthams`, `10-ல் ${match.passed_count} பொருத்தங்கள்`)} · ${txt('Guna', 'குணம்')} ${g.total_score} / 36</p>
+      ${(match.verdict_notes || []).map(n => `<p><small>⚠ ${esc(txt(n.en, n.ta))}</small></p>`).join('')}
+    </header>
+    <section class="pj-charts">
+      <div><h2>${txt('Bride', 'மணமகள்')}</h2>${kv(person(match.bride))}</div>
+      <div><h2>${txt('Groom', 'மணமகன்')}</h2>${kv(person(match.groom))}</div>
+    </section>
+    <section class="pj-section"><h2>${txt('10 Poruthams', '10 பொருத்தங்கள்')}</h2>
+      <table class="pj-table">
+        <thead><tr><th>${txt('Porutham', 'பொருத்தம்')}</th><th>${txt('Significance', 'பலன்')}</th><th>${txt('Result', 'முடிவு')}</th><th>${txt('Points', 'மதிப்பெண்')}</th></tr></thead>
+        <tbody>${poruthams}</tbody>
+      </table>
+    </section>
+    ${samyam}
+    <section class="pj-section"><h2>${txt('Ashta Koota (36 Gunas)', 'அஷ்ட கூடம் (36 குணங்கள்)')}</h2><div class="pj-grid">${kv(gunas)}</div></section>
+    <footer class="pj-footer">${esc(txt(
+      `Calculated by JoRoScope · printed ${new Date().toLocaleDateString('en-GB')} · Rules differ between traditions; consult an astrologer before deciding.`,
+      `ஜோரோஸ்கோப் கணிதம் · அச்சிட்ட நாள் ${new Date().toLocaleDateString('ta-IN')} · மரபுக்கு மரபு விதிகள் வேறுபடும்; முடிவெடுக்கும் முன் ஜோதிடரை அணுகவும்.`))}</footer>
+  `;
+}
+
+function printPorutham() {
+  if (!lastMatch) return;
+  buildPoruthamSheet(lastMatch);
   document.body.classList.add('printing-jathagam');
   window.print();
 }
@@ -3462,11 +3528,43 @@ async function runHoroscopeMatch() {
     const match = await resp.json();
     if (!resp.ok) throw new Error(match.error);
     lastMatch = match;
+    syncProfilesFromMatch(match);
     renderMatchResult(match);
     notify(txt('Horoscope compatibility calculated', 'திருமணப் பொருத்தம் கணிக்கப்பட்டது'));
   } catch (err) {
     notify(`${txt('Matching error', 'பொருத்தப் பிழை')}: ${errorText(err.message)}`);
   }
+}
+
+// A full-chart match computes each partner's true star and sign; store them on the
+// matching saved profile and selects so older or hand-entered values are corrected.
+function syncProfilesFromMatch(match) {
+  const list = getSavedProfiles();
+  let changed = false;
+  [['bride', 'girl'], ['groom', 'boy']].forEach(([side, prefix]) => {
+    const info = match[side];
+    if (!info?.name) return;
+    const prof = list.find(p => p.name.toLowerCase() === info.name.toLowerCase());
+    if (prof && (prof.nakshatra_idx !== info.nakshatra_index || prof.sign_idx !== info.sign_index || prof.pada !== info.pada)) {
+      Object.assign(prof, {
+        nakshatra: info.nakshatra, nakshatra_ta: info.nakshatra_ta, nakshatra_idx: info.nakshatra_index,
+        moon_sign: info.sign, moon_sign_ta: info.sign_ta, sign_idx: info.sign_index, pada: info.pada,
+        lagna: info.lagna, lagna_ta: info.lagna_ta
+      });
+      changed = true;
+    }
+    $(`#match-${prefix}-star`).value = info.nakshatra_index;
+    $(`#match-${prefix}-sign`).value = info.sign_index;
+  });
+  if (!changed) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  } catch (e) {}
+  const [gSel, bSel] = [$('#match-girl-profile').value, $('#match-boy-profile').value];
+  populateMatchDropdowns();
+  $('#match-girl-profile').value = gSel;
+  $('#match-boy-profile').value = bSel;
+  renderProfilesList();
 }
 
 const GUNA_LABELS = [
@@ -3485,9 +3583,11 @@ function renderMatchResult(match) {
   $('#match-results-container').hidden = false;
   $('#match-score-num').textContent = g.total_score;
   $('#match-verdict-title').textContent = txt(match.verdict, match.verdict_ta);
+  const notes = (match.verdict_notes || []).map(n => txt(n.en, n.ta)).join('; ');
   $('#match-verdict-desc').textContent = txt(
     `${match.passed_count} of 10 Poruthams passed. Guna score: ${g.total_score} of 36.`,
-    `10-ல் ${match.passed_count} பொருத்தங்கள் உள்ளன. குண மதிப்பெண்: 36-ல் ${g.total_score}.`);
+    `10-ல் ${match.passed_count} பொருத்தங்கள் உள்ளன. குண மதிப்பெண்: 36-ல் ${g.total_score}.`) +
+    (notes ? txt(` Verdict lowered: ${notes}.`, ` முடிவு குறைக்கப்பட்டது: ${notes}.`) : '');
 
   const rajjuBadge = $('#match-rajju-badge');
   rajjuBadge.textContent = match.rajju_agreement
