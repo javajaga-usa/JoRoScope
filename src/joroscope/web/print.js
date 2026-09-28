@@ -21,7 +21,8 @@ const PRINT_SECTIONS = [
   { key: 'strength', en: 'Shadbala, Bhava Bala & Vimsopaka', ta: 'ஷட்பலம், பாவ பலம் & விம்சோபகம்', build: printStrength, newPage: true },
   { key: 'ashtakavarga', en: 'Ashtakavarga & Sodhya Pinda', ta: 'அஷ்டகவர்க்கம் & சோத்ய பிண்டம்', build: printAshtakavarga, newPage: true },
   { key: 'kp', en: 'KP cusps & significators', ta: 'கே.பி. பாவ ஆரம்பங்கள் & காரகத்துவம்', build: printKP, newPage: true },
-  { key: 'predictions', en: 'Life predictions', ta: 'வாழ்க்கைப் பலன்கள்', build: printPredictions, newPage: true }
+  { key: 'predictions', en: 'Life predictions', ta: 'வாழ்க்கைப் பலன்கள்', build: printPredictions, newPage: true },
+  { key: 'reports', en: 'Special reports', ta: 'சிறப்பு அறிக்கைகள்', build: printReportChapters, newPage: true }
 ];
 
 const PRINT_PRESETS = {
@@ -214,6 +215,18 @@ function printOtherDasas(c) {
       <div><h3>${txt('Ashtottari Dasa', 'அஷ்டோத்தரி தசை')}</h3>${pjTable(head, ashtottari, 'compact')}</div>
       <div><h3>${txt('Jaimini Chara Dasa', 'ஜைமினி சர தசை')}</h3>${pjTable(head, chara, 'compact')}</div>
     </div>`;
+}
+
+// The chapters in the shared report shape (numerology and the newer reports), one after another
+function printReportChapters(c) {
+  const pred = c.predictions || {};
+  const cell = x => esc(txt(x.en, x.ta));
+  return REPORT_CHAPTERS.filter(key => pred[key]).map(key => {
+    const ch = pred[key];
+    const tables = ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
+    const cards = ch.cards.map(k => `<div class="pj-reading"><h4>${cell(k.title)}</h4><p>${cell(k.body)}</p></div>`).join('');
+    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${tables}${cards}`;
+  }).join('');
 }
 
 function printVargas(c) {

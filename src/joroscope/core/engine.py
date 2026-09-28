@@ -1492,7 +1492,11 @@ def calculate(data):
         bhava_bala=bhava_bala,
         vimsopaka=vimsopaka,
         vedic_weekday=south_indian['vaaram']['index'],
-        timezone=data['timezone']
+        timezone=data['timezone'],
+        profile={k: str(data.get(k, ''))[:200] for k in ('name', 'date', 'time', 'city')},
+        ayanamsa=ayan,
+        south_indian=south_indian,
+        dasa_year_days=dasa_year
     )
     predictions = generate_comprehensive_predictions(chart_summary)
 

@@ -53,7 +53,7 @@ function sandbox(chart, match, lang) {
     renderSouthChart: (el, varga) => { drawn.push(['south', el.id, varga]); },
     renderDiamondChart: (el, varga, opts) => { drawn.push([opts && opts.mirror ? 'srilanka' : 'north', el.id, varga]); },
     renderEastChart: (el, varga) => { drawn.push(['east', el.id, varga]); },
-    currentStyle: 'south', notify: () => {}, SIGNS_EN: signsEn, SIGNS_TA: signsTa,
+    currentStyle: 'south', REPORT_CHAPTERS: ['numerology'], notify: () => {}, SIGNS_EN: signsEn, SIGNS_TA: signsTa,
     VARGA_NAMES: new Proxy({}, { get: (_, k) => [String(k), String(k)] }),
     GUNA_LABELS: [['varna', 1, 'Varna', 'வர்ணம்'], ['nadi', 8, 'Nadi', 'நாடி']],
     $: sel => el(sel.replace(/^#/, '')), $$: () => [],
