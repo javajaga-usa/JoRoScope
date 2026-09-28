@@ -372,6 +372,7 @@ const I18N = {
     panch_location_hint: 'From the birth form. Use 📍 My Location to switch.',
     tamil_calendar: 'TAMIL CALENDAR',
     soolam: 'SOOLAM (AVOID TRAVEL)',
+    tamil_yogam: 'TAMIL YOGAM',
     chandrashtamam: 'CHANDRASHTAMAM',
     personal_balam: 'Your Day: Tara & Chandra Balam',
     tara_balam: 'TARA BALAM',
@@ -551,7 +552,7 @@ const I18N = {
     shodasavarga_table: "Shodasavarga Table",
     shodasavarga_sub: "The sign of each graha in all 16 divisional charts; highlighted where it repeats the Rasi sign.",
     muhurtham_title: "Muhurtham Finder",
-    muhurtham_sub: "Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.",
+    muhurtham_sub: "Auspicious daytime windows by the classical Muhurta rules: the event's nakshatras, good weekday and tithi, Siddha or Amirtha Tamil yogam, a clean Lagna (no malefic in the 8th, Moon not in the 6th, 8th or 12th), clear of difficult yogas, Vishti karana, Rahu Kalam, Yamagandam and Gulika. With a chart loaded, Tara and Chandra Bala are applied and Chandrashtamam days are left out.",
     mh_marriage: "Marriage",
     mh_griha: "House-warming (Griha Pravesam)",
     mh_business: "Opening a business",
@@ -782,6 +783,7 @@ const I18N = {
     panch_location_hint: 'பிறப்பு படிவத்திலிருந்து. மாற்ற 📍 என் இருப்பிடம் பயன்படுத்தவும்.',
     tamil_calendar: 'தமிழ் நாட்காட்டி',
     soolam: 'சூலம்',
+    tamil_yogam: 'அமிர்தாதி யோகம்',
     chandrashtamam: 'சந்திராஷ்டமம்',
     personal_balam: 'உங்கள் நாள்: தாரா & சந்திர பலம்',
     tara_balam: 'தாரா பலம்',
@@ -961,7 +963,7 @@ const I18N = {
     shodasavarga_table: "ஷோடசவர்க்க அட்டவணை",
     shodasavarga_sub: "16 வர்க்கச் சக்கரங்களிலும் ஒவ்வொரு கிரகத்தின் ராசி; இராசியில் உள்ள அதே ராசி வரும் இடங்கள் முன்னிலைப்படுத்தப்பட்டுள்ளன.",
     muhurtham_title: "முகூர்த்த நாள் தேடல்",
-    muhurtham_sub: "பாரம்பரிய முகூர்த்த விதிகளின்படி பகல் நேர சுப காலங்கள்: நிகழ்விற்கு உகந்த நட்சத்திரம், நல்ல கிழமை மற்றும் திதி, கடினமான யோகங்கள், பத்திரை கரணம், ராகு காலம், எமகண்டம், குளிகை தவிர்த்து. ஜாதகம் ஏற்றப்பட்டிருந்தால் தாரா பலம், சந்திர பலம் சரிபார்க்கப்பட்டு சந்திராஷ்டம நாட்கள் விலக்கப்படும்.",
+    muhurtham_sub: "பாரம்பரிய முகூர்த்த விதிகளின்படி பகல் நேர சுப காலங்கள்: நிகழ்விற்கு உகந்த நட்சத்திரம், நல்ல கிழமை மற்றும் திதி, சித்த / அமிர்த யோகம், சுத்தமான லக்னம் (8-இல் பாபர் இல்லை, சந்திரன் 6, 8, 12-இல் இல்லை); கடினமான யோகங்கள், பத்திரை கரணம், ராகு காலம், எமகண்டம், குளிகை தவிர்த்து. ஜாதகம் ஏற்றப்பட்டிருந்தால் தாரா பலம், சந்திர பலம் சரிபார்க்கப்பட்டு சந்திராஷ்டம நாட்கள் விலக்கப்படும்.",
     mh_marriage: "திருமணம்",
     mh_griha: "கிரகப் பிரவேசம்",
     mh_business: "தொழில் / கடை திறப்பு",
@@ -3463,7 +3465,9 @@ function renderMuhurthams(data) {
     <div class="muhurtham-day">
       <h4>${d.date} · ${esc(txt(d.weekday, d.weekday_ta))} <small class="muted">(${esc(d.tamil_date)})</small></h4>
       <ul>${d.windows.map(w => `
-        <li><strong>${clockTime(w.start_local)} – ${clockTime(w.end_local)}</strong> · ${esc(txt(w.nakshatra, w.nakshatra_ta))} ·
+        <li><strong>${clockTime(w.start_local)} – ${clockTime(w.end_local)}</strong> ·
+          ${esc(txt(`${w.lagna} Lagna`, `${w.lagna_ta} லக்னம்`))} · ${esc(txt(w.tamil_yogam.en, w.tamil_yogam.ta))} ·
+          ${esc(txt(w.nakshatra, w.nakshatra_ta))} ·
           ${esc(txt(`${w.tithi} (${w.paksha})`, `${w.tithi_ta} (${w.paksha === 'Shukla' ? 'வளர்பிறை' : 'தேய்பிறை'})`))}
           ${w.notes_en.length ? `<br><small class="muted">${esc(txt(w.notes_en.join(', '), w.notes_ta.join(', ')))}</small>` : ''}</li>`).join('')}
       </ul>
@@ -3553,6 +3557,14 @@ function populatePanchangamView(panch) {
     $('#panch-tamil-year').textContent = isTa
       ? `${tc.year_ta} வருடம் · ${day}`
       : `${tc.year} year (${tc.year_ta}), #${tc.year_number} of the 60-year cycle · ${day}`;
+  }
+  if (panch.tamil_yogam) {
+    const ty = panch.tamil_yogam;
+    const yogamEl = $('#panch-tamil-yogam');
+    yogamEl.textContent = txt(ty.en, ty.ta);
+    yogamEl.className = ty.good ? 'good-text' : 'bad-text';
+    $('#panch-tamil-yogam-next').textContent = txt(`until ${clockTime(ty.until_local)}, then ${ty.next.en}`,
+      `${clockTime(ty.until_local)} வரை, பின் ${ty.next.ta}`);
   }
   if (panch.soolam) {
     const sl = panch.soolam;

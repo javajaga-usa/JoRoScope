@@ -69,6 +69,30 @@ TARAS = [
     ('Naidhana', 'நைதன', 'bad'), ('Mitra', 'மித்ர', 'good'), ('Parama Mitra', 'பரம மித்ர', 'good')
 ]
 CHANDRA_BALAM_HOUSES = (1, 3, 6, 7, 10, 11)
+# Amirthathi (Tamil) yogam by weekday (Sunday first) and nakshatra (Ashwini first), as printed in
+# Tamil calendars: S Siddha, A Amirtha, M Marana, P Prabalarishta. Cross-checked with PyJHora's table;
+# Monday + Purattathi is Marana as in the Sringeri Tamil Panchangam.
+TAMIL_YOGAM_TABLE = (
+    'SPSSSSSSSMSASSSMMMASAAMSSAA',
+    'SSMASSASSMSSSPAMSSSMMASSMSS',
+    'SSSASMSSSSSASSSMSMASPSSMMAS',
+    'MSASSSSSSSAAMSSSSSMAASPSASM',
+    'ASMMMMASSASMSSASSPSSSSSMSSS',
+    'ASSMSSSMMMSSASSSSMAPSMSSSSS',
+    'SSSASSSSMASMMMSSSSSSSSSAMSP',
+)
+TAMIL_YOGAMS = {
+    'S': ('siddha', 'Siddha Yogam', 'சித்த யோகம்', True),
+    'A': ('amirtha', 'Amirtha Yogam', 'அமிர்த யோகம்', True),
+    'M': ('marana', 'Marana Yogam', 'மரண யோகம்', False),
+    'P': ('prabalarishta', 'Prabalarishta Yogam', 'பிரபலாரிஷ்ட யோகம்', False),
+}
+
+
+def tamil_yogam(weekday, star):
+    """Amirthathi yogam for a weekday (0 = Sunday) and nakshatra index (0 = Ashwini)."""
+    key, en, ta, good = TAMIL_YOGAMS[TAMIL_YOGAM_TABLE[weekday % 7][star % 27]]
+    return dict(key=key, en=en, ta=ta, good=good)
 
 # Hora lords run in descending Chaldean order; a day's first hora belongs to its weekday lord.
 HORA_SEQUENCE = ['Sun', 'Venus', 'Mercury', 'Moon', 'Saturn', 'Jupiter', 'Mars']
@@ -787,6 +811,11 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
     panch['gowri'] = gowri_panchangam(civil_events, weekday, tz, jd)
     panch['tamil_calendar'] = tamil_calendar(civil, tz, lat, lon)
     panch['vaaram'] = dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1])
+    # The Tamil yogam changes with the nakshatra (and the weekday at sunrise)
+    star_end = _next_boundary(jd, _moon, NAK_SPAN)
+    next_weekday = weekday + (1 if star_end >= sun_events(civil + timedelta(days=1), tz, lat, lon)['sunrise'] else 0)
+    panch['tamil_yogam'] = dict(tamil_yogam(weekday, star_idx), until_local=_local_iso(star_end, tz),
+                                next=tamil_yogam(next_weekday, star_idx + 1))
     direction, direction_ta, remedy, remedy_ta = SOOLAM[weekday]
     panch['soolam'] = dict(direction=direction, direction_ta=direction_ta, parigaram=remedy, parigaram_ta=remedy_ta)
     panch['moon_sign'] = dict(index=moon_sign, en=SIGNS[moon_sign], ta=TAMIL[moon_sign])

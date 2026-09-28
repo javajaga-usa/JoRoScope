@@ -229,6 +229,41 @@ class MuhurthamTests(unittest.TestCase):
                 moon_sign = int(sidereal_position(jd, swe.MOON)[0] // 30)
                 self.assertNotEqual(moon_sign, 7)  # Scorpio is 8th from an Aries Moon
 
+    def test_tamil_yogam_and_lagna_shuddhi(self):
+        from joroscope.core.muhurtham import find_muhurthams, _graha_signs, LAGNA_MALEFICS
+        from joroscope.core.engine import SIGNS, swe, AYAN, utc_to_jd
+        from datetime import datetime, timezone
+        found = find_muhurthams('marriage', '2026-10-15', 60, 'Asia/Kolkata', 13.0827, 80.2707, limit=60)
+        swe.set_sid_mode(AYAN['Lahiri'])
+        for day in found['results']:
+            for w in day['windows']:
+                self.assertIn(w['tamil_yogam']['key'], ('siddha', 'amirtha'))
+                jd = utc_to_jd(datetime.fromisoformat(w['start_local']).astimezone(timezone.utc)) + 1 / 1440
+                lagna = SIGNS.index(w['lagna'])
+                signs = _graha_signs(jd)
+                self.assertFalse([g for g in LAGNA_MALEFICS if (signs[g] - lagna) % 12 == 7], (day['date'], w['lagna']))
+                self.assertNotIn((signs['Moon'] - lagna) % 12 + 1, (6, 8, 12))
+
+
+class TamilYogamTests(unittest.TestCase):
+    def test_table_matches_tamil_calendars(self):
+        from joroscope.core.south_indian import tamil_yogam, TAMIL_YOGAM_TABLE
+        self.assertTrue(all(len(row) == 27 for row in TAMIL_YOGAM_TABLE))
+        # Sunday: Uttaram Amirtha, Magam Marana, Bharani Prabalarishta, Ashwini Siddha
+        self.assertEqual([tamil_yogam(0, s)['key'] for s in (11, 9, 1, 0)], ['amirtha', 'marana', 'prabalarishta', 'siddha'])
+        # Monday + Purattathi is Marana (Sringeri Tamil Panchangam); Saturday + Revathi Prabalarishta
+        self.assertEqual(tamil_yogam(1, 24)['key'], 'marana')
+        self.assertEqual(tamil_yogam(6, 26)['key'], 'prabalarishta')
+        # One Prabalarishta star per weekday
+        self.assertEqual([row.count('P') for row in TAMIL_YOGAM_TABLE], [1] * 7)
+
+    def test_daily_panchangam_shows_it(self):
+        from joroscope.core.south_indian import daily_panchangam
+        ty = daily_panchangam('2026-09-28', '', 'Asia/Kolkata', 13.0827, 80.2707)['tamil_yogam']
+        self.assertEqual(ty['key'], 'siddha')   # Monday, Revathi
+        self.assertTrue(ty['until_local'].startswith('2026-09-28T10:1'))
+        self.assertIn('ta', ty['next'])
+
 
 class NavamsaTableTests(unittest.TestCase):
     def test_navamsa_rows(self):

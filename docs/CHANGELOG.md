@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Tamil Yogam and Lagna in the Muhurtham finder
+- Amirthathi (Tamil) yogam: Siddha, Amirtha, Marana or Prabalarishta from the weekday and nakshatra, by the table Tamil calendars print (cross-checked with PyJHora; Monday + Purattathi as in the Sringeri Tamil Panchangam). The daily Panchangam shows it with its end time and the yogam that follows.
+- Muhurthams now require Siddha or Amirtha yogam and a clean rising Lagna: no malefic in the 8th, the Moon not in the 6th, 8th or 12th, and not the person's Janma Ashtama rasi. Windows split at each Lagna change and name it; notes flag Jupiter or Venus in a kendra, a clear 7th for marriage and a fixed Lagna for griha pravesam.
+
 ### Chart-specific Dasa-Bhukti timeline
 - Each Dasa-Bhukti rating now weighs the two lords' house lordships in this chart (kendra/trikona against dusthana, with Vipareeta cases), their dignity and their natural relationship; Rahu and Ketu act through their dispositors. The reason opens every reading in Tamil and English.
 - The ten-year view scores each year from its running period, less a little under Sade Sati or Ashtama Sani, instead of a year-based variation; the icon follows the Bhukti lord.

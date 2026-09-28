@@ -3,16 +3,19 @@ Auspicious daytime windows for common undertakings by the classical Muhurta rule
 Chintamani): an event-specific nakshatra, a good weekday and tithi, clear of the difficult
 parts of the nitya yogas, no Vishti karana, outside Rahu Kalam, Yamagandam and Gulika, and for
 marriage and griha pravesam not in Aadi, Purattasi or Margazhi. With the person's birth star
-and Moon sign it also applies Tara and Chandra Bala. Published Tamil calendars add the Lagna
-and regional customs, so the final time is for the family astrologer to confirm.
+and Moon sign it also applies Tara and Chandra Bala. The Tamil (Amirthathi) yogam must be Siddha
+or Amirtha, and each window keeps one rising Lagna that passes Lagna Shuddhi: no malefic in the
+8th, the Moon not in the 6th, 8th or 12th, and not the person's Janma Ashtama rasi. A clear 7th
+for marriage is noted as a preference, as Tamil almanacs treat it. Regional customs still vary, so the final time is for the family astrologer to confirm.
 """
 import math
 from datetime import timedelta
 
-from .engine import AYAN, NITYA_YOGAS, KARANAS, STARS, TAMIL_STARS, TITHIS, swe, local_to_utc, sun_events
+from .engine import (AYAN, NITYA_YOGAS, KARANAS, SIGNS, STARS, TAMIL, TAMIL_STARS, TITHIS, swe, local_to_utc,
+                     sidereal_position, sun_events)
 from .south_indian import (
     TARAS, CHANDRA_BALAM_HOUSES, VAARAM, TITHI_TA, NAK_SPAN, _elongation, _moon, _yoga_sum, _local_iso, _zone,
-    tamil_calendar
+    tamil_calendar, tamil_yogam
 )
 
 # Nakshatra indices (Ashwini = 0) favoured for each undertaking
@@ -39,6 +42,12 @@ TAMIL_MONTHS_AVOIDED = {3: ('Aadi', 'ஆடி'), 5: ('Purattasi', 'புரட
 RAHU_KALAM = (8, 2, 7, 5, 6, 4, 3)
 YAMAGANDAM = (5, 4, 3, 2, 1, 7, 6)
 GULIKA_KALAM = (7, 6, 5, 4, 3, 2, 1)
+# Grahas checked for Lagna Shuddhi, and the benefics that strengthen a Lagna from a kendra
+SHUDDHI_BODIES = (('Sun', swe.SUN), ('Moon', swe.MOON), ('Mars', swe.MARS), ('Mercury', swe.MERCURY),
+                  ('Jupiter', swe.JUPITER), ('Venus', swe.VENUS), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE))
+LAGNA_BENEFICS = ('Jupiter', 'Venus')
+LAGNA_MALEFICS = ('Sun', 'Mars', 'Saturn', 'Rahu', 'Ketu')
+FIXED_SIGNS = (1, 4, 7, 10)
 STEP_MINUTES = 10
 MIN_WINDOW_MINUTES = 30
 
@@ -50,6 +59,25 @@ def _karana(elongation):
     if half >= 58:
         return KARANAS[7 + half - 58]  # Shakuni, Chatushpada, Naga
     return KARANAS[(half - 2) % 7]
+
+
+def _graha_signs(jd):
+    signs = {name: int(sidereal_position(jd, body)[0] // 30) for name, body in SHUDDHI_BODIES}
+    signs['Ketu'] = (signs['Rahu'] + 6) % 12
+    return signs
+
+
+def _lagna(jd, lat, lon):
+    return int(swe.houses_ex(jd, lat, lon, b'P', swe.FLG_SIDEREAL)[1][0] // 30)
+
+
+def _lagna_ok(lagna, signs, natal_sign):
+    house = lambda name: (signs[name] - lagna) % 12 + 1
+    if any(house(name) == 8 for name in LAGNA_MALEFICS) or house('Moon') in (6, 8, 12):
+        return False
+    if natal_sign is not None and (lagna - natal_sign) % 12 + 1 == 8:
+        return False
+    return True
 
 
 def _angas(jd):
@@ -72,7 +100,7 @@ def _day_rejections(event, weekday, tamil_month):
     return reasons
 
 
-def _moment_ok(event, angas, natal_star, natal_sign):
+def _moment_ok(event, angas, natal_star, natal_sign, weekday):
     tithi = angas['tithi']
     in_paksha = (tithi - 1) % 15 + 1
     if angas['star'] not in event['stars'] or in_paksha not in GOOD_TITHIS:
@@ -80,6 +108,8 @@ def _moment_ok(event, angas, natal_star, natal_sign):
     if tithi > 15 and in_paksha > 10:  # late in the waning fortnight
         return False
     if not angas['yoga_good'] or angas['karana'] == 'Vishti':
+        return False
+    if not tamil_yogam(weekday, angas['star'])['good']:
         return False
     if natal_star is not None and TARAS[((angas['star'] - natal_star) % 27) % 9][2] == 'bad':
         return False
@@ -115,31 +145,41 @@ def find_muhurthams(event_key, start_date, days, tz_name, lat, lon, natal_star=N
         kalams = [(ev['sunrise'] + (k - 1) * eighth, ev['sunrise'] + k * eighth)
                   for k in (RAHU_KALAM[weekday], YAMAGANDAM[weekday], GULIKA_KALAM[weekday])]
         step = STEP_MINUTES / 1440
-        good = lambda jd: _moment_ok(event, _angas(jd), natal_star, natal_sign)
 
-        def edge(inside, outside):
-            # Bisect to about half a minute where the angas stop (or start) qualifying
+        def state(jd):
+            # The rising Lagna when every rule holds at this moment, else None
+            if not _moment_ok(event, _angas(jd), natal_star, natal_sign, weekday):
+                return None
+            lagna = _lagna(jd, lat, lon)
+            return lagna if _lagna_ok(lagna, _graha_signs(jd), natal_sign) else None
+
+        def edge(before, after, current):
+            # Bisect to about half a minute where the state stops being `current`
             for _ in range(5):
-                mid = (inside + outside) / 2
-                inside, outside = (mid, outside) if good(mid) else (inside, mid)
-            return inside
+                mid = (before + after) / 2
+                before, after = (mid, after) if state(mid) == current else (before, mid)
+            return before
 
-        spans, start = [], None
+        spans, start, current, prev_t = [], None, None, ev['sunrise']
         t = ev['sunrise']
         while t < ev['sunset']:
-            ok = good(min(t + step / 2, ev['sunset']))
-            if ok and start is None:
-                start = ev['sunrise'] if t == ev['sunrise'] else edge(t + step / 2, t - step / 2)
-            elif not ok and start is not None:
-                spans.append((start, edge(t - step / 2, t + step / 2)))
-                start = None
+            probe = min(t + step / 2, ev['sunset'])
+            now = state(probe)
+            if now != current:
+                boundary = ev['sunrise'] if t == ev['sunrise'] else edge(prev_t, probe, current)
+                if current is not None:
+                    spans.append((start, boundary, current))
+                start, current = boundary, now
+            prev_t = probe
             t += step
-        if start is not None:
-            spans.append((start, ev['sunset']))
+        if current is not None:
+            spans.append((start, ev['sunset'], current))
         # Cut Rahu Kalam, Yamagandam and Gulika out exactly
         for k_start, k_end in kalams:
-            spans = [piece for a, b in spans for piece in ((a, min(b, k_start)), (max(a, k_end), b)) if piece[1] > piece[0]]
-        windows = [(dict(start=a, angas=_angas((a + b) / 2)), b) for a, b in sorted(spans)]
+            spans = [piece for a, b, lg in spans for piece in ((a, min(b, k_start), lg), (max(a, k_end), b, lg))
+                     if piece[1] > piece[0]]
+        windows = [(dict(start=a, lagna=lg, angas=_angas((a + b) / 2), signs=_graha_signs((a + b) / 2)), b)
+                   for a, b, lg in sorted(spans)]
         windows = [(w, end) for w, end in windows if (end - w['start']) * 1440 >= MIN_WINDOW_MINUTES]
         if not windows:
             continue
@@ -155,6 +195,16 @@ def find_muhurthams(event_key, start_date, days, tz_name, lat, lon, natal_star=N
                 tara = TARAS[((a['star'] - natal_star) % 27) % 9]
                 notes_en.append(f"{tara[0]} tara")
                 notes_ta.append(f"{tara[1]} தாரை")
+            lagna = w['lagna']
+            if any((w['signs'][g] - lagna) % 12 + 1 in (1, 4, 7, 10) for g in LAGNA_BENEFICS):
+                notes_en.append('Jupiter or Venus in a kendra')
+                notes_ta.append('குரு / சுக்கிரன் கேந்திரத்தில்')
+            if event_key == 'marriage' and not any((sg - lagna) % 12 == 6 for sg in w['signs'].values()):
+                notes_en.append('7th house clear')
+                notes_ta.append('7-ஆம் இடம் சுத்தம்')
+            if lagna in FIXED_SIGNS and event_key == 'griha_pravesam':
+                notes_en.append('fixed Lagna')
+                notes_ta.append('ஸ்திர லக்னம்')
             if natal_sign is not None:
                 house = (a['moon_sign'] - natal_sign) % 12 + 1
                 if house in CHANDRA_BALAM_HOUSES:
@@ -166,6 +216,7 @@ def find_muhurthams(event_key, start_date, days, tz_name, lat, lon, natal_star=N
                 nakshatra=STARS[a['star']], nakshatra_ta=TAMIL_STARS[a['star']],
                 tithi=TITHIS[a['tithi'] - 1], tithi_ta=TITHI_TA[in_paksha - 1],
                 paksha='Shukla' if a['tithi'] <= 15 else 'Krishna', yoga=a['yoga'], karana=a['karana'],
+                tamil_yogam=tamil_yogam(weekday, a['star']), lagna=SIGNS[lagna], lagna_ta=TAMIL[lagna], lagna_index=lagna,
                 notes_en=notes_en, notes_ta=notes_ta))
         results.append(dict(date=day.isoformat(), weekday=VAARAM[weekday][0], weekday_ta=VAARAM[weekday][1],
                             tamil_date=f"{cal['month_ta']} {cal['day']}", windows=rows))
