@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 76 Passed](https://img.shields.io/badge/tests-76%20passed-success)](tests/)
+[![Tests: 80 Passed](https://img.shields.io/badge/tests-80%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -31,7 +31,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 9. **Karmic Doshas & Mitigations**: Chevvai (Manglik), Rahu-Ketu, and Kala Sarpa.
 10. **Career, Wealth & Marriage Synthesis**: Tri-Bhava life goals summary.
 11. **Remedies, Gemstones & Deities**: Anukul Graha gemstone and spiritual remedies.
-12. **Shadbala (அறுவகை பலம்)**: 6-fold planetary potency, Virupas, and dominant planet detection.
+12. **Shadbala (அறுவகை பலம்)**: the full BPHS six-fold strength (all 16 sub-balas, Graha Yuddha, Ishta/Kashta Phala), validated component by component against the worked examples of B.V. Raman and V.P. Jain.
 13. **Bhrigu Nandi Nadi (BNN) Karmic Sutras**: 1-5-9 Trinal directional alignments and Jeeva-Karma sutras.
 14. **KP System 249 Sub-Lord Analysis**: Cuspal Sub-Lord readings for 1st, 2nd, 5th, 7th, 10th, 11th cusps.
 15. **Planetary Avasthas & Fruition Potency**: Baladi & Jagradadi conscious states with % fruition.

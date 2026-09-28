@@ -1490,13 +1490,20 @@ def calculate(data):
 
     # South Indian (Tamil) jathagam details and doshas. Imported here:
     # south_indian builds on this module's primitives.
-    from .south_indian import build_south_indian_details, chevvai_dosham, rahu_ketu_dosham
+    from .south_indian import build_south_indian_details, chevvai_dosham, rahu_ketu_dosham, vedic_day
+    from .shadbala import compute_shadbala
     doshas['chevvai'] = chevvai_dosham(planets)
     doshas['rahu_ketu'] = rahu_ketu_dosham(planets)
     south_indian = build_south_indian_details(planets, utc, data['timezone'], lat, lon)
     mandi = south_indian['mandi']
     mandi['bhava'] = bhava_of(mandi['longitude'], bhava_sandhi)
     mandi['vargas']['Bhava'] = (asc_sign + mandi['bhava'] - 1) % 12
+
+    # Shadbala over the Vedic day (sunrise to sunrise) of birth
+    birth_tz = ZoneInfo(data['timezone'])
+    vedic_date, day_events = vedic_day(jd, birth_tz, lat, lon)
+    day_events['prev_sunset'] = sun_events(vedic_date - timedelta(days=1), birth_tz, lat, lon)['sunset']
+    shadbala = compute_shadbala(planets, jd, day_events, vedic_date, bhava_madhya, ayanamsa_degrees)
 
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
@@ -1546,6 +1553,7 @@ def calculate(data):
         utc=utc,
         kp_cusps=kp_cusps,
         gochara=gochara,
+        shadbala=shadbala,
         timezone=data['timezone']
     )
     predictions = generate_comprehensive_predictions(chart_summary)

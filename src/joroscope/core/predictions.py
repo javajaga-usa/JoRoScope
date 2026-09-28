@@ -9,7 +9,6 @@ Authoritative Vedic & Tamil astrological prediction generator providing:
 Available in both English and authentic Tamil (தமிழ்).
 """
 
-import math
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -1448,33 +1447,6 @@ TAMIL_STARS = [
     'பூரட்டாதி','உத்திரட்டாதி','ரேவதி'
 ]
 
-SHADBALA_BENCHMARKS = {
-    'Sun': 6.5,     # 390 Virupas
-    'Moon': 6.0,    # 360 Virupas
-    'Mars': 5.0,    # 300 Virupas
-    'Mercury': 7.0, # 420 Virupas
-    'Jupiter': 6.5, # 390 Virupas
-    'Venus': 5.5,   # 330 Virupas
-    'Saturn': 5.0   # 300 Virupas
-}
-DEEP_DEBILITATION = {
-    'Sun': 190.0,    # Libra 10°
-    'Moon': 213.0,   # Scorpio 3°
-    'Mars': 118.0,   # Cancer 28°
-    'Mercury': 345.0,# Pisces 15°
-    'Jupiter': 275.0,# Capricorn 5°
-    'Venus': 177.0,  # Virgo 27°
-    'Saturn': 20.0   # Aries 20°
-}
-NAISARGIKA_BALA = {
-    'Sun': 60.00,
-    'Moon': 51.43,
-    'Venus': 42.86,
-    'Jupiter': 34.29,
-    'Mercury': 25.71,
-    'Mars': 17.14,
-    'Saturn': 8.57
-}
 
 def get_kp_sublord(lon):
     lon = lon % 360
@@ -1500,199 +1472,125 @@ def get_kp_sublord(lon):
     return sign_idx, SIGNS[sign_idx], TAMIL_SIGNS[sign_idx], sign_lord, star_name, star_lord, sub_lord
 
 # 1. SHADBALA ENGINE & PREDICTIONS
+SHADBALA_READINGS = {
+    'Sun': {
+        'theme_en': 'executive authority, vitality, leadership, and public recognition',
+        'theme_ta': 'அதிகார ஆளுமை, உடல் நலம், தலைமைத்துவம் மற்றும் சமூக புகழ்',
+        'strong_en': 'Endows radiant confidence, dignified integrity, natural leadership charisma, and strong support from government or senior authorities.',
+        'strong_ta': 'சூரியன் உயர் பலம் பெற்றுள்ளதால் அசைக்க முடியாத தன்னம்பிக்கை, கம்பீரமான ஆளுமை, அரசு வழியில் நன்மைகள் மற்றும் தலைமைப் பொறுப்புகள் அமையும்.',
+        'weak_en': 'May induce occasional self-doubt or struggle with organizational superiors. Daily Surya Namaskar and honoring father figures strengthen solar vigor.',
+        'weak_ta': 'சூரியன் குறைந்த பலம் உள்ளதால் சில சமயங்களில் தயக்கமும், அதிகாரிகளுடன் பிணக்குகளும் நேரலாம். ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் தந்தையிடம் ஆசி பெறுதல் நலம்.'
+    },
+    'Moon': {
+        'theme_en': 'emotional equanimity, intuitive perception, mental tranquility, and public popularity',
+        'theme_ta': 'மன அமைதி, உள்ளுணர்வுத் தெளிவு, பொதுஜன ஆதரவு மற்றும் கற்பனைத் திறன்',
+        'strong_en': 'Bestows serene emotional balance, maternal grace, fertile creative instincts, and wide social affection.',
+        'strong_ta': 'சந்திரன் உன்னத பலம் பெற்றுள்ளதால் மன அமைதி, தெளிவான உள்ளுணர்வு, கற்பனை ஆற்றல் மற்றும் மக்கள் மத்தியில் நன்மதிப்பு கூடும்.',
+        'weak_en': 'Indicates mood sensitivity or over-thinking during stressful periods. Meditation and honoring mother energies cultivate inner stability.',
+        'weak_ta': 'சந்திரன் குறைந்த பலம் பெற்றுள்ளதால் மன அமைதியின்மை அல்லது அதீத சிந்தனை ஏற்படலாம். தியானம் மற்றும் தாய்க்கு பணிவிடை செய்வது அமைதி தரும்.'
+    },
+    'Mars': {
+        'theme_en': 'courage, real estate prowess, physical stamina, engineering acumen, and fearlessness',
+        'theme_ta': 'துணிச்சல், பூமி யோகம், பொறியியல்/தொழில்நுட்பத் திறன் மற்றும் எதிரிகளை வெல்லும் வலிமை',
+        'strong_en': 'Commands heroic willpower, strategic fearlessness, property success, and razor-sharp executive decisiveness.',
+        'strong_ta': 'செவ்வாய் மிகுந்த பலம் பெற்றுள்ளதால் அஞ்சாத நெஞ்சம், பூமி-மனை வாங்கும் யோகம், தொழில்நுட்பம் மற்றும் நிர்வாகத்தில் அபார வெற்றி கிட்டும்.',
+        'weak_en': 'Can prompt impulsive haste or friction. Channeling fire into sports, yoga, or methodical engineering maintains harmonious energy.',
+        'weak_ta': 'செவ்வாய் பலம் குறைவாக இருந்தால் அவசர முடிவுகளும், கோபமும் வரலாம். உடற்பயிற்சி மற்றும் சுப்ரமணியர் வழிபாடு செய்வது ஆற்றலை சமப்படுத்தும்.'
+    },
+    'Mercury': {
+        'theme_en': 'commercial acumen, analytical intellect, communication flair, and diplomatic wit',
+        'theme_ta': 'வணிக சாதுரியம், கூர்மையான புத்தி, தகவல் தொடர்புத் திறன் மற்றும் கணக்கியல் விவேகம்',
+        'strong_en': 'Fosters multifaceted intellectual brilliance, linguistic elegance, swift mathematical intuition, and prosperous trade associations.',
+        'strong_ta': 'புதன் மிகச் சிறந்த பலம் பெற்றுள்ளதால் பேச்சுத் திறமை, எழுத்து, கணிதம், வியாபாரம் மற்றும் கணினித் துறைகளில் அசாத்திய சாதனை புரியலாம்.',
+        'weak_en': 'May result in scattered multitasking or mental restlessness. Grounding routines and green color alignments enhance focus.',
+        'weak_ta': 'புதன் பலம் குறைவாக உள்ளதால் கவனச்சிதறல் ஏற்படலாம். புதன்கிழமை விஷ்ணு சஹஸ்ரநாமம் பாராயணம் செய்வது அறிவாற்றலை கூர்மையாக்கும்.'
+    },
+    'Jupiter': {
+        'theme_en': 'divine grace, moral wisdom, financial expansion, mentorship, and progeny blessings',
+        'theme_ta': 'தெய்வ அனுகூலம், தர்ம சிந்தனை, பொருளாதார வளர்ச்சி, புத்திர பாக்கியம் மற்றும் வழிகாட்டும் பெருமை',
+        'strong_en': 'Radiates magnanimous benevolence, deep philosophical comprehension, ethical prosperity, and revered advisor standing.',
+        'strong_ta': 'குரு பகவான் பரிபூரண பலம் பெற்றுள்ளதால் நற்குணங்கள், பொருளாதார பெருக்கம், ஆன்மீக அறிவு மற்றும் பெரியோர்களின் ஆசிகள் நிறைவாகக் கிட்டும்.',
+        'weak_en': 'Suggests vigilance against financial complacency or over-promising. Honoring preceptors and engaging in philanthropic teaching elevates Jupiter.',
+        'weak_ta': 'குரு பலம் குறைவாக இருந்தால் விரயச் செலவுகள் வரலாம். வியாழக்கிழமை தட்சிணாமூர்த்தி வழிபாடு மற்றும் குருமார்களுக்கு மரியாதை செய்தல் சிறப்பு.'
+    },
+    'Venus': {
+        'theme_en': 'artistic refinement, marital harmony, aesthetic luxury, and relational elegance',
+        'theme_ta': 'கலை ரசனை, தாம்பத்திய மகிழ்ச்சி, ஆடம்பர சுகபோகம் மற்றும் கவர்ச்சியான தோற்றம்',
+        'strong_en': 'Confers exquisite aesthetic discernment, magnetic charm, sensual fulfillment, and enduring joy in matrimonial companionship.',
+        'strong_ta': 'சுக்கிரன் நிறைந்த பலம் பெற்றுள்ளதால் கலை, வாகனம், ஆடை ஆபரண சேர்க்கை, வசதியான வாழ்க்கை மற்றும் இனிமையான தாம்பத்தியம் அமையும்.',
+        'weak_en': 'May indicate relationship compromises or indulgence. Cultivating devotion to Mahalakshmi and refined artistic discipline brings balance.',
+        'weak_ta': 'சுக்கிரன் பலம் குறைவாக இருந்தால் உறவுகளில் சமரசம் தேவைப்படலாம். வெள்ளிக்கிழமை மகாலட்சுமி வழிபாடு செய்வது வாழ்வில் சுப யோகங்களை சேர்க்கும்.'
+    },
+    'Saturn': {
+        'theme_en': 'monumental endurance, career longevity, discipline, organization, and karmic resilience',
+        'theme_ta': 'தளராத உழைப்பு, நீண்ட ஆயுள், நிர்வாக ஒழுக்கம் மற்றும் கர்ம வினைகளை வெல்லும் மன உறுதி',
+        'strong_en': 'Instills unshakeable stoicism, structural organizing mastery, deep humility, and a career that rises steadily to legendary permanence.',
+        'strong_ta': 'சனி பகவான் மிகுந்த பலம் பெற்றுள்ளதால் இரும்பைப் போன்ற மன உறுதி, கடின உழைப்பால் படிப்படியான உயர்ந்த பதவி மற்றும் நிலைத்த செல்வம் கிட்டும்.',
+        'weak_en': 'May bring experiences of delay or emotional gravity. Serving underprivileged communities and disciplined consistency transform Saturnian karma.',
+        'weak_ta': 'சனி பலம் குறைவாக இருந்தால் காரியத் தடைகளும், தாமதங்களும் வரலாம். ஏழை எளியவர்களுக்கு அன்னதானம் செய்வதும், அனுமன் வழிபாடும் தடைகளை நீக்கும்.'
+    }
+}
+# Why a graha is strong or weak, read from its Shadbala components (virupas)
+SHADBALA_FACTORS = [
+    ('uchcha', lambda v: v >= 45, 1, 'Close to its exaltation point', 'உச்ச நிலைக்கு அருகில் உள்ளது'),
+    ('uchcha', lambda v: v <= 15, -1, 'Close to its debilitation point', 'நீச நிலைக்கு அருகில் உள்ளது'),
+    ('saptavargaja', lambda v: v >= 150, 1, 'Dignified across the seven vargas', 'சப்த வர்க்கங்களில் நல்ல கௌரவம் பெற்றது'),
+    ('saptavargaja', lambda v: v <= 60, -1, 'With unfriendly lords in most vargas', 'பெரும்பாலான வர்க்கங்களில் பகை வீடுகளில் உள்ளது'),
+    ('dig', lambda v: v >= 45, 1, 'Near its direction of strength', 'திக் பலம் நிறைந்த நிலையில் உள்ளது'),
+    ('dig', lambda v: v <= 15, -1, 'Far from its direction of strength', 'திக் பலம் குறைந்த நிலையில் உள்ளது'),
+    ('cheshta', lambda v: v >= 45, 1, 'Strong in motion (retrograde or slowing)', 'வக்ர/மந்த கதியால் சேஷ்டா பலம் பெற்றது'),
+    ('drik', lambda v: v >= 10, 1, 'Aspected mainly by benefics', 'சுப கிரகப் பார்வை பெற்றது'),
+    ('drik', lambda v: v <= -10, -1, 'Aspected mainly by malefics', 'பாப கிரகப் பார்வை பெற்றது'),
+    ('yuddha', lambda v: v > 0, 1, 'Victorious in a planetary war', 'கிரக யுத்தத்தில் வெற்றி பெற்றது'),
+    ('yuddha', lambda v: v < 0, -1, 'Defeated in a planetary war', 'கிரக யுத்தத்தில் தோல்வியுற்றது')
+]
+SHADBALA_COMPONENTS = ('uchcha', 'saptavargaja', 'ojayugma', 'kendra', 'drekkana', 'nathonnatha', 'paksha', 'tribhaga',
+                       'abda', 'masa', 'vara', 'hora', 'ayana', 'yuddha', 'cheshta', 'drik')
+
+
 def calculate_shadbala(chart):
-    planets = chart['planets']
-    asc = planets['Ascendant']
-    sun = planets['Sun']
-    moon = planets['Moon']
-    asc_lon = asc['longitude']
-    sun_lon = sun['longitude']
-    moon_lon = moon['longitude']
-    sun_house = sun['house']
-    is_day = sun_house in (7, 8, 9, 10, 11, 12)
-
-    moon_sun_angle = (moon_lon - sun_lon) % 360
-    benefic_paksha = (moon_sun_angle / 180.0) * 60.0 if moon_sun_angle <= 180 else ((360.0 - moon_sun_angle) / 180.0) * 60.0
-    malefic_paksha = 60.0 - benefic_paksha
-
+    """Interpret the engine's Shadbala (BPHS, as worked in B.V. Raman's Graha and Bhava Balas)."""
+    raw = chart['shadbala']
     shadbala_list = []
     for p_name in ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']:
-        p = planets[p_name]
-        lon = p['longitude']
-        deg = p['degree']
-        sign_idx = p['sign_index']
-        house = p['house']
-        speed = p.get('speed', 1.0)
-        is_retro = p.get('retrograde', False)
-
-        # 1. Sthana Bala
-        deb_lon = DEEP_DEBILITATION[p_name]
-        diff = abs(lon - deb_lon) % 360
-        if diff > 180: diff = 360 - diff
-        uchha = diff / 3.0
-
-        vargas = p.get('vargas', {})
-        sapta_keys = ['D1', 'D2', 'D3', 'D7', 'D9', 'D12', 'D30']
-        sapta_pts = 0
-        for k in sapta_keys:
-            v_sign = vargas.get(k, sign_idx)
-            v_lord = SIGN_LORDS[v_sign]
-            if v_lord == p_name: sapta_pts += 30
-            elif (v_sign - sign_idx) % 12 in (0, 4, 8): sapta_pts += 22.5
-            elif (v_sign - sign_idx) % 12 in (2, 6, 10): sapta_pts += 15
-            else: sapta_pts += 7.5
-        saptavargaja = (sapta_pts / len(sapta_keys)) * 3.0
-
-        is_odd_sign = (sign_idx % 2 == 0)
-        nav_sign = vargas.get('D9', sign_idx)
-        is_odd_nav = (nav_sign % 2 == 0)
-        ojayugma = 0
-        if p_name in ('Sun', 'Mars', 'Jupiter'):
-            if is_odd_sign: ojayugma += 15
-            if is_odd_nav: ojayugma += 15
-        elif p_name in ('Moon', 'Venus'):
-            if not is_odd_sign: ojayugma += 15
-            if not is_odd_nav: ojayugma += 15
-        else:
-            if not is_odd_sign: ojayugma += 15
-            if is_odd_nav: ojayugma += 15
-
-        kendra = 60 if house in (1, 4, 7, 10) else (30 if house in (2, 5, 8, 11) else 15)
-
-        drekkana = 0
-        if p_name in ('Sun', 'Mars', 'Jupiter') and deg < 10: drekkana = 15
-        elif p_name in ('Mercury', 'Saturn') and 10 <= deg < 20: drekkana = 15
-        elif p_name in ('Moon', 'Venus') and deg >= 20: drekkana = 15
-
-        sthana = uchha + saptavargaja + ojayugma + kendra + drekkana
-
-        # 2. Dig Bala
-        if p_name in ('Sun', 'Mars'): opp_pt = (asc_lon + 90) % 360
-        elif p_name in ('Jupiter', 'Mercury'): opp_pt = (asc_lon + 180) % 360
-        elif p_name == 'Saturn': opp_pt = asc_lon
-        else: opp_pt = (asc_lon + 270) % 360
-        dist_opp = abs(lon - opp_pt) % 360
-        if dist_opp > 180: dist_opp = 360 - dist_opp
-        dig = (dist_opp / 180.0) * 60.0
-
-        # 3. Kaala Bala
-        natho = 0
-        if is_day:
-            if p_name in ('Sun', 'Jupiter', 'Venus', 'Mercury'): natho = 60
-        else:
-            if p_name in ('Moon', 'Mars', 'Saturn', 'Mercury'): natho = 60
-
-        if p_name in ('Jupiter', 'Venus', 'Moon'): paksha = benefic_paksha
-        elif p_name in ('Sun', 'Mars', 'Saturn'): paksha = malefic_paksha
-        else: paksha = benefic_paksha if benefic_paksha >= 30 else malefic_paksha
-
-        ayana = 30.0 + 15.0 * math.sin(math.radians(lon))
-        kaala = natho + paksha + ayana
-
-        # 4. Chesta Bala
-        if p_name in ('Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'):
-            if is_retro: chesta = 60.0
-            elif abs(speed) > 1.1: chesta = 45.0
-            elif abs(speed) < 0.1: chesta = 15.0
-            else: chesta = 30.0
-        elif p_name == 'Sun': chesta = ayana
-        else: chesta = paksha
-
-        # 5. Naisargika Bala
-        naisargika = NAISARGIKA_BALA[p_name]
-
-        # 6. Drik Bala
-        aspects_rec = p.get('aspects_received', [])
-        drik = 0.0
-        for asp in aspects_rec:
-            if asp in ('Jupiter', 'Venus'): drik += 15.0
-            elif asp in ('Saturn', 'Mars'): drik -= 15.0
-        drik = max(-30.0, min(30.0, drik))
-
-        total_v = sthana + dig + kaala + chesta + naisargika + drik
-        total_r = total_v / 60.0
-        bench_r = SHADBALA_BENCHMARKS[p_name]
-        ratio = round(total_v / (bench_r * 60.0), 2)
+        r = raw[p_name]
+        ratio = round(r['ratio'], 2)
         is_adequate = ratio >= 1.0
-
-        preds = {
-            'Sun': {
-                'theme_en': 'executive authority, vitality, leadership, and public recognition',
-                'theme_ta': 'அதிகார ஆளுமை, உடல் நலம், தலைமைத்துவம் மற்றும் சமூக புகழ்',
-                'strong_en': 'Endows radiant confidence, dignified integrity, natural leadership charisma, and strong support from government or senior authorities.',
-                'strong_ta': 'சூரியன் உயர் பலம் பெற்றுள்ளதால் அசைக்க முடியாத தன்னம்பிக்கை, கம்பீரமான ஆளுமை, அரசு வழியில் நன்மைகள் மற்றும் தலைமைப் பொறுப்புகள் அமையும்.',
-                'weak_en': 'May induce occasional self-doubt or struggle with organizational superiors. Daily Surya Namaskar and honoring father figures strengthen solar vigor.',
-                'weak_ta': 'சூரியன் குறைந்த பலம் உள்ளதால் சில சமயங்களில் தயக்கமும், அதிகாரிகளுடன் பிணக்குகளும் நேரலாம். ஆதித்ய ஹிருதய ஸ்தோத்திரம் மற்றும் தந்தையிடம் ஆசி பெறுதல் நலம்.'
-            },
-            'Moon': {
-                'theme_en': 'emotional equanimity, intuitive perception, mental tranquility, and public popularity',
-                'theme_ta': 'மன அமைதி, உள்ளுணர்வுத் தெளிவு, பொதுஜன ஆதரவு மற்றும் கற்பனைத் திறன்',
-                'strong_en': 'Bestows serene emotional balance, maternal grace, fertile creative instincts, and wide social affection.',
-                'strong_ta': 'சந்திரன் உன்னத பலம் பெற்றுள்ளதால் மன அமைதி, தெளிவான உள்ளுணர்வு, கற்பனை ஆற்றல் மற்றும் மக்கள் மத்தியில் நன்மதிப்பு கூடும்.',
-                'weak_en': 'Indicates mood sensitivity or over-thinking during stressful periods. Meditation and honoring mother energies cultivate inner stability.',
-                'weak_ta': 'சந்திரன் குறைந்த பலம் பெற்றுள்ளதால் மன அமைதியின்மை அல்லது அதீத சிந்தனை ஏற்படலாம். தியானம் மற்றும் தாய்க்கு பணிவிடை செய்வது அமைதி தரும்.'
-            },
-            'Mars': {
-                'theme_en': 'courage, real estate prowess, physical stamina, engineering acumen, and fearlessness',
-                'theme_ta': 'துணிச்சல், பூமி யோகம், பொறியியல்/தொழில்நுட்பத் திறன் மற்றும் எதிரிகளை வெல்லும் வலிமை',
-                'strong_en': 'Commands heroic willpower, strategic fearlessness, property success, and razor-sharp executive decisiveness.',
-                'strong_ta': 'செவ்வாய் மிகுந்த பலம் பெற்றுள்ளதால் அஞ்சாத நெஞ்சம், பூமி-மனை வாங்கும் யோகம், தொழில்நுட்பம் மற்றும் நிர்வாகத்தில் அபார வெற்றி கிட்டும்.',
-                'weak_en': 'Can prompt impulsive haste or friction. Channeling fire into sports, yoga, or methodical engineering maintains harmonious energy.',
-                'weak_ta': 'செவ்வாய் பலம் குறைவாக இருந்தால் அவசர முடிவுகளும், கோபமும் வரலாம். உடற்பயிற்சி மற்றும் சுப்ரமணியர் வழிபாடு செய்வது ஆற்றலை சமப்படுத்தும்.'
-            },
-            'Mercury': {
-                'theme_en': 'commercial acumen, analytical intellect, communication flair, and diplomatic wit',
-                'theme_ta': 'வணிக சாதுரியம், கூர்மையான புத்தி, தகவல் தொடர்புத் திறன் மற்றும் கணக்கியல் விவேகம்',
-                'strong_en': 'Fosters multifaceted intellectual brilliance, linguistic elegance, swift mathematical intuition, and prosperous trade associations.',
-                'strong_ta': 'புதன் மிகச் சிறந்த பலம் பெற்றுள்ளதால் பேச்சுத் திறமை, எழுத்து, கணிதம், வியாபாரம் மற்றும் கணினித் துறைகளில் அசாத்திய சாதனை புரியலாம்.',
-                'weak_en': 'May result in scattered multitasking or mental restlessness. Grounding routines and green color alignments enhance focus.',
-                'weak_ta': 'புதன் பலம் குறைவாக உள்ளதால் கவனச்சிதறல் ஏற்படலாம். புதன்கிழமை விஷ்ணு சஹஸ்ரநாமம் பாராயணம் செய்வது அறிவாற்றலை கூர்மையாக்கும்.'
-            },
-            'Jupiter': {
-                'theme_en': 'divine grace, moral wisdom, financial expansion, mentorship, and progeny blessings',
-                'theme_ta': 'தெய்வ அனுகூலம், தர்ம சிந்தனை, பொருளாதார வளர்ச்சி, புத்திர பாக்கியம் மற்றும் வழிகாட்டும் பெருமை',
-                'strong_en': 'Radiates magnanimous benevolence, deep philosophical comprehension, ethical prosperity, and revered advisor standing.',
-                'strong_ta': 'குரு பகவான் பரிபூரண பலம் பெற்றுள்ளதால் நற்குணங்கள், பொருளாதார பெருக்கம், ஆன்மீக அறிவு மற்றும் பெரியோர்களின் ஆசிகள் நிறைவாகக் கிட்டும்.',
-                'weak_en': 'Suggests vigilance against financial complacency or over-promising. Honoring preceptors and engaging in philanthropic teaching elevates Jupiter.',
-                'weak_ta': 'குரு பலம் குறைவாக இருந்தால் விரயச் செலவுகள் வரலாம். வியாழக்கிழமை தட்சிணாமூர்த்தி வழிபாடு மற்றும் குருமார்களுக்கு மரியாதை செய்தல் சிறப்பு.'
-            },
-            'Venus': {
-                'theme_en': 'artistic refinement, marital harmony, aesthetic luxury, and relational elegance',
-                'theme_ta': 'கலை ரசனை, தாம்பத்திய மகிழ்ச்சி, ஆடம்பர சுகபோகம் மற்றும் கவர்ச்சியான தோற்றம்',
-                'strong_en': 'Confers exquisite aesthetic discernment, magnetic charm, sensual fulfillment, and enduring joy in matrimonial companionship.',
-                'strong_ta': 'சுக்கிரன் உச்ச பலம் பெற்றுள்ளதால் கலை, வாகனம், ஆடை ஆபரண சேர்க்கை, வசதியான வாழ்க்கை மற்றும் இனிமையான தாம்பத்தியம் அமையும்.',
-                'weak_en': 'May indicate relationship compromises or indulgence. Cultivating devotion to Mahalakshmi and refined artistic discipline brings balance.',
-                'weak_ta': 'சுக்கிரன் பலம் குறைவாக இருந்தால் உறவுகளில் சமரசம் தேவைப்படலாம். வெள்ளிக்கிழமை மகாலட்சுமி வழிபாடு செய்வது வாழ்வில் சுப யோகங்களை சேர்க்கும்.'
-            },
-            'Saturn': {
-                'theme_en': 'monumental endurance, career longevity, discipline, organization, and karmic resilience',
-                'theme_ta': 'தளராத உழைப்பு, நீண்ட ஆயுள், நிர்வாக ஒழுக்கம் மற்றும் கர்ம வினைகளை வெல்லும் மன உறுதி',
-                'strong_en': 'Instills unshakeable stoicism, structural organizing mastery, deep humility, and a career that rises steadily to legendary permanence.',
-                'strong_ta': 'சனி பகவான் மிகுந்த பலம் பெற்றுள்ளதால் இரும்பைப் போன்ற மன உறுதி, கடின உழைப்பால் படிப்படியான உயர்ந்த பதவி மற்றும் நிலைத்த செல்வம் கிட்டும்.',
-                'weak_en': 'May bring experiences of delay or emotional gravity. Serving underprivileged communities and disciplined consistency transform Saturnian karma.',
-                'weak_ta': 'சனி பலம் குறைவாக இருந்தால் காரியத் தடைகளும், தாமதங்களும் வரலாம். ஏழை எளியவர்களுக்கு அன்னதானம் செய்வதும், அனுமன் வழிபாடும் தடைகளை நீக்கும்.'
-            }
-        }
-
-        interp = preds[p_name]
+        factors = [dict(en=en, ta=ta, effect=effect) for key, test, effect, en, ta in SHADBALA_FACTORS if test(r[key])]
+        if p_name == 'Moon':
+            bright = r['paksha'] >= 60
+            factors.insert(0, dict(en='A bright Moon' if bright else 'A dim Moon near Amavasai',
+                                   ta='ஒளி மிகுந்த சந்திரன்' if bright else 'அமாவாசைக்கு அருகில் ஒளி குறைந்த சந்திரன்',
+                                   effect=1 if bright else -1))
+        ishta, kashta = r['ishta'], r['kashta']
+        favourable = ishta >= kashta
+        phala_en = (f"Ishta Phala {ishta:.1f} against Kashta Phala {kashta:.1f}: its dasa and bhukti lean towards "
+                    + ('favourable results.' if favourable else 'testing results that reward patience.'))
+        phala_ta = (f"இஷ்ட பலன் {ishta:.1f}, கஷ்ட பலன் {kashta:.1f}: இதன் தசா புக்திகள் பெரும்பாலும் "
+                    + ('நற்பலன்களைத் தரும்.' if favourable else 'பொறுமையைச் சோதிக்கும் பலன்களைத் தரும்.'))
+        interp = SHADBALA_READINGS[p_name]
         shadbala_list.append({
             'planet': p_name,
             'planet_ta': PLANET_TAMIL[p_name],
-            'sthana_bala': round(sthana, 1),
-            'dig_bala': round(dig, 1),
-            'kaala_bala': round(kaala, 1),
-            'chesta_bala': round(chesta, 1),
-            'naisargika_bala': round(naisargika, 1),
-            'drik_bala': round(drik, 1),
-            'total_virupas': round(total_v, 1),
-            'total_rupas': round(total_r, 2),
-            'min_required_rupas': bench_r,
+            'sthana_bala': round(r['sthana'], 2),
+            'dig_bala': round(r['dig'], 2),
+            'kaala_bala': round(r['kaala'], 2),
+            'chesta_bala': round(r['cheshta'], 2),
+            'naisargika_bala': round(r['naisargika'], 2),
+            'drik_bala': round(r['drik'], 2),
+            'components': {k: round(r[k], 2) for k in SHADBALA_COMPONENTS},
+            'total_virupas': round(r['total'], 2),
+            'total_rupas': round(r['rupas'], 2),
+            'min_required_rupas': r['required_rupas'],
             'strength_ratio': ratio,
             'is_adequate': is_adequate,
+            'ishta_phala': round(ishta, 2),
+            'kashta_phala': round(kashta, 2),
+            'factors': factors,
             'theme_en': interp['theme_en'],
             'theme_ta': interp['theme_ta'],
-            'reading_en': interp['strong_en'] if is_adequate else interp['weak_en'],
-            'reading_ta': interp['strong_ta'] if is_adequate else interp['weak_ta']
+            'reading_en': (interp['strong_en'] if is_adequate else interp['weak_en']) + ' ' + phala_en,
+            'reading_ta': (interp['strong_ta'] if is_adequate else interp['weak_ta']) + ' ' + phala_ta
         })
 
     shadbala_list.sort(key=lambda x: x['strength_ratio'], reverse=True)
@@ -1701,12 +1599,21 @@ def calculate_shadbala(chart):
 
     dominant = shadbala_list[0]
     vulnerable = shadbala_list[-1]
+    adequate = [x for x in shadbala_list if x['is_adequate']]
 
     return {
         'dominant_planet': dominant,
         'vulnerable_planet': vulnerable,
-        'summary_en': f"Your dominant driving planet is {dominant['planet']} with {dominant['strength_ratio']}x required Shadbala, fueling your {dominant['theme_en']}. Your karmic growth focus lies with {vulnerable['planet']} ({vulnerable['strength_ratio']}x).",
-        'summary_ta': f"உங்கள் ஜாதகத்தில் முதன்மை ஆதிக்க பலம் பெற்ற கிரகம் {dominant['planet_ta']} ({dominant['strength_ratio']} மடங்கு பலம்). இது உங்கள் {dominant['theme_ta']}-க்கு மகத்தான வெற்றியைத் தரும். கர்ம வளர்ச்சி தேவைப்படும் கிரகம் {vulnerable['planet_ta']} ({vulnerable['strength_ratio']} மடங்கு).",
+        'adequate_count': len(adequate),
+        'method_en': 'Brihat Parashara Hora Shastra, as worked in B.V. Raman\'s Graha and Bhava Balas; minimum strengths per BPHS.',
+        'method_ta': 'பிருஹத் பராசர ஹோரா சாஸ்திரம் (பி.வி. ராமனின் கிரக-பாவ பலம் நூல் வழி); குறைந்தபட்ச பலம் பராசரர் வகுத்தபடி.',
+        'summary_en': (f"{dominant['planet']} is the strongest graha at {dominant['strength_ratio']}x its required Shadbala, "
+                       f"fuelling your {dominant['theme_en']}. {len(adequate)} of 7 grahas meet their classical minimum; "
+                       f"{vulnerable['planet']} ({vulnerable['strength_ratio']}x) is the one to strengthen."),
+        'summary_ta': (f"உங்கள் ஜாதகத்தில் அதிக பலம் பெற்ற கிரகம் {dominant['planet_ta']} (தேவையான ஷட்பலத்தின் "
+                       f"{dominant['strength_ratio']} மடங்கு); இது உங்கள் {dominant['theme_ta']}-க்கு வலு சேர்க்கும். "
+                       f"7 கிரகங்களில் {len(adequate)} கிரகங்கள் குறைந்தபட்ச பலத்தைப் பெற்றுள்ளன; "
+                       f"பலம் கூட்ட வேண்டிய கிரகம் {vulnerable['planet_ta']} ({vulnerable['strength_ratio']} மடங்கு)."),
         'planets': shadbala_list
     }
 

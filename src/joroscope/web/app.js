@@ -2998,6 +2998,13 @@ function renderLifeReadings() {
   }
 
   // Chapter 12: Shadbala Planetary Strengths & Potency
+  const SHADBALA_PARTS = [
+    ['uchcha', 'Uchcha', 'உச்ச'], ['saptavargaja', 'Saptavargaja', 'சப்தவர்க்கஜ'], ['ojayugma', 'Ojayugma', 'ஓஜயுக்ம'],
+    ['kendra', 'Kendradi', 'கேந்திராதி'], ['drekkana', 'Drekkana', 'திரேக்காண'], ['nathonnatha', 'Nathonnatha', 'நதோன்னத'],
+    ['paksha', 'Paksha', 'பக்ஷ'], ['tribhaga', 'Tribhaga', 'திரிபாக'], ['abda', 'Abda', 'அப்த'], ['masa', 'Masa', 'மாச'],
+    ['vara', 'Vara', 'வார'], ['hora', 'Hora', 'ஹோரா'], ['ayana', 'Ayana', 'அயன'], ['yuddha', 'Yuddha', 'யுத்த'],
+    ['cheshta', 'Cheshta', 'சேஷ்டா'], ['drik', 'Drik', 'திருக்']
+  ];
   const sb = pred.shadbala;
   if (sb) {
     $('#shadbala-master-summary').textContent = isTa ? sb.summary_ta : sb.summary_en;
@@ -3049,6 +3056,19 @@ function renderLifeReadings() {
             <span class="bhava-meta-pill">${txt('Drik', 'திருக்')}: <strong>${p.drik_bala}</strong></span>
           </div>
           <p class="reading-body" style="font-size:12.5px; margin-top:8px;">${esc(reading)}</p>
+          ${(p.factors || []).length ? `<ul class="bhava-factors">${p.factors.map(f => `
+            <li class="${f.effect > 0 ? 'plus' : 'minus'}">${esc(txt(f.en, f.ta))}</li>`).join('')}
+          </ul>` : ''}
+          <div class="bhava-meta-strip" style="font-size:11px; margin-top:8px;">
+            <span class="bhava-meta-pill">${txt('Ishta Phala', 'இஷ்ட பலன்')}: <strong>${p.ishta_phala}</strong></span>
+            <span class="bhava-meta-pill">${txt('Kashta Phala', 'கஷ்ட பலன்')}: <strong>${p.kashta_phala}</strong></span>
+          </div>
+          ${p.components ? `<details class="shadbala-breakdown">
+            <summary>${txt('Component breakdown (virupas)', 'உட்கூறு பலங்கள் (விரூபம்)')}</summary>
+            <div class="shadbala-components">${SHADBALA_PARTS.map(([key, en, ta]) => `
+              <div><span>${esc(txt(en, ta))}</span><strong>${p.components[key]}</strong></div>`).join('')}
+            </div>
+          </details>` : ''}
         `;
         sbGrid.append(card);
       });

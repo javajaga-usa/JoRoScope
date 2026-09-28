@@ -106,7 +106,7 @@ JoRoScope is a modern, high-precision Vedic astrology suite calculated using the
 14. **D60 (Shashtiamsa)**: Past-life karma and ultimate destiny.
 
 ### 17 Prediction Chapters
-- **Shadbala (Virupas & Rupas)**: Positional, Directional, Temporal, Motional, Natural, Aspectual strengths.
+- **Shadbala (Virupas & Rupas)**: `core/shadbala.py` computes Positional, Directional, Temporal, Motional, Natural and Aspectual strengths per BPHS, as worked in B.V. Raman's *Graha and Bhava Balas* (checked by `tests/test_shadbala.py`). The engine runs it over the Vedic day of birth, and `predictions.calculate_shadbala` interprets the result.
 - **KP Sub-Lords**: Exact division of each constellation into unequal planetary sub-rulers according to Vimshottari proportions.
 - **Bhrigu Nandi Nadi**: Conjunctions and 1-5-9 directional trinal alignments (Dharma, Artha, Kama, Moksha).
 - **Planetary Avasthas**: Baladi (Bala, Kumara, Yuva, Vriddha, Mrita) and Jagradadi (Jagrat, Swapna, Sushupti).

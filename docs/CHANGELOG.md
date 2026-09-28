@@ -20,6 +20,12 @@
 - Yogini Dasa with bhuktis, its star mapping checked against PyJHora.
 - Dasa Sandhi in matching: Maha Dasa changes of bride and groom within 182 days of each other over the next 30 years.
 
+### Accurate Shadbala
+- New `joroscope.core.shadbala` module computes every classical component: Uchcha, Saptavargaja (compound relationships over D1/D2/D3/D7/D9/D12/D30), Ojayugma, Kendradi, Drekkana; Dig from the Sripati bhava madhyas; Nathonnatha from apparent midnight, Paksha, Tribhaga, Abda and Masa from the Kali ahargana, Vara, Hora, Ayana from the kranti, and Graha Yuddha; Cheshta from B.V. Raman's mean-longitude tables; and Drik from sphuta drishti.
+- Reproduces B.V. Raman's *Graha and Bhava Balas* example and V.P. Jain's example within one virupa per component. The only differences are documented where a book goes beyond BPHS: a Dig Bala above the classical 60, and Moolatrikona taken over the whole sign.
+- The Shadbala chapter adds Ishta and Kashta Phala, the reasons behind each graha's strength, and a full component breakdown in Tamil and English.
+- Replaces the earlier approximation: sign-distance Saptavargaja, a wrong Mercury/Saturn Ojayugma, Kaala Bala with only three parts, speed-bucket Cheshta and ±15 aspect Drik.
+
 ### Printable Jathagam
 - One click prints a traditional horoscope sheet in the chosen language: birth details and Tamil notes, Rasi and Navamsa side by side, planetary positions, doshas and yogas, and the full Dasa-Bhukti table.
 - Dasa-Bhukti dates everywhere are calendar dates at the birthplace; they were UTC dates, a day early for boundaries after 18:30 UTC in India.
