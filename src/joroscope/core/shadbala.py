@@ -257,3 +257,97 @@ def compute_shadbala(planets, jd, events, vedic_date, madhya, ayanamsa):
         r['ishta'] = math.sqrt(r['uchcha'] * cheshta)
         r['kashta'] = math.sqrt((60 - r['uchcha']) * (60 - cheshta))
     return result
+
+
+# --- Bhava Bala (BPHS ch. 27) ---
+# Sign classes of a bhava madhya, by longitude range, and the bhava (0 = 1st) where each is strongest
+BHAVA_DIG_CLASSES = [
+    ('nara', 0, [(60, 90), (150, 180), (180, 210), (240, 255), (300, 330)]),        # human: 1st
+    ('jalachara', 3, [(90, 120), (285, 300), (330, 360)]),                          # watery: 4th
+    ('keeta', 6, [(210, 240)]),                                                      # insect: 7th
+    ('chatushpada', 9, [(0, 30), (30, 60), (120, 150), (255, 270), (270, 285)])     # quadruped: 10th
+]
+MINIMUM_BHAVA_RUPAS = 7.0
+
+
+def compute_bhava_bala(planets, madhya, shadbala):
+    """Bhava Bala of the twelve bhavas in virupas: Bhavadhipati Bala (the Shadbala of the lord
+    of the sign holding the madhya), Bhava Dig Bala (60 at the bhava where the madhya's sign
+    class is strongest, 10 less per bhava away) and Bhava Drishti Bala (sphuta drishti on the
+    madhya, benefic less malefic, quartered except Mercury's and Jupiter's, taken in full)."""
+    lon = {p: planets[p]['longitude'] for p in PLANETS}
+    signs = {p: planets[p]['sign_index'] for p in PLANETS}
+    benefics = _benefics(lon, signs, (lon['Moon'] - lon['Sun']) % 360 < 180)
+    rows = []
+    for n, mid in enumerate(madhya):
+        lord = SIGN_LORDS[int(mid // 30) % 12]
+        adhipati = shadbala[lord]['total']
+        dig = 0.0
+        for _, strong_at, ranges in BHAVA_DIG_CLASSES:
+            if any(start <= mid < end for start, end in ranges):
+                distance = abs(n - strong_at) % 12
+                dig = 60 - 10 * min(distance, 12 - distance)
+                break
+        drishti = 0.0
+        for q in PLANETS:
+            value = _drishti(mid - lon[q], q)
+            if q not in ('Mercury', 'Jupiter'):
+                value /= 4
+            drishti += value if q in benefics else -value
+        total = adhipati + dig + drishti
+        rows.append(dict(bhava=n + 1, lord=lord, adhipati=adhipati, dig=dig, drishti=drishti,
+                         total=total, rupas=total / 60, strong=total / 60 >= MINIMUM_BHAVA_RUPAS))
+    return rows
+
+
+# --- Vimsopaka Bala and Varga Bheda (BPHS ch. 7) ---
+VIMSOPAKA_SCHEMES = {
+    'shadvarga': {'D1': 6, 'D2': 2, 'D3': 4, 'D9': 5, 'D12': 2, 'D30': 1},
+    'saptavarga': {'D1': 5, 'D2': 2, 'D3': 3, 'D7': 2.5, 'D9': 4.5, 'D12': 2, 'D30': 1},
+    'dasavarga': {'D1': 3, 'D2': 1.5, 'D3': 1.5, 'D7': 1.5, 'D9': 1.5, 'D10': 1.5, 'D12': 1.5, 'D16': 1.5,
+                  'D30': 1.5, 'D60': 5},
+    'shodasavarga': {'D1': 3.5, 'D2': 1, 'D3': 1, 'D4': 0.5, 'D7': 0.5, 'D9': 3, 'D10': 0.5, 'D12': 0.5, 'D16': 2,
+                     'D20': 0.5, 'D24': 0.5, 'D27': 0.5, 'D30': 1, 'D40': 0.5, 'D45': 0.5, 'D60': 4}
+}
+# Points in a varga by compound relationship with its lord; own, exaltation and moolatrikona signs get 20
+VIMSOPAKA_POINTS = {2: 18, 1: 15, 0: 10, -1: 7, -2: 5}
+# Dignity names by the number of vargas in own, exaltation or moolatrikona signs (from 2 upward)
+VARGA_BHEDA = {
+    'shadvarga': [('Kimshukamsa', 'கிம்சுகாம்சம்'), ('Vyanjanamsa', 'வியஞ்சனாம்சம்'), ('Chamaramsa', 'சாமராம்சம்'),
+                  ('Chatramsa', 'சத்திராம்சம்'), ('Kundalamsa', 'குண்டலாம்சம்')],
+    'saptavarga': [('Kimshukamsa', 'கிம்சுகாம்சம்'), ('Vyanjanamsa', 'வியஞ்சனாம்சம்'), ('Chamaramsa', 'சாமராம்சம்'),
+                   ('Chatramsa', 'சத்திராம்சம்'), ('Kundalamsa', 'குண்டலாம்சம்'), ('Mukutamsa', 'முகுடாம்சம்')],
+    'dasavarga': [('Parijatamsa', 'பாரிஜாதாம்சம்'), ('Uttamamsa', 'உத்தமாம்சம்'), ('Gopuramsa', 'கோபுராம்சம்'),
+                  ('Simhasanamsa', 'சிம்மாசனாம்சம்'), ('Paravatamsa', 'பாராவதாம்சம்'), ('Devalokamsa', 'தேவலோகாம்சம்'),
+                  ('Brahmalokamsa', 'பிரம்மலோகாம்சம்'), ('Airavatamsa', 'ஐராவதாம்சம்'), ('Sridhamamsa', 'ஸ்ரீதாமாம்சம்')],
+    'shodasavarga': [('Bhedakamsa', 'பேதகாம்சம்'), ('Kusumamsa', 'குசுமாம்சம்'), ('Nagapurushamsa', 'நாகபுருஷாம்சம்'),
+                     ('Kandukamsa', 'கந்துகாம்சம்'), ('Keralamsa', 'கேரளாம்சம்'), ('Kalpavrikshamsa', 'கல்பவிருக்ஷாம்சம்'),
+                     ('Chandanavanamsa', 'சந்தனவனாம்சம்'), ('Poornachandramsa', 'பூர்ணசந்திராம்சம்'),
+                     ('Uchchaisravamsa', 'உச்சைஸ்ரவாம்சம்'), ('Dhanvantaryamsa', 'தன்வந்தர்யாம்சம்'),
+                     ('Suryakantamsa', 'சூர்யகாந்தாம்சம்'), ('Vidrumamsa', 'வித்ருமாம்சம்'), ('Indrasanamsa', 'இந்திராசனாம்சம்'),
+                     ('Golokamsa', 'கோலோகாம்சம்'), ('Srivallabhamsa', 'ஸ்ரீவல்லபாம்சம்')]
+}
+
+
+def compute_vimsopaka(planets):
+    """Vimsopaka Bala (out of 20) in the four varga schemes, with the Varga Bheda dignity:
+    how many of the scheme's vargas hold the graha in its own, exaltation or moolatrikona sign."""
+    signs = {p: planets[p]['sign_index'] for p in PLANETS}
+    result = {}
+    for p in PLANETS:
+        dignified = set(OWN_SIGNS[p]) | {DEEP_EXALTATION[p] // 30, MOOLATRIKONA[p][0]}
+        rows = {}
+        for scheme, weights in VIMSOPAKA_SCHEMES.items():
+            score, good = 0.0, 0
+            for varga, weight in weights.items():
+                s = planets[p]['vargas'][varga]
+                if s in dignified:
+                    points, good = 20, good + 1
+                else:
+                    points = VIMSOPAKA_POINTS[_compound(p, SIGN_LORDS[s], signs)]
+                score += points * weight / 20
+            names = VARGA_BHEDA[scheme]
+            bheda = names[min(good, len(names) + 1) - 2] if good >= 2 else None
+            rows[scheme] = dict(score=score, dignified=good, bheda=bheda)
+        result[p] = rows
+    return result

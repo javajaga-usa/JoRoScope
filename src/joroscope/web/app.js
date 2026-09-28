@@ -47,7 +47,8 @@ const VARGA_NAMES = {
   D4: ['Chaturthamsa', 'சதுர்த்தாம்சம்'], D7: ['Saptamsa', 'சப்தாம்சம்'], D9: ['Navamsa', 'நவாம்சம்'],
   D10: ['Dasamsa', 'தசாம்சம்'], D12: ['Dwadasamsa', 'துவாதசாம்சம்'], D16: ['Shodasamsa', 'ஷோடசாம்சம்'],
   D20: ['Vimsamsa', 'விம்சாம்சம்'], D24: ['Chaturvimsamsa', 'சதுர்விம்சாம்சம்'],
-  D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்'],
+  D27: ['Saptavimsamsa', 'சப்தவிம்சாம்சம்'], D30: ['Trimsamsa', 'திரிம்சாம்சம்'], D40: ['Khavedamsa', 'கவேதாம்சம்'],
+  D45: ['Akshavedamsa', 'அக்ஷவேதாம்சம்'], D60: ['Shashtiamsa', 'ஷஷ்டியாம்சம்'],
   Bhava: ['Bhava Chakra', 'பாவ சக்கரம்']
 };
 
@@ -263,7 +264,7 @@ const I18N = {
     dst_clock: 'Clock Fold (DST)',
     generate_chart: 'Generate Birth Chart',
     ready_to_reveal: 'Ready to Reveal the Sky',
-    enter_details_prompt: 'Enter birth details and click Generate to view South Indian, North Indian, and 14 Divisional Vargas with deep planetary analysis.',
+    enter_details_prompt: 'Enter birth details and click Generate to view South Indian, North Indian, and 16 Divisional Vargas with deep planetary analysis.',
     save_profile: 'Save Profile',
     export_pdf: 'Export PDF',
     ascendant: 'ASCENDANT (LAGNA)',
@@ -291,6 +292,8 @@ const I18N = {
     aspects_cast: 'Aspects Cast (Houses)',
     sav_title: 'Sarvashtakavarga (SAV) Points',
     bav_title: 'Bhinnashtakavarga (BAV) Table',
+    sodhana_title: 'Sodhita Ashtakavarga & Sodhya Pinda',
+    sodhana_sub: 'Bindus after the Trikona and Ekadhipatya reductions, and the Rasi, Graha and Sodhya Pindas used for longevity and transit timing.',
     detected_yogas: 'Detected Planetary Yogas',
     current_running_period: 'CURRENT ACTIVE PERIOD TODAY',
     lagna_path: 'Ascendant & Life Path',
@@ -398,7 +401,7 @@ const I18N = {
     hora_sub: 'Twelve day and twelve night horas from sunrise; Moon, Mercury, Jupiter and Venus horas are auspicious.',
     sacred_geometry: "ASTRONOMICAL PRECISION & VEDIC TRADITION",
     birth_chart_heading: "Your Celestial Blueprint",
-    birth_chart_sub: "Explore planetary alignments across Rasi, Navamsa, and 14 Parashara divisional vargas.",
+    birth_chart_sub: "Explore planetary alignments across Rasi, Navamsa, and 16 Parashara divisional vargas.",
     planetary_status: "GRAHA AVASTHAS & DRISHTI",
     planets_sub: "Detailed degrees, nakshatra padas, dignities, combustion, speed, and Vedic aspects.",
     parashara_system: "PARASHARA ASHTAKAVARGA SYSTEM",
@@ -434,7 +437,7 @@ const I18N = {
     fold_auto: "Automatic",
     fold_first: "1st occurrence (Standard)",
     fold_second: "2nd occurrence (Repeated)",
-    pill_vargas: "✦ 14 Divisional Vargas",
+    pill_vargas: "✦ 16 Divisional Vargas",
     pill_ashtaka: "✦ Parashara Ashtakavarga",
     pill_dasa: "✦ 3-Tier Dasa",
     pill_yoga: "✦ Yoga Engine",
@@ -530,6 +533,23 @@ const I18N = {
     th_bav_bindu: "BAV Bindu",
     th_result: "Result",
     h_shadbala: "Shadbala Six-Fold Planetary Potency Engine",
+    h_bhava_bala: "Bhava Bala (House Strength)",
+    h_vimsopaka: "Vimsopaka Bala & Varga Bheda",
+    pill_vimsopaka: "Out of 20",
+    p_vimsopaka: "Strength from dignity across the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes. A graha in its own, exaltation or moolatrikona sign in two or more vargas earns a named Varga Bheda dignity.",
+    th_shadvarga: "Shadvarga",
+    th_saptavarga: "Saptavarga",
+    th_dasavarga: "Dasavarga",
+    th_shodasavarga: "Shodasavarga",
+    pill_bhava_bala: "Minimum 7 Rupas",
+    p_bhava_bala: "The strength of each Sripati bhava: the Shadbala of its lord, its directional strength and the aspects on its madhya.",
+    th_bhava: "Bhava",
+    th_lord: "Lord",
+    th_adhipati: "Lord's Bala",
+    th_dig: "Dig",
+    th_drishti: "Drishti",
+    th_rupas: "Rupas",
+    th_rank: "Rank",
     pill_shadbala: "Classical Vedic Mathematical Strength",
     dominant_planet: "DOMINANT GUIDING PLANET (ATMA BALA)",
     karmic_vulnerability: "KARMIC VULNERABILITY (GROWTH FOCUS)",
@@ -649,6 +669,8 @@ const I18N = {
     aspects_cast: 'பார்க்கும் வீடுகள்',
     sav_title: 'சர்வாஷ்டகவர்க்கப் பரல்கள்',
     bav_title: 'பின்னாஷ்டகவர்க்க அட்டவணை',
+    sodhana_title: 'சோதித அஷ்டகவர்க்கம் & சோத்ய பிண்டம்',
+    sodhana_sub: 'திரிகோண, ஏகாதிபத்ய சோதனைகளுக்குப் பிறகான பரல்கள், மற்றும் ஆயுள், கோச்சாரக் காலக் கணிப்புக்குப் பயன்படும் ராசி, கிரக, சோத்ய பிண்டங்கள்.',
     detected_yogas: 'அமைந்துள்ள சுப யோகங்கள்',
     current_running_period: 'தற்போதைய தசா-புக்தி-அந்தரம்',
     lagna_path: 'லக்னம் & உடல் அமைப்பு',
@@ -756,7 +778,7 @@ const I18N = {
     hora_sub: 'சூரிய உதயம் முதல் 12 பகல், 12 இரவு ஓரைகள்; சந்திரன், புதன், குரு, சுக்கிர ஓரைகள் சுபம்.',
     sacred_geometry: "வானியல் துல்லியம் & வேத மரபு",
     birth_chart_heading: "உங்கள் ஜாதக வரைபடம்",
-    birth_chart_sub: "இராசி, நவாம்சம் மற்றும் 14 பராசர வர்க்கங்களில் கிரக அமைப்புகளை ஆராயுங்கள்.",
+    birth_chart_sub: "இராசி, நவாம்சம் மற்றும் 16 பராசர வர்க்கங்களில் கிரக அமைப்புகளை ஆராயுங்கள்.",
     planetary_status: "கிரக நிலைகள் & பார்வைகள்",
     planets_sub: "பாகைகள், நட்சத்திரப் பாதங்கள், கிரக நிலைகள், அஸ்தங்கம், வேகம் மற்றும் வேதப் பார்வைகள்.",
     parashara_system: "பராசர அஷ்டகவர்க்க முறை",
@@ -792,7 +814,7 @@ const I18N = {
     fold_auto: "தானியங்கி",
     fold_first: "முதல் நிகழ்வு (நிலையான நேரம்)",
     fold_second: "இரண்டாம் நிகழ்வு (மீண்டும் வந்த நேரம்)",
-    pill_vargas: "✦ 14 வர்க்கச் சக்கரங்கள்",
+    pill_vargas: "✦ 16 வர்க்கச் சக்கரங்கள்",
     pill_ashtaka: "✦ பராசர அஷ்டகவர்க்கம்",
     pill_dasa: "✦ 3 அடுக்கு தசை",
     pill_yoga: "✦ யோகக் கணிப்பு",
@@ -888,6 +910,23 @@ const I18N = {
     th_bav_bindu: "அஷ்டகவர்க்கப் பரல்",
     th_result: "பலன்",
     h_shadbala: "ஷட்பலம்: அறுவகைக் கிரக பலம்",
+    h_bhava_bala: "பாவ பலம்",
+    h_vimsopaka: "விம்சோபக பலம் & வர்க்க பேதம்",
+    pill_vimsopaka: "20-க்கு",
+    p_vimsopaka: "ஷட்வர்க்கம், சப்தவர்க்கம், தசவர்க்கம், ஷோடசவர்க்கம் ஆகியவற்றில் கிரகத்தின் கௌரவத்தால் வரும் பலம். இரண்டு அல்லது அதற்கு மேற்பட்ட வர்க்கங்களில் ஆட்சி, உச்சம் அல்லது மூலத்திரிகோணம் பெற்ற கிரகம் பெயர் பெற்ற வர்க்க பேத கௌரவத்தை அடைகிறது.",
+    th_shadvarga: "ஷட்வர்க்கம்",
+    th_saptavarga: "சப்தவர்க்கம்",
+    th_dasavarga: "தசவர்க்கம்",
+    th_shodasavarga: "ஷோடசவர்க்கம்",
+    pill_bhava_bala: "குறைந்தபட்சம் 7 ரூபம்",
+    p_bhava_bala: "ஒவ்வொரு ஸ்ரீபதி பாவத்தின் பலம்: அதிபதியின் ஷட்பலம், திக் பலம் மற்றும் பாவ மத்தியின் மீதான பார்வைகள்.",
+    th_bhava: "பாவம்",
+    th_lord: "அதிபதி",
+    th_adhipati: "அதிபதி பலம்",
+    th_dig: "திக்",
+    th_drishti: "திருஷ்டி",
+    th_rupas: "ரூபம்",
+    th_rank: "இடம்",
     pill_shadbala: "பாரம்பரிய வேதக் கணித பலம்",
     dominant_planet: "ஆதிக்க கிரகம் (ஆத்ம பலம்)",
     karmic_vulnerability: "கர்ம பலவீனம் (வளர்ச்சிக் கவனம்)",
@@ -1521,6 +1560,21 @@ function kurippuRows() {
     [pick('Papa Points (L / C / S)', 'பாப புள்ளிகள் (ல / ச / சு)'),
       `${si.papa_points.total} (${si.papa_points.breakdown.map(b => b.points).join(' / ')})`]
   ];
+  const ex = si.extras;
+  if (ex) {
+    const none = pick('None', 'இல்லை');
+    rows.push(
+      [pick('Yogi · Duplicate Yogi', 'யோகி · இரண்டாம் யோகி'),
+        `${grahaName(ex.yogi.planet)} (${pick(ex.yogi.star, ex.yogi.star_ta)}) · ${grahaName(ex.yogi.duplicate)}`],
+      [pick('Avayogi', 'அவயோகி'), `${grahaName(ex.avayogi.planet)} (${pick(ex.avayogi.star, ex.avayogi.star_ta)})`],
+      [pick('Dagdha Rasi', 'தக்த ராசி'), ex.dagdha_rasis.map(r => pick(r.en, r.ta)).join(', ') || none],
+      [pick('Chandra Avastha · Vela · Kriya', 'சந்திர அவஸ்தை · வேளை · கிரியை'),
+        `${ex.chandra.avastha}/12 · ${ex.chandra.vela}/36 · ${ex.chandra.kriya}/60`],
+      [pick('Moudhyam (combust)', 'மௌட்யம் (அஸ்தங்கம்)'), ex.moudhyam.map(m => `${grahaName(m.planet)} ${m.distance}°`).join(', ') || none],
+      [pick('Graha Yuddha', 'கிரக யுத்தம்'),
+        (ex.graha_yuddha || []).map(w => pick(`${w.winner} defeats ${w.loser}`, `${grahaName(w.winner)} வெற்றி, ${grahaName(w.loser)} தோல்வி`)).join('; ') || none]
+    );
+  }
   return rows;
 }
 
@@ -2105,6 +2159,23 @@ function renderAshtakavarga() {
     tr.innerHTML = `<td><strong>${grahaName(pName)}</strong></td>` + row.map(v => `<td>${v}</td>`).join('') + `<td><strong>${rowSum}</strong></td>`;
     tbody.append(tr);
   });
+
+  // Sodhita (reduced) bindus with the Rasi, Graha and Sodhya Pindas
+  const { sodhita, pindas } = currentChart.ashtakavarga;
+  const sHead = $('#sodhana-header');
+  const sBody = $('#sodhana-tbody');
+  if (sHead && sBody && sodhita && pindas) {
+    sHead.innerHTML = `<th>${txt('Planet', 'கிரகம்')}</th>` + SIGNS_EN.map((s, i) => `<th>${currentLang === 'ta' ? SIGNS_TA[i] : s.slice(0, 3)}</th>`).join('')
+      + `<th>${txt('Rasi Pinda', 'ராசி பிண்டம்')}</th><th>${txt('Graha Pinda', 'கிரக பிண்டம்')}</th><th>${txt('Sodhya Pinda', 'சோத்ய பிண்டம்')}</th>`;
+    sBody.replaceChildren();
+    Object.entries(sodhita).forEach(([pName, row]) => {
+      const pin = pindas[pName];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td><strong>${grahaName(pName)}</strong></td>` + row.map(v => `<td>${v}</td>`).join('')
+        + `<td>${pin.rasi}</td><td>${pin.graha}</td><td><strong style="color:var(--gold)">${pin.sodhya}</strong></td>`;
+      sBody.append(tr);
+    });
+  }
 }
 
 // Yogas & Doshas Rendering
@@ -2675,6 +2746,7 @@ function renderLifeReadings() {
         <div class="bhava-meta-strip">
           ${strengthPill(b)}
           <span class="bhava-meta-pill">${isTa ? 'அதிபதி நிலை' : 'Lord Dignity'}: <strong>${dignityLabel(b.lord_dignity)}</strong></span>
+          ${b.bhava_bala_rupas != null ? `<span class="bhava-meta-pill">${txt('Bhava Bala', 'பாவ பலம்')}: <strong>${b.bhava_bala_rupas} ${txt('rupas', 'ரூபம்')}</strong></span>` : ''}
           <span class="bhava-meta-pill">${isTa ? 'அமர்ந்த கிரகங்கள்' : 'Occupants'}: <strong>${esc(occStr)}</strong></span>
           <span class="bhava-meta-pill">${isTa ? 'பார்வை கிரகங்கள்' : 'Aspects'}: <strong>${esc(aspStr)}</strong></span>
         </div>
@@ -2820,6 +2892,13 @@ function renderLifeReadings() {
         ? jk.karakamsha.interpretation_ta
         : jk.karakamsha.interpretation_en;
     }
+
+    const aStrip = $('#jaimini-arudha-strip');
+    if (aStrip && jk.arudhas) {
+      aStrip.innerHTML = jk.arudhas.map(a => `<span class="bhava-meta-pill${[1, 12].includes(a.house) ? ' highlight' : ''}" title="${esc(txt(a.name_en, a.name_ta))}">${a.house === 1 ? 'AL' : (a.house === 12 ? 'UL' : a.code)}: <strong>${esc(txt(a.sign, a.sign_ta))}</strong></span>`).join('');
+    }
+    const aNotes = $('#jaimini-arudha-notes');
+    if (aNotes) aNotes.innerHTML = (jk.arudha_notes || []).map(n => `<li class="neutral">${esc(txt(n.en, n.ta))}</li>`).join('');
 
     const jGrid = $('#jaimini-karakas-grid');
     jGrid.replaceChildren();
@@ -3092,6 +3171,41 @@ function renderLifeReadings() {
           </details>` : ''}
         `;
         sbGrid.append(card);
+      });
+    }
+
+    const bbBody = $('#bhava-bala-tbody');
+    if (bbBody && sb.bhavas) {
+      bbBody.replaceChildren();
+      sb.bhavas.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${b.bhava}</strong></td>
+          <td>${esc(grahaName(b.lord))}</td>
+          <td>${b.adhipati}</td>
+          <td>${b.dig}</td>
+          <td>${b.drishti}</td>
+          <td><strong style="color:${b.is_strong ? 'var(--gold)' : 'var(--ruby)'}">${b.rupas}</strong></td>
+          <td>${b.rank}</td>
+        `;
+        bbBody.append(tr);
+      });
+    }
+
+    const vBody = $('#vimsopaka-tbody');
+    if (vBody && sb.vimsopaka) {
+      vBody.replaceChildren();
+      sb.vimsopaka.forEach(v => {
+        const tr = document.createElement('tr');
+        const cell = c => `<strong>${c.score}</strong> <small class="muted">${esc(txt(c.grade_en, c.grade_ta))}</small>${c.bheda_en ? `<br><small style="color:var(--gold)">${esc(txt(c.bheda_en, c.bheda_ta))}</small>` : ''}`;
+        tr.innerHTML = `
+          <td><strong>${esc(grahaName(v.planet))}</strong></td>
+          <td>${cell(v.shadvarga)}</td>
+          <td>${cell(v.saptavarga)}</td>
+          <td>${cell(v.dasavarga)}</td>
+          <td>${cell(v.shodasavarga)}</td>
+        `;
+        vBody.append(tr);
       });
     }
   }

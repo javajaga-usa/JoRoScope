@@ -257,7 +257,7 @@ def _functional_role(planet, asc_sign):
 
 
 # 3. 12 Bhavas (House-by-House) Detailed Predictions Engine
-def generate_bhava_predictions(house_details, planets, lang='en'):
+def generate_bhava_predictions(house_details, planets, lang='en', bhava_bala=None):
     predictions = []
     bhava_titles = [
         ('1st House (Tanu / Self)', 'முதலாம் பாவம் (தனு / லக்ன பாவம்)', 'Physical vitality, temperament, self-realization, and life path.'),
@@ -322,6 +322,13 @@ def generate_bhava_predictions(house_details, planets, lang='en'):
         for mal in ('Saturn', 'Mars'):
             if mal in aspected_by and h_num not in UPACHAYAS:
                 factors.append((f"{mal}'s aspect brings pressure and delays", f"{PLANET_TAMIL[mal]} பார்வை தடைகளையும் அழுத்தத்தையும் தரும்", -1))
+        rupas = round(bhava_bala[h_num - 1]['rupas'], 2) if bhava_bala else None
+        if rupas is not None and rupas >= 9:
+            factors.append((f"Bhava Bala of {rupas} rupas, well above the minimum of 7",
+                            f"பாவ பலம் {rupas} ரூபம், குறைந்தபட்ச அளவான 7-ஐ விட நன்கு அதிகம்", 1))
+        elif rupas is not None and rupas < 7:
+            factors.append((f"Bhava Bala of only {rupas} rupas, below the minimum of 7",
+                            f"பாவ பலம் {rupas} ரூபம் மட்டுமே, குறைந்தபட்ச அளவான 7-க்குக் கீழ்", -1))
         if sav >= 30:
             factors.append((f"{sav} Ashtakavarga bindus, above the average of 28", f"{sav} அஷ்டகவர்க்கப் பரல்கள் (சராசரி 28-க்கு மேல்)", 1))
         elif sav < 25:
@@ -373,6 +380,7 @@ def generate_bhava_predictions(house_details, planets, lang='en'):
             'lord_house': lord_house,
             'lord_dignity': lord_dignity,
             'sav_points': sav,
+            'bhava_bala_rupas': rupas,
             'occupants': occupants,
             'aspected_by': aspected_by,
             'strength': verdict,
@@ -1005,7 +1013,41 @@ def calculate_jaimini_karakas(planets, vargas=None):
         kk_en += ' ' + ' '.join(r['en'] for r in karakamsa_results)
         kk_ta += ' ' + ' '.join(r['ta'] for r in karakamsa_results)
 
+    # Arudha padas and the classical readings from the Arudha Lagna and the Upapada
+    padas = jaimini_arudhas(planets)
+    asc_sign = planets['Ascendant']['sign_index']
+    arudha_rows = [dict(code=f"A{h}", house=h, sign=SIGNS[s], sign_ta=TAMIL_SIGNS[s], from_lagna=(s - asc_sign) % 12 + 1,
+                        name_en=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[0], name_ta=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[1])
+                   for h, s in enumerate(padas, 1)]
+    grahas = ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu')
+    in_sign = lambda s: [g for g in grahas if planets[g]['sign_index'] == s]
+    benefic = lambda g: g in ('Jupiter', 'Venus', 'Mercury', 'Moon')
+    al, ul = padas[0], padas[11]
+    notes = []
+    gains = in_sign((al + 10) % 12)
+    if gains:
+        fair = all(benefic(g) for g in gains)
+        notes.append(dict(
+            en=f"{', '.join(gains)} in the 11th from the Arudha Lagna bring steady gains{' by fair means' if fair else ', not always by conventional means'}.",
+            ta=f"ஆரூட லக்னத்திலிருந்து 11-இல் {', '.join(PLANET_TAMIL[g] for g in gains)} இருப்பதால் நிலையான வருமானம் உண்டு{' (நேர்மையான வழியில்)' if fair else ' (எப்போதும் வழக்கமான வழியில் அல்ல)'}."))
+    losses = in_sign((al + 11) % 12)
+    if losses:
+        good = all(benefic(g) for g in losses)
+        notes.append(dict(
+            en=f"{', '.join(losses)} in the 12th from the Arudha Lagna {'direct spending to good causes' if good else 'bring expenses and losses to guard against'}.",
+            ta=f"ஆரூட லக்னத்திலிருந்து 12-இல் {', '.join(PLANET_TAMIL[g] for g in losses)} இருப்பதால் {'நல்ல காரியங்களுக்குச் செலவு ஏற்படும்' if good else 'செலவுகளிலும் இழப்புகளிலும் கவனம் தேவை'}."))
+    second_ul = in_sign((ul + 1) % 12)
+    if second_ul:
+        harsh = [g for g in second_ul if not benefic(g)]
+        notes.append(dict(
+            en=(f"{', '.join(harsh)} in the 2nd from the Upapada can strain the continuity of marriage; remedies and patience help."
+                if harsh else "Benefics in the 2nd from the Upapada sustain a lasting marriage."),
+            ta=(f"உபபதத்திலிருந்து 2-இல் {', '.join(PLANET_TAMIL[g] for g in harsh)} இருப்பதால் இல்லற வாழ்வின் தொடர்ச்சியில் சோதனைகள் வரலாம்; பரிகாரமும் பொறுமையும் உதவும்."
+                if harsh else "உபபதத்திலிருந்து 2-இல் சுப கிரகங்கள் இருப்பதால் இல்லறம் நீடித்து நிலைக்கும்.")))
+
     return {
+        'arudhas': arudha_rows,
+        'arudha_notes': notes,
         'karakas': karakas_list,
         'atmakaraka': ak_planet,
         'amatyakaraka': amk_planet,
@@ -1019,6 +1061,68 @@ def calculate_jaimini_karakas(planets, vargas=None):
             'interpretation_ta': kk_ta
         }
     }
+
+# Jaimini Arudha padas (bhava arudhas A1-A12; A1 the Arudha Lagna, A12 the Upapada)
+ARUDHA_NAMES = {1: ('Arudha Lagna (AL)', 'ஆரூட லக்னம் (AL)'), 7: ('Dara Pada (A7)', 'தார பதம் (A7)'),
+                10: ('Rajya Pada (A10)', 'ராஜ்ய பதம் (A10)'), 11: ('Labha Pada (A11)', 'லாப பதம் (A11)'),
+                12: ('Upapada (UL)', 'உபபதம் (UL)')}
+
+
+def _rasi_drishti(sign):
+    """Signs a sign aspects by Jaimini rasi drishti: movable signs the fixed ones but the next,
+    fixed signs the movable ones but the previous, dual signs the other duals."""
+    kind = sign % 3
+    if kind == 0:
+        return {s for s in (1, 4, 7, 10) if s != (sign + 1) % 12}
+    if kind == 1:
+        return {s for s in (0, 3, 6, 9) if s != (sign - 1) % 12}
+    return {s for s in (2, 5, 8, 11) if s != sign}
+
+
+def _jaimini_lord(sign, planets):
+    """Lord of a sign; Scorpio and Aquarius take the stronger of their two lords (Mars/Ketu,
+    Saturn/Rahu) by P.V.R. Narasimha Rao's rules."""
+    if sign not in (7, 10):
+        return SIGN_LORDS[sign]
+    main, node = ('Mars', 'Ketu') if sign == 7 else ('Saturn', 'Rahu')
+    at = {q: planets[q]['sign_index'] for q in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu', 'Ascendant')}
+    if at[main] == sign and at[node] != sign:
+        return node
+    if at[node] == sign and at[main] != sign:
+        return main
+
+    def company(p):
+        return sum(1 for q, s in at.items() if q != p and s == at[p])
+
+    def support(p):
+        dispositor = SIGN_LORDS[at[p]]
+        return sum((at[q] == at[p]) + (at[p] in _rasi_drishti(at[q])) for q in ('Mercury', 'Jupiter', dispositor))
+
+    def exalted(p):
+        return planets[p].get('dignity') == 'Exalted'
+
+    def modality(p):
+        return (at[p] % 3 == 2) * 2 + (at[p] % 3 == 1)  # dual 2, fixed 1, movable 0
+
+    for rule in (company, support, exalted, modality):
+        a, b = rule(main), rule(node)
+        if a != b:
+            return main if a > b else node
+    return main if planets[main]['degree'] > planets[node]['degree'] else node
+
+
+def jaimini_arudhas(planets):
+    asc = planets['Ascendant']['sign_index']
+    padas = []
+    for house in range(1, 13):
+        sign = (asc + house - 1) % 12
+        lord_sign = planets[_jaimini_lord(sign, planets)]['sign_index']
+        pada = (2 * lord_sign - sign) % 12
+        if (pada - sign) % 12 in (0, 6):  # never the house itself or its 7th: take the 10th from there
+            pada = (pada + 9) % 12
+        padas.append(pada)
+    return padas
+
 
 # 9. K.N. Rao & BVB Double Transit (Dwi-Gochara) Engine
 # An event needs transit Saturn and Jupiter both to influence (occupy or aspect) the house or
@@ -1650,6 +1754,9 @@ SHADBALA_FACTORS = [
     ('yuddha', lambda v: v > 0, 1, 'Victorious in a planetary war', 'கிரக யுத்தத்தில் வெற்றி பெற்றது'),
     ('yuddha', lambda v: v < 0, -1, 'Defeated in a planetary war', 'கிரக யுத்தத்தில் தோல்வியுற்றது')
 ]
+# Vimsopaka Bala grades out of 20 (BPHS ch. 7)
+VIMSOPAKA_GRADES = [(15, ('Excellent', 'மிகச் சிறப்பு')), (10, ('Good', 'நன்று')), (5, ('Average', 'சராசரி')),
+                    (0, ('Poor', 'பலவீனம்'))]
 SHADBALA_COMPONENTS = ('uchcha', 'saptavargaja', 'ojayugma', 'kendra', 'drekkana', 'nathonnatha', 'paksha', 'tribhaga',
                        'abda', 'masa', 'vara', 'hora', 'ayana', 'yuddha', 'cheshta', 'drik')
 
@@ -1707,10 +1814,31 @@ def calculate_shadbala(chart):
     vulnerable = shadbala_list[-1]
     adequate = [x for x in shadbala_list if x['is_adequate']]
 
+    bhava_rows = []
+    for row in chart.get('bhava_bala', []):
+        bhava_rows.append(dict(bhava=row['bhava'], lord=row['lord'], lord_ta=PLANET_TAMIL[row['lord']],
+                               adhipati=round(row['adhipati'], 2), dig=round(row['dig'], 2), drishti=round(row['drishti'], 2),
+                               total_virupas=round(row['total'], 2), rupas=round(row['rupas'], 2), is_strong=row['strong']))
+    for rank, row in enumerate(sorted(bhava_rows, key=lambda r: -r['rupas']), 1):
+        row['rank'] = rank
+
+    vimsopaka_rows = []
+    for p_name, schemes in chart.get('vimsopaka', {}).items():
+        row = dict(planet=p_name, planet_ta=PLANET_TAMIL[p_name])
+        for scheme, v in schemes.items():
+            score = round(v['score'], 2)
+            grade = next(g for limit, g in VIMSOPAKA_GRADES if score >= limit)
+            row[scheme] = dict(score=score, dignified=v['dignified'], grade_en=grade[0], grade_ta=grade[1],
+                               bheda_en=v['bheda'][0] if v['bheda'] else None,
+                               bheda_ta=v['bheda'][1] if v['bheda'] else None)
+        vimsopaka_rows.append(row)
+
     return {
         'dominant_planet': dominant,
         'vulnerable_planet': vulnerable,
         'adequate_count': len(adequate),
+        'bhavas': bhava_rows,
+        'vimsopaka': vimsopaka_rows,
         'method_en': 'Brihat Parashara Hora Shastra, as worked in B.V. Raman\'s Graha and Bhava Balas; minimum strengths per BPHS.',
         'method_ta': 'பிருஹத் பராசர ஹோரா சாஸ்திரம் (பி.வி. ராமனின் கிரக-பாவ பலம் நூல் வழி); குறைந்தபட்ச பலம் பராசரர் வகுத்தபடி.',
         'summary_en': (f"{dominant['planet']} is the strongest graha at {dominant['strength_ratio']}x its required Shadbala, "
@@ -2277,7 +2405,7 @@ def generate_comprehensive_predictions(chart):
 
     star_pred = NAKSHATRA_PREDICTIONS.get(moon['nakshatra'], NAKSHATRA_PREDICTIONS['Ashwini'])
     lagna_pred = LAGNA_PREDICTIONS.get(asc['sign'], LAGNA_PREDICTIONS['Aries'])
-    bhavas = generate_bhava_predictions(house_details, planets)
+    bhavas = generate_bhava_predictions(house_details, planets, bhava_bala=chart.get('bhava_bala'))
     planets_in_houses = generate_planet_house_predictions(planets)
     dasa_forecast = generate_dasa_forecast(active_dasa, dasha_rows, planets, chart.get('timezone') or 'UTC')
     transits = generate_transit_forecast(moon['sign_index'], chart['gochara'])

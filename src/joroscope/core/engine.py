@@ -493,7 +493,7 @@ def bhava_of(lon, sandhi):
     return 1
 
 def calculate_vargas(lon):
-    """Calculate 14 Parashara Divisional Vargas (D1 - D60)."""
+    """The 16 Parashara divisional vargas (Shodasavarga, D1 - D60)."""
     lon = lon % 360
     sign = int(lon // 30)
     deg = lon % 30
@@ -568,6 +568,14 @@ def calculate_vargas(lon):
         elif deg < 20: vargas['D30'] = 11  # Pisces (Jupiter)
         elif deg < 25: vargas['D30'] = 9   # Capricorn (Saturn)
         else: vargas['D30'] = 7            # Scorpio (Mars)
+
+    # D40 - Khavedamsa: 45' parts from Aries (odd signs) or Libra (even signs)
+    k40 = min(int(deg / 0.75), 39)
+    vargas['D40'] = ((0 if is_odd else 6) + k40) % 12
+
+    # D45 - Akshavedamsa: 40' parts from Aries (movable), Leo (fixed) or Sagittarius (dual)
+    k45 = min(int(deg / (2 / 3)), 44)
+    vargas['D45'] = ((0 if movable else (4 if fixed else 8)) + k45) % 12
 
     # D60 - Shashtiamsa
     k60 = min(int(deg * 2), 59)
@@ -708,12 +716,63 @@ def calculate_ashtakavarga(planets):
         for s in range(12):
             sav[s] += bav[p_name][s]
 
+    # Sodhana: Trikona then Ekadhipatya reduction, and the Sodhya Pinda from the reduced bindus.
+    # Checked against P.V.R. Narasimha Rao's worked Charts 7 and 11 (Vedic Astrology: An
+    # Integrated Approach, ch. 12): a sign counts as occupied when it holds a graha or the Lagna.
+    occupied = {planets[p]['sign_index'] for p in classical + ['Ascendant']}
+    sodhita, pindas = {}, {}
+    for p_name in classical:
+        reduced = _ekadhipatya_sodhana(_trikona_sodhana(bav[p_name]), occupied)
+        sodhita[p_name] = reduced
+        rasi = sum(b * m for b, m in zip(reduced, RASI_GUNAKARA))
+        graha = sum(GRAHA_GUNAKARA[q] * reduced[planets[q]['sign_index']] for q in classical)
+        pindas[p_name] = dict(rasi=rasi, graha=graha, sodhya=rasi + graha)
+
     return {
         'BAV': bav,
         'SAV': sav,
         'prastara': prastara,
+        'sodhita': sodhita,
+        'pindas': pindas,
         'total_points': sum(sav)  # Guaranteed 337
     }
+
+
+# Multipliers for the Sodhya Pinda: signs Aries-Pisces and the seven grahas
+RASI_GUNAKARA = [7, 10, 8, 4, 10, 5, 7, 8, 9, 5, 11, 12]
+GRAHA_GUNAKARA = {'Sun': 5, 'Moon': 5, 'Mars': 8, 'Mercury': 5, 'Jupiter': 10, 'Venus': 7, 'Saturn': 5}
+DUAL_LORDSHIPS = [(0, 7), (1, 6), (2, 5), (8, 11), (9, 10)]  # Mars, Venus, Mercury, Jupiter, Saturn
+
+
+def _trikona_sodhana(bindus):
+    """In each trine of signs, remove the smallest count from all three (all of it when the
+    three are equal); a trine holding a zero is left alone."""
+    b = list(bindus)
+    for r in range(4):
+        trine = (r, r + 4, r + 8)
+        values = [b[k] for k in trine]
+        if 0 not in values:
+            low = min(values)
+            for k in trine:
+                b[k] -= low
+    return b
+
+
+def _ekadhipatya_sodhana(bindus, occupied):
+    """Reduce the two signs of one lord: untouched if either is zero or both are occupied;
+    both empty: equal counts become zero, unequal both take the lower; one occupied: the
+    empty sign becomes zero unless it holds more, when it drops to the occupied sign's count."""
+    b = list(bindus)
+    for r1, r2 in DUAL_LORDSHIPS:
+        o1, o2 = r1 in occupied, r2 in occupied
+        if b[r1] == 0 or b[r2] == 0 or (o1 and o2):
+            continue
+        if not o1 and not o2:
+            b[r1] = b[r2] = 0 if b[r1] == b[r2] else min(b[r1], b[r2])
+        else:
+            full, empty = (r1, r2) if o1 else (r2, r1)
+            b[empty] = b[full] if b[empty] > b[full] else 0
+    return b
 
 def detect_yogas(planets):
     """Detect prominent Vedic Yogas and Doshas."""
@@ -1517,7 +1576,7 @@ def calculate(data):
     # South Indian (Tamil) jathagam details and doshas. Imported here:
     # south_indian builds on this module's primitives.
     from .south_indian import build_south_indian_details, chevvai_dosham, rahu_ketu_dosham, vedic_day
-    from .shadbala import compute_shadbala
+    from .shadbala import compute_shadbala, compute_bhava_bala, compute_vimsopaka
     doshas['chevvai'] = chevvai_dosham(planets)
     doshas['rahu_ketu'] = rahu_ketu_dosham(planets)
     south_indian = build_south_indian_details(planets, utc, data['timezone'], lat, lon)
@@ -1530,6 +1589,14 @@ def calculate(data):
     vedic_date, day_events = vedic_day(jd, birth_tz, lat, lon)
     day_events['prev_sunset'] = sun_events(vedic_date - timedelta(days=1), birth_tz, lat, lon)['sunset']
     shadbala = compute_shadbala(planets, jd, day_events, vedic_date, bhava_madhya, ayanamsa_degrees)
+    bhava_bala = compute_bhava_bala(planets, bhava_madhya, shadbala)
+    vimsopaka = compute_vimsopaka(planets)
+    # Graha Yuddha: Mars to Saturn within a degree; the one Shadbala credits won
+    warriors = ['Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
+    south_indian['extras']['graha_yuddha'] = [
+        dict(winner=a, loser=b) if shadbala[a]['yuddha'] >= shadbala[b]['yuddha'] else dict(winner=b, loser=a)
+        for i, a in enumerate(warriors) for b in warriors[i + 1:]
+        if abs((planets[a]['longitude'] - planets[b]['longitude'] + 180) % 360 - 180) < 1]
 
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
@@ -1556,7 +1623,7 @@ def calculate(data):
 
     # Vargas quick map for frontend renderers
     vargas_map = {}
-    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D60', 'Bhava']
+    varga_keys = ['D1', 'D2', 'D3', 'D4', 'D7', 'D9', 'D10', 'D12', 'D16', 'D20', 'D24', 'D27', 'D30', 'D40', 'D45', 'D60', 'Bhava']
     for v_key in varga_keys:
         vargas_map[v_key] = {
             p_name: p['vargas'][v_key]
@@ -1581,6 +1648,8 @@ def calculate(data):
         kp=kp,
         gochara=gochara,
         shadbala=shadbala,
+        bhava_bala=bhava_bala,
+        vimsopaka=vimsopaka,
         vedic_weekday=south_indian['vaaram']['index'],
         timezone=data['timezone']
     )

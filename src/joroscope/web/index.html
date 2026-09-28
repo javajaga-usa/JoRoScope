@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>JoRoScope — Modern Precision Vedic Astrology</title>
-  <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 14 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
+  <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 16 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
@@ -120,7 +120,7 @@
           <div>
             <span class="eyebrow" data-i18n="sacred_geometry">ASTRONOMICAL PRECISION & VEDIC TRADITION</span>
             <h1 data-i18n="birth_chart_heading">Your Celestial Blueprint</h1>
-            <p class="muted" data-i18n="birth_chart_sub">Explore planetary alignments across Rasi, Navamsa, and 14 Parashara divisional vargas.</p>
+            <p class="muted" data-i18n="birth_chart_sub">Explore planetary alignments across Rasi, Navamsa, and 16 Parashara divisional vargas.</p>
           </div>
         </div>
 
@@ -245,9 +245,9 @@
                 <div class="orb-ring"></div>
               </div>
               <h2 data-i18n="ready_to_reveal">Ready to Reveal the Sky</h2>
-              <p data-i18n="enter_details_prompt">Enter birth details and click Generate to view South Indian, North Indian, and 14 Divisional Vargas with deep planetary analysis.</p>
+              <p data-i18n="enter_details_prompt">Enter birth details and click Generate to view South Indian, North Indian, and 16 Divisional Vargas with deep planetary analysis.</p>
               <div class="feature-pills">
-                <span data-i18n="pill_vargas">✦ 14 Divisional Vargas</span>
+                <span data-i18n="pill_vargas">✦ 16 Divisional Vargas</span>
                 <span data-i18n="pill_ashtaka">✦ Parashara Ashtakavarga</span>
                 <span data-i18n="pill_dasa">✦ 3-Tier Dasa</span>
                 <span data-i18n="pill_yoga">✦ Yoga Engine</span>
@@ -336,6 +336,8 @@
                   <button class="varga-pill" data-varga="D24">D24 Chaturvimsamsa</button>
                   <button class="varga-pill" data-varga="D27">D27 Saptavimsamsa</button>
                   <button class="varga-pill" data-varga="D30">D30 Trimsamsa</button>
+                  <button class="varga-pill" data-varga="D40">D40 Khavedamsa</button>
+                  <button class="varga-pill" data-varga="D45">D45 Akshavedamsa</button>
                   <button class="varga-pill" data-varga="D60">D60 Shashtiamsa</button>
                 </div>
 
@@ -528,6 +530,20 @@
                 </tr>
               </thead>
               <tbody id="bav-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Sodhita Ashtakavarga and Sodhya Pinda -->
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <h2 data-i18n="sodhana_title">Sodhita Ashtakavarga & Sodhya Pinda</h2>
+          </div>
+          <p class="muted" data-i18n="sodhana_sub">Bindus after the Trikona and Ekadhipatya reductions, and the Rasi, Graha and Sodhya Pindas used for longevity and transit timing.</p>
+          <div class="table-responsive">
+            <table class="luxury-table">
+              <thead><tr id="sodhana-header"></tr></thead>
+              <tbody id="sodhana-tbody"></tbody>
             </table>
           </div>
         </div>
@@ -1067,6 +1083,8 @@
               <small data-i18n="soul_purpose">SOUL'S SUPREME PURPOSE (KARAKAMSHA IN NAVAMSA D-9)</small>
               <h2 id="jaimini-karakamsha-title">—</h2>
               <p id="jaimini-karakamsha-desc" class="reading-body" style="margin-top:10px"></p>
+              <div class="bhava-meta-strip" id="jaimini-arudha-strip" style="margin-top:10px"></div>
+              <ul class="bhava-factors" id="jaimini-arudha-notes"></ul>
             </div>
           </div>
 
@@ -1249,6 +1267,38 @@
             </div>
           </div>
           <div class="readings-grid" id="shadbala-cards-grid"></div>
+
+          <div class="cosmic-card" style="margin-top:20px">
+            <div class="card-header">
+              <h3 data-i18n="h_bhava_bala">Bhava Bala (House Strength)</h3>
+              <span class="pill-badge" data-i18n="pill_bhava_bala">Minimum 7 Rupas</span>
+            </div>
+            <p class="muted" data-i18n="p_bhava_bala">The strength of each Sripati bhava: the Shadbala of its lord, its directional strength and the aspects on its madhya.</p>
+            <div class="table-responsive">
+              <table class="luxury-table" style="font-size:11.5px">
+                <thead>
+                  <tr><th data-i18n="th_bhava">Bhava</th><th data-i18n="th_lord">Lord</th><th data-i18n="th_adhipati">Lord's Bala</th><th data-i18n="th_dig">Dig</th><th data-i18n="th_drishti">Drishti</th><th data-i18n="th_rupas">Rupas</th><th data-i18n="th_rank">Rank</th></tr>
+                </thead>
+                <tbody id="bhava-bala-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cosmic-card" style="margin-top:20px">
+            <div class="card-header">
+              <h3 data-i18n="h_vimsopaka">Vimsopaka Bala & Varga Bheda</h3>
+              <span class="pill-badge" data-i18n="pill_vimsopaka">Out of 20</span>
+            </div>
+            <p class="muted" data-i18n="p_vimsopaka">Strength from dignity across the Shadvarga, Saptavarga, Dasavarga and Shodasavarga schemes. A graha in its own, exaltation or moolatrikona sign in two or more vargas earns a named Varga Bheda dignity.</p>
+            <div class="table-responsive">
+              <table class="luxury-table" style="font-size:11.5px">
+                <thead>
+                  <tr><th data-i18n="th_planet">Planet</th><th data-i18n="th_shadvarga">Shadvarga</th><th data-i18n="th_saptavarga">Saptavarga</th><th data-i18n="th_dasavarga">Dasavarga</th><th data-i18n="th_shodasavarga">Shodasavarga</th></tr>
+                </thead>
+                <tbody id="vimsopaka-tbody"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         <!-- Chapter 13: Krishnamurti Paddhati (KP System) Sub-Lord Analysis -->

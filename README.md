@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%20%7C%203.12-blue)](https://www.python.org/downloads/)
-[![Tests: 93 Passed](https://img.shields.io/badge/tests-93%20passed-success)](tests/)
+[![Tests: 104 Passed](https://img.shields.io/badge/tests-104%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Bilingual](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D-gold)](#bilingual-support)
 
@@ -15,7 +15,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 ### 🌌 Astronomical & Vedic Precision
 - **Swiss Ephemeris 2.10 Engine**: Sub-arcsecond planetary accuracy for dates between 1800 CE and 2200 CE.
 - **Multiple Ayanamsas**: Lahiri (Chitra Paksha standard), B.V. Raman, Krishnamurti (KP), and Fagan-Bradley.
-- **14 Parashara Divisional Vargas**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), and D60 (Shashtiamsa).
+- **16 Parashara Divisional Vargas (Shodasavarga)**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), D40 (Khavedamsa), D45 (Akshavedamsa) and D60 (Shashtiamsa).
 - **Chart Styles**: South Indian (ஜாதகக் கட்டம்), North Indian Diamond, and East Indian formats.
 - **Interactive Inspector**: Click any house to see resident grahas, aspects received, house significations, and SAV points.
 

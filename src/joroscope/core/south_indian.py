@@ -15,7 +15,7 @@ from datetime import date, datetime, timedelta, timezone
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from .engine import (
-    swe, AYAN, SIGNS, TAMIL, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS, TITHIS,
+    swe, AYAN, SIGNS, TAMIL, SIGN_LORDS, STARS, TAMIL_STARS, DASHA_NAMES, DASHA_YEARS, TITHIS,
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
@@ -542,6 +542,48 @@ def next_star_birthday(jd, birth_star, birth_month, tz, lat, lon):
     return None
 
 
+# Dagdha (burnt) rasis of the birth tithi, by its number within the paksha (Muhurta Chintamani);
+# Pournami and Amavasai have none
+DAGDHA_RASIS = {1: (6, 9), 2: (8, 11), 3: (4, 9), 4: (1, 10), 5: (2, 5), 6: (0, 4), 7: (3, 8), 8: (2, 5),
+                9: (4, 7), 10: (4, 7), 11: (8, 11), 12: (6, 9), 13: (1, 4), 14: (2, 5, 8, 11)}
+COMBUSTION_ORBS = {'Moon': 12, 'Mars': 17, 'Mercury': 14, 'Jupiter': 11, 'Venus': 10, 'Saturn': 15}
+
+
+def birth_extras(planets):
+    """Birth-chart notes Tamil and Kerala horoscopes print: Yogi, Duplicate Yogi and Avayogi,
+    Dagdha Rasis, Chandra Avastha / Vela / Kriya and Moudhyam (combust grahas)."""
+    sun, moon = planets['Sun']['longitude'], planets['Moon']['longitude']
+    lords = ['Ketu', 'Venus', 'Sun', 'Moon', 'Mars', 'Rahu', 'Jupiter', 'Saturn', 'Mercury']
+
+    def point(lon):
+        star = int(lon / NAK_SPAN) % 27
+        lord = lords[star % 9]
+        sign = int(lon // 30) % 12
+        return dict(longitude=round(lon, 4), sign=SIGNS[sign], tamil=TAMIL[sign], star=STARS[star], star_ta=TAMIL_STARS[star],
+                    planet=lord, planet_ta=PLANET_TAMIL[lord])
+
+    yogi_lon = (sun + moon + 93 + 20 / 60) % 360
+    yogi = point(yogi_lon)
+    duplicate = SIGN_LORDS[int(yogi_lon // 30)]
+    yogi.update(duplicate=duplicate, duplicate_ta=PLANET_TAMIL[duplicate])
+    avayogi = point((yogi_lon + 186 + 40 / 60) % 360)
+
+    tithi = int(((moon - sun) % 360) // 12) + 1
+    in_paksha = (tithi - 1) % 15 + 1
+    dagdha = [dict(en=SIGNS[s], ta=TAMIL[s]) for s in DAGDHA_RASIS.get(in_paksha, ())]
+
+    # Chandra Avastha, Vela and Kriya: the Moon's progress through its nakshatra in 12, 36 and 60 parts
+    progress = (moon % NAK_SPAN) / NAK_SPAN
+    chandra = dict(avastha=int(progress * 12) + 1, vela=int(progress * 36) + 1, kriya=int(progress * 60) + 1)
+
+    moudhyam = []
+    for name, orb in COMBUSTION_ORBS.items():
+        gap = abs((planets[name]['longitude'] - sun + 180) % 360 - 180)
+        if gap <= orb - (2 if name in ('Mercury', 'Venus') and planets[name].get('retrograde') else 0):
+            moudhyam.append(dict(planet=name, planet_ta=PLANET_TAMIL[name], distance=round(gap, 2)))
+    return dict(yogi=yogi, avayogi=avayogi, dagdha_rasis=dagdha, chandra=chandra, moudhyam=moudhyam)
+
+
 def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
     """Tamil Jathaga Kurippu (birth notes) and the person's upcoming almanac dates.
     Uses the ayanamsa mode already set by the engine."""
@@ -571,6 +613,7 @@ def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
         mandi=mandi,
         upagrahas=upagrahas(jd, events, weekday, lat, lon, planets),
         papa_points=papa_points(planets),
+        extras=birth_extras(planets),
         upcoming=dict(
             chandrashtamam=upcoming_chandrashtamam(now_jd, moon['sign_index'], tz),
             star_birthday=next_star_birthday(now_jd, birth_star, birth_calendar['month_index'], tz, lat, lon)
