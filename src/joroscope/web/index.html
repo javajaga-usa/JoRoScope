@@ -7,7 +7,7 @@
   <meta name="description" content="State-of-the-art modern Vedic astrology application with Swiss Ephemeris precision, 16 divisional vargas, Ashtakavarga, yogas, 3-tier dasas, panchangam, and horoscope matching.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;900&family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+Tamil:wght@400;600;700&family=Noto+Sans+Malayalam:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -887,6 +887,7 @@
             <span class="eyebrow" data-i18n="astrological_synthesis">COMPREHENSIVE HOROSCOPE PREDICTION REPORT</span>
             <h1 data-i18n="life_readings">Life Interpretations & Guidance</h1>
             <p class="muted" data-i18n="predictions_sub">Traditional Parashara and Tamil astrological readings: Nakshatra, Lagna, 12 Bhavas, Planets in Houses, Dasa-Bhukti, Transits & Lucky Gemstones.</p>
+            <p class="muted ml-only" data-i18n="ml_readings_note">Detailed readings appear in English until their Malayalam translation is complete.</p>
           </div>
         </div>
 
@@ -2056,6 +2057,7 @@
         <select id="print-language">
           <option value="ta">தமிழ்</option>
           <option value="en">English</option>
+          <option value="ml">മലയാളം</option>
         </select>
       </label>
       <label class="print-language">
@@ -2071,6 +2073,7 @@
   </dialog>
 
   <script src="i18n.js"></script>
+  <script src="lang-ml.js"></script>
   <script src="profiles.js"></script>
   <script src="ics.js"></script>
   <script src="app.js"></script>

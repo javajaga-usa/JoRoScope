@@ -405,6 +405,7 @@ function printWithLanguage(lang, build) {
   currentLang = lang || saved;
   try {
     build();
+    if (currentLang === 'ml') translateTree(document.getElementById('print-jathagam'));
   } finally {
     currentLang = saved;
   }

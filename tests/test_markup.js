@@ -1,6 +1,6 @@
 /**
  * Markup checks: every element id in index.html is unique, and every data-i18n key used there
- * has English and Tamil text.
+ * has English, Tamil and Malayalam text.
  */
 const fs = require('fs');
 const path = require('path');
@@ -17,9 +17,9 @@ console.log(`PASS: ${ids.length} unique element ids`);
 
 const ctx = {};
 vm.createContext(ctx);
-vm.runInContext(fs.readFileSync(path.join(web, 'i18n.js'), 'utf8') + '\n;this.I18N = I18N;', ctx);
+vm.runInContext(fs.readFileSync(path.join(web, 'i18n.js'), 'utf8') + '\n' + fs.readFileSync(path.join(web, 'lang-ml.js'), 'utf8') + '\n;this.I18N = I18N;', ctx);
 const keys = [...new Set([...html.matchAll(/data-i18n(?:-placeholder|-title)?="([^"]+)"/g)].map(m => m[1]))];
-const missing = keys.filter(k => !ctx.I18N.en[k] || !ctx.I18N.ta[k]);
-if (missing.length) fail(`i18n keys without English and Tamil text: ${missing.join(', ')}`);
-console.log(`PASS: ${keys.length} data-i18n keys have English and Tamil text`);
+const missing = keys.filter(k => !ctx.I18N.en[k] || !ctx.I18N.ta[k] || !ctx.I18N.ml[k]);
+if (missing.length) fail(`i18n keys without English, Tamil and Malayalam text: ${missing.join(', ')}`);
+console.log(`PASS: ${keys.length} data-i18n keys have English, Tamil and Malayalam text`);
 console.log('ALL MARKUP CHECKS PASSED!');

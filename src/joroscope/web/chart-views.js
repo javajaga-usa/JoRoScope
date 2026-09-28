@@ -60,7 +60,7 @@ function chartBodies() {
 
 function grahaAbbrev(pName) {
   const meta = PLANET_NAMES[pName];
-  return currentLang === 'ta' ? meta.ta_short : meta.short;
+  return currentLang === 'ta' ? meta.ta_short : (currentLang === 'ml' ? ML_SHORT[pName] : meta.short);
 }
 
 // Balance of the birth Maha Dasa as years / months / days (வருடம் / மாதம் / நாள்)
