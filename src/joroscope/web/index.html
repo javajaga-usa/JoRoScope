@@ -898,6 +898,12 @@
           <button class="pred-tab" data-ptab="dasa" id="ptab-dasa" data-i18n="pt_dasa">⏳ Dasa-Bhukti Forecast</button>
           <button class="pred-tab" data-ptab="transits" id="ptab-transits" data-i18n="pt_transits">🌌 Transits (Gochara)</button>
           <button class="pred-tab" data-ptab="remedies" id="ptab-remedies" data-i18n="pt_remedies">💎 Lucky Gems & Remedies</button>
+          <button class="pred-tab" data-ptab="monthly" id="ptab-monthly" data-i18n="pt_monthly">🗓️ Monthly Transits</button>
+          <button class="pred-tab" data-ptab="varshaphal" id="ptab-varshaphal" data-i18n="pt_varshaphal">🎉 Varshaphal (Annual)</button>
+          <button class="pred-tab" data-ptab="marriage" id="ptab-marriage" data-i18n="pt_marriage">💞 Marriage Report</button>
+          <button class="pred-tab" data-ptab="career_report" id="ptab-career_report" data-i18n="pt_career_report">📈 Career Report</button>
+          <button class="pred-tab" data-ptab="chakras" id="ptab-chakras" data-i18n="pt_chakras">🔷 Sarvatobhadra & Kota</button>
+          <button class="pred-tab" data-ptab="numerology" id="ptab-numerology" data-i18n="pt_numerology">🔢 Numerology</button>
           <button class="pred-tab" data-ptab="jaimini" id="ptab-jaimini" data-i18n="pt_jaimini">🪷 Jaimini Karakas</button>
           <button class="pred-tab" data-ptab="timing" id="ptab-timing" data-i18n="pt_timing">⏱️ Double Transit (BVB)</button>
           <button class="pred-tab" data-ptab="career" id="ptab-career" data-i18n="pt_career">💼 D-10 Career & Vocation</button>
@@ -909,12 +915,6 @@
           <button class="pred-tab" data-ptab="avasthas" id="ptab-avasthas" data-i18n="pt_avasthas">✨ Planetary Avasthas</button>
           <button class="pred-tab" data-ptab="pada" id="ptab-pada" data-i18n="pt_pada">🎯 Nakshatra Pada Reading</button>
           <button class="pred-tab" data-ptab="sahams" id="ptab-sahams" data-i18n="pt_sahams">🔮 Sensitive Sahams</button>
-          <button class="pred-tab" data-ptab="numerology" id="ptab-numerology" data-i18n="pt_numerology">🔢 Numerology</button>
-          <button class="pred-tab" data-ptab="chakras" id="ptab-chakras" data-i18n="pt_chakras">🔷 Sarvatobhadra & Kota</button>
-          <button class="pred-tab" data-ptab="marriage" id="ptab-marriage" data-i18n="pt_marriage">💞 Marriage Report</button>
-          <button class="pred-tab" data-ptab="career_report" id="ptab-career_report" data-i18n="pt_career_report">📈 Career Report</button>
-          <button class="pred-tab" data-ptab="varshaphal" id="ptab-varshaphal" data-i18n="pt_varshaphal">🎉 Varshaphal (Annual)</button>
-          <button class="pred-tab" data-ptab="monthly" id="ptab-monthly" data-i18n="pt_monthly">🗓️ Monthly Transits</button>
           <button class="pred-tab" data-ptab="remedies" id="ptab-remedies" data-i18n="pt_remedies">🕉️ Parihara (Remedies)</button>
         </div>
 
@@ -1537,13 +1537,13 @@
         </div>
 
         <!-- Chapters in the shared report shape, drawn by renderReportChapter -->
-        <div class="pred-panel report-panel" id="ppanel-numerology" hidden></div>
-        <div class="pred-panel report-panel" id="ppanel-chakras" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-remedies" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-monthly" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-varshaphal" hidden></div>
         <div class="pred-panel report-panel" id="ppanel-marriage" hidden></div>
         <div class="pred-panel report-panel" id="ppanel-career_report" hidden></div>
-        <div class="pred-panel report-panel" id="ppanel-varshaphal" hidden></div>
-        <div class="pred-panel report-panel" id="ppanel-monthly" hidden></div>
-        <div class="pred-panel report-panel" id="ppanel-remedies" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-chakras" hidden></div>
+        <div class="pred-panel report-panel" id="ppanel-numerology" hidden></div>
       </section>
 
       <!-- VIEW 7: HOROSCOPE MATCHING (PORUTHAM) -->
@@ -1960,6 +1960,27 @@
           <p class="muted" style="font-size:11.5px" data-i18n="prasna_hint">Leave the date and time empty to use this moment.</p>
         </div>
         <div class="report-panel" id="prasna-result"></div>
+
+        <div class="cosmic-card lower-space">
+          <div class="card-header">
+            <div>
+              <h2 data-i18n="rect_title">Birth Time Rectification</h2>
+              <p class="card-subtitle" data-i18n="rect_sub">Unsure of the birth time? Add dated events from your life; candidate times around the birth form's time are tested against their dasas and transits. Five or more events give the best result.</p>
+            </div>
+            <span class="card-badge">🕰️</span>
+          </div>
+          <div id="rect-events" class="rect-events"></div>
+          <div class="muhurtham-controls">
+            <button class="action-btn" id="rect-add" type="button" data-i18n="rect_add">➕ Add event</button>
+            <select id="rect-window" aria-label="Window">
+              <option value="30" data-i18n="rect_w30">± 30 minutes</option>
+              <option value="60" selected data-i18n="rect_w60">± 1 hour</option>
+              <option value="120" data-i18n="rect_w120">± 2 hours</option>
+            </select>
+            <button class="action-btn" id="rect-run" type="button" data-i18n="rect_run">Test birth times</button>
+          </div>
+        </div>
+        <div class="report-panel" id="rect-result"></div>
       </section>
 
       <!-- VIEW 9: SAVED PROFILES -->

@@ -765,7 +765,7 @@ function renderLifeReadings() {
 }
 
 // Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
-const REPORT_CHAPTERS = ['numerology', 'chakras', 'marriage', 'career_report', 'varshaphal', 'remedies', 'monthly'];
+const REPORT_CHAPTERS = ['remedies', 'monthly', 'varshaphal', 'marriage', 'career_report', 'chakras', 'numerology'];
 const VERDICT_PILLS = { good: ['success', 'Favourable', 'சாதகம்'], mixed: ['neutral', 'Mixed', 'கலப்பு'], bad: ['danger', 'Needs care', 'கவனம் தேவை'] };
 
 function reportCardHtml(c) {

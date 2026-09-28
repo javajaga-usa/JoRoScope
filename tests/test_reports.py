@@ -199,5 +199,30 @@ class ChakraTests(unittest.TestCase):
             if count in (4, 11, 18, 25):
                 self.assertTrue(row[3]['en'].startswith('Stambha'))
 
+
+class RectificationTests(unittest.TestCase):
+    def test_ranks_candidates(self):
+        from joroscope.core.rectification import rectify, EVENT_MAX
+        data = dict(BIRTH)
+        events = [{'date': '2016-02-10', 'type': 'marriage'}, {'date': '2018-06-01', 'type': 'child'},
+                  {'date': '2013-07-01', 'type': 'career'}]
+        r = rectify(data, events, 60, 2)
+        check_chapter(self, r)
+        self.assertLessEqual(abs(r['best_offset']), 60)
+        self.assertEqual(r['max_score'], EVENT_MAX * 3)
+        scores = [int(row[4]['en']) for row in r['tables'][0]['rows']]
+        self.assertEqual(scores, sorted(scores, reverse=True))
+        # Each event is explained with its running dasa lords
+        self.assertTrue(all(' Dasa, ' in c['body']['en'] for c in r['cards'][1:]))
+
+    def test_validation(self):
+        from joroscope.core.rectification import rectify
+        with self.assertRaises(ValueError):
+            rectify(dict(BIRTH), [], 60, 2)
+        with self.assertRaises(ValueError):
+            rectify(dict(BIRTH), [{'date': '1980-01-01', 'type': 'marriage'}], 60, 2)   # before birth
+        with self.assertRaises(ValueError):
+            rectify(dict(BIRTH), [{'date': '2016-01-01', 'type': 'lottery'}], 60, 2)
+
 if __name__ == '__main__':
     unittest.main()

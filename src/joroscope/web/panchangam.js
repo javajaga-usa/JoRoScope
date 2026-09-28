@@ -483,3 +483,55 @@ async function askPrasna() {
     btn.disabled = false;
   }
 }
+
+// Birth time rectification: an editable list of dated life events
+const RECT_EVENTS = [
+  ['marriage', 'Marriage', 'திருமணம்'], ['child', 'Birth of a child', 'குழந்தை பிறப்பு'],
+  ['career', 'Job, promotion or business start', 'வேலை / பதவி உயர்வு / தொழில் தொடக்கம்'],
+  ['education', 'Degree or education milestone', 'பட்டம் / கல்வி நிலை'], ['relocation', 'Moving house or abroad', 'இடமாற்றம் / வெளிநாடு'],
+  ['property', 'Buying property or a vehicle', 'சொத்து / வாகனம் வாங்குதல்'], ['illness', 'Illness, surgery or accident', 'நோய் / அறுவை சிகிச்சை / விபத்து'],
+  ['father', 'Loss of father', 'தந்தை இழப்பு'], ['mother', 'Loss of mother', 'தாய் இழப்பு']
+];
+let rectEvents = [{ date: '', type: 'marriage' }];
+let lastRectification = null;
+
+function renderRectEvents() {
+  const box = $('#rect-events');
+  if (!box) return;
+  box.innerHTML = rectEvents.map((ev, i) => `
+    <div class="rect-event-row">
+      <input type="date" value="${esc(ev.date)}" data-rect-date="${i}" aria-label="Event date">
+      <select data-rect-type="${i}" aria-label="Event">${RECT_EVENTS.map(([k, en, ta]) =>
+        `<option value="${k}"${k === ev.type ? ' selected' : ''}>${esc(txt(en, ta))}</option>`).join('')}</select>
+      <button class="link-btn" type="button" data-rect-remove="${i}" aria-label="Remove">✕</button>
+    </div>`).join('');
+  box.querySelectorAll('[data-rect-date]').forEach(el => el.addEventListener('change', () => { rectEvents[el.dataset.rectDate].date = el.value; }));
+  box.querySelectorAll('[data-rect-type]').forEach(el => el.addEventListener('change', () => { rectEvents[el.dataset.rectType].type = el.value; }));
+  box.querySelectorAll('[data-rect-remove]').forEach(el => el.addEventListener('click', () => {
+    rectEvents.splice(Number(el.dataset.rectRemove), 1);
+    if (!rectEvents.length) rectEvents.push({ date: '', type: 'marriage' });
+    renderRectEvents();
+  }));
+}
+
+async function runRectification() {
+  const form = $('#birth-form');
+  const birth = Object.fromEntries(new FormData(form));
+  const events = rectEvents.filter(ev => ev.date);
+  const btn = $('#rect-run');
+  btn.disabled = true;
+  try {
+    const resp = await fetch('/api/rectify', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birth, events, window: Number($('#rect-window').value), step: 2 })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Rectification failed.');
+    lastRectification = data;
+    renderChapterInto($('#rect-result'), data);
+  } catch (err) {
+    notify(errorText(err.message));
+  } finally {
+    btn.disabled = false;
+  }
+}

@@ -389,6 +389,9 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#export-profiles-btn')?.addEventListener('click', exportProfilesJSON);
   $('#muhurtham-ics-btn')?.addEventListener('click', exportMuhurthamsIcs);
   $('#prasna-btn')?.addEventListener('click', askPrasna);
+  $('#rect-add')?.addEventListener('click', () => { if (rectEvents.length < 12) { rectEvents.push({ date: '', type: 'career' }); renderRectEvents(); } });
+  $('#rect-run')?.addEventListener('click', runRectification);
+  renderRectEvents();
   fillPrasnaQuestions();
   $('#month-ics-btn')?.addEventListener('click', exportMonthIcs);
   $('#chandrashtamam-ics-btn')?.addEventListener('click', exportChandrashtamamIcs);
@@ -500,6 +503,8 @@ function toggleLanguage() {
   if (lastMatch) renderMatchResult(lastMatch);
   fillPrasnaQuestions();
   if (lastPrasna) renderChapterInto($('#prasna-result'), lastPrasna);
+  renderRectEvents();
+  if (lastRectification) renderChapterInto($('#rect-result'), lastRectification);
   populateQuickProfileDropdown();
   renderProfilesList();
   populateMatchDropdowns();
