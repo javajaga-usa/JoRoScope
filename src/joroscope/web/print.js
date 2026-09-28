@@ -224,8 +224,9 @@ function printReportChapters(c) {
   return REPORT_CHAPTERS.filter(key => pred[key]).map(key => {
     const ch = pred[key];
     const tables = ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
+    const grid = ch.grid ? `<div class="pj-chakra">${ch.grid.flat().map(g => `<div class="${esc(g.cls || '')}">${cell(g)}</div>`).join('')}</div>` : '';
     const cards = ch.cards.map(k => `<div class="pj-reading"><h4>${cell(k.title)}</h4><p>${cell(k.body)}</p></div>`).join('');
-    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${tables}${cards}`;
+    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${grid}${tables}${cards}`;
   }).join('');
 }
 

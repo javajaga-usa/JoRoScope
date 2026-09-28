@@ -765,7 +765,7 @@ function renderLifeReadings() {
 }
 
 // Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
-const REPORT_CHAPTERS = ['numerology', 'marriage', 'career_report', 'varshaphal', 'remedies', 'monthly'];
+const REPORT_CHAPTERS = ['numerology', 'chakras', 'marriage', 'career_report', 'varshaphal', 'remedies', 'monthly'];
 const VERDICT_PILLS = { good: ['success', 'Favourable', 'சாதகம்'], mixed: ['neutral', 'Mixed', 'கலப்பு'], bad: ['danger', 'Needs care', 'கவனம் தேவை'] };
 
 function reportCardHtml(c) {
@@ -797,6 +797,12 @@ function reportTableHtml(t) {
     </div>`;
 }
 
+// A square chakra (the Sarvatobhadra's 9 x 9 cells), east on top
+function reportGridHtml(grid) {
+  return `<div class="cosmic-card report-table-card"><div class="chakra-grid">${grid.flat().map(c =>
+    `<div class="chakra-cell ${esc(c.cls || '')}">${esc(txt(c.en, c.ta))}</div>`).join('')}</div></div>`;
+}
+
 function renderReportChapter(key, ch) {
   renderChapterInto(document.getElementById(`ppanel-${key}`), ch);
 }
@@ -812,6 +818,7 @@ function renderChapterInto(panel, ch) {
       <h2>${esc(txt(ch.title.en, ch.title.ta))}</h2>
       <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta))}</p>
     </div>
+    ${ch.grid ? reportGridHtml(ch.grid) : ''}
     ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}
     <div class="readings-grid">${ch.cards.map(reportCardHtml).join('')}</div>
     ${ch.cards_first ? ch.tables.map(reportTableHtml).join('') : ''}`;

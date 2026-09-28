@@ -170,5 +170,34 @@ class PrasnaTests(unittest.TestCase):
             server.shutdown()
             server.server_close()
 
+
+class ChakraTests(unittest.TestCase):
+    def test_sarvatobhadra_layout(self):
+        from joroscope.core.chakras import SBC_GRID, STAR_CELL, SIGN_CELL, star28, star28_name, vedha_cells
+        # East on top: Krittika to Ashlesha; Abhijit on the west side next to Shravana
+        self.assertEqual([star28_name(v)[0] for v in SBC_GRID[0][1:8]],
+                         ['Krittika', 'Rohini', 'Mrigashira', 'Ardra', 'Punarvasu', 'Pushya', 'Ashlesha'])
+        self.assertEqual(len(STAR_CELL), 28)
+        self.assertEqual(len(SIGN_CELL), 12)
+        self.assertEqual(STAR_CELL[22], (8, 2))
+        self.assertEqual(star28(277.0), 22)   # Abhijit
+        self.assertEqual(star28(281.0), 23)   # Shravana
+        # Krittika's Vedha ahead runs down its column to the west side (Shravana)
+        cells = vedha_cells(3, 'ahead')
+        self.assertEqual(cells[-1], (8, 1))
+        self.assertEqual(star28_name(SBC_GRID[8][1])[0], 'Shravana')
+
+    def test_chart(self):
+        c = calculate(BIRTH)
+        ch = c['predictions']['chakras']
+        check_chapter(self, ch)
+        self.assertEqual(len(ch['grid']), 9)
+        self.assertTrue(all(len(row) == 9 for row in ch['grid']))
+        self.assertEqual(ch['kota_swami'], 'Saturn')          # Aquarius Moon
+        for row in ch['tables'][1]['rows']:
+            count = int(row[2]['en'])
+            if count in (4, 11, 18, 25):
+                self.assertTrue(row[3]['en'].startswith('Stambha'))
+
 if __name__ == '__main__':
     unittest.main()

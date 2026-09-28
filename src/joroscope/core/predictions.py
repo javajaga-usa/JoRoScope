@@ -50,6 +50,7 @@ def generate_comprehensive_predictions(chart):
     # Modules that need the ephemeris import the engine, which imports this module
     from .monthly import calculate_monthly_transits
     from .varshaphal import calculate_varshaphal
+    from .chakras import calculate_chakras
 
     planets = chart['planets']
     asc = planets['Ascendant']
@@ -125,5 +126,6 @@ def generate_comprehensive_predictions(chart):
         'monthly': calculate_monthly_transits(chart),
         'varshaphal': calculate_varshaphal(chart),
         'marriage': calculate_marriage_report(chart, jaimini_karakas, double_transit),
-        'career_report': calculate_career_report(chart, jaimini_karakas, career_d10, double_transit)
+        'career_report': calculate_career_report(chart, jaimini_karakas, career_d10, double_transit),
+        'chakras': calculate_chakras(chart)
     }
