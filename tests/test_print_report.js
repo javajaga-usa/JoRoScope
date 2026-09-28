@@ -38,6 +38,7 @@ function post(route, body) {
 
 function sandbox(chart, match, lang) {
   const elements = {};
+  const drawn = [];
   const el = id => (elements[id] = elements[id] || { id, innerHTML: '', textContent: '', dataset: {} });
   const signsEn = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   const signsTa = ['மேஷம்', 'ரிஷபம்', 'மிதுனம்', 'கடகம்', 'சிம்மம்', 'கன்னி', 'துலாம்', 'விருச்சிகம்', 'தனுசு', 'மகரம்', 'கும்பம்', 'மீனம்'];
@@ -49,19 +50,22 @@ function sandbox(chart, match, lang) {
     dignityLabel: d => d || 'Neutral', ayanamsaLabel: a => a, formatDegrees: v => `${Number(v).toFixed(2)}°`,
     localDate: iso => String(iso).slice(0, 10), clockTime: iso => String(iso).slice(11, 16),
     kurippuRows: () => [['Tamil Year', 'x'], ['Vaaram', 'y']], dasaIrruppuText: () => 'Mars · 0y 1m 8d',
-    renderSouthChart: () => {}, notify: () => {}, SIGNS_EN: signsEn, SIGNS_TA: signsTa,
+    renderSouthChart: (el, varga) => { drawn.push(['south', el.id, varga]); },
+    renderDiamondChart: (el, varga, opts) => { drawn.push([opts && opts.mirror ? 'srilanka' : 'north', el.id, varga]); },
+    renderEastChart: (el, varga) => { drawn.push(['east', el.id, varga]); },
+    currentStyle: 'south', notify: () => {}, SIGNS_EN: signsEn, SIGNS_TA: signsTa,
     VARGA_NAMES: new Proxy({}, { get: (_, k) => [String(k), String(k)] }),
     GUNA_LABELS: [['varna', 1, 'Varna', 'வர்ணம்'], ['nadi', 8, 'Nadi', 'நாடி']],
     $: sel => el(sel.replace(/^#/, '')), $$: () => [],
     document: {
-      getElementById: id => elements[id] || null, head: { append: node => { elements[node.id] = node; } },
+      getElementById: id => elements[id] || (id.startsWith('pj-chart-') ? el(id) : null), head: { append: node => { elements[node.id] = node; } },
       createElement: () => ({ id: '', textContent: '' }), addEventListener: () => {}, body: { classList: { add() {}, remove() {} } }
     },
     Date, window: { print() {} }, setTimeout
   };
   vm.createContext(ctx);
   vm.runInContext(printJs + '\n;this.__print = { buildPrintReport, buildPoruthamSheet, PRINT_SECTIONS, PRINT_PRESETS };', ctx);
-  return { ctx, sheet: () => el('print-jathagam').innerHTML, pageStyle: () => (elements['print-page-style'] || {}).textContent || '' };
+  return { ctx, drawn, sheet: () => el('print-jathagam').innerHTML, pageStyle: () => (elements['print-page-style'] || {}).textContent || '' };
 }
 
 function assertClean(html, label) {
@@ -80,7 +84,7 @@ function assertClean(html, label) {
   const match = await post('/api/match', { boy: birth, girl: { ...birth, name: 'Bride', date: '1993-05-20', time: '07:30:00' } });
 
   for (const lang of ['en', 'ta']) {
-    const { ctx, sheet, pageStyle } = sandbox(chart, match, lang);
+    const { ctx, drawn, sheet, pageStyle } = sandbox(chart, match, lang);
     const api = ctx.__print;
     for (const [key, preset] of Object.entries(api.PRINT_PRESETS)) {
       api.buildPrintReport(key, preset.sections);
@@ -94,6 +98,14 @@ function assertClean(html, label) {
     ['Navamsa', 'D60', 'Sodhya', 'Vimsopaka', 'Bhava'].forEach(word => {
       if (lang === 'en' && !complete.includes(word)) fail(`complete report lacks ${word}`);
     });
+    // Every chart style draws each chart once, into SVG for the non-grid styles
+    for (const style of ['north', 'east', 'srilanka', 'south']) {
+      drawn.length = 0;
+      api.buildPrintReport('jathagam', api.PRINT_PRESETS.jathagam.sections, style);
+      const out = sheet();
+      if (drawn.length !== 2 || drawn.some(([kind]) => kind !== style)) fail(`${lang}/${style}: charts drawn as ${JSON.stringify(drawn)}`);
+      if (style !== 'south' && !out.includes('class="pj-svg-chart"')) fail(`${lang}/${style}: no SVG chart in the sheet`);
+    }
     api.buildPoruthamSheet(match);
     assertClean(sheet(), `${lang}/porutham`);
     console.log(`PASS: ${lang} reports (Traditional, Detailed, Complete) and the Porutham report build cleanly`);

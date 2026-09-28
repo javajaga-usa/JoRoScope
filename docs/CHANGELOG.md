@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### Chart styles on screen and in print
+- Sri Lankan (Sinhala kendaraya) chart: the diamond drawing with the Lagna at the top and the houses running clockwise.
+- The print dialog has a chart style: South Indian (also the Kerala layout), North Indian, East Indian or Sri Lankan. Every chart in the report, including the Shodasavarga pages, uses it, drawn black on white.
+- North Indian and Sri Lankan charts put the sign numbers at the inner corners and wrap the grahas onto several lines, so crowded houses stay legible; the Lagna house is shaded.
+
 ### Windows launcher
 - `Launch.ps1` and `Start JoRoScope.cmd` now work like the macOS launcher: they find Python 3.11 or newer (the `py` launcher, then `python`), create a private `.venv` and install the requirements on the first run, then start the server. They no longer look for a developer-machine runtime under `.cache\codex-runtimes` or require exactly Python 3.12.
 

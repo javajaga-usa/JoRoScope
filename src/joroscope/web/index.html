@@ -324,6 +324,7 @@
                     <button class="style-toggle" data-style="dual" id="btn-dual-style" data-i18n="rasi_navamsa">Rasi + Navamsa</button>
                     <button class="style-toggle" data-style="north" id="btn-north-style" data-i18n="north_diamond">North Indian (Diamond)</button>
                     <button class="style-toggle" data-style="east" id="btn-east-style" data-i18n="east_indian">East Indian</button>
+                    <button class="style-toggle" data-style="srilanka" id="btn-srilanka-style" data-i18n="sri_lankan">Sri Lankan</button>
                   </div>
 
                   <div class="chart-meta">
@@ -366,6 +367,11 @@
                   <!-- North Indian Diamond SVG -->
                   <div id="north-chart-container" class="north-chart-wrapper" hidden>
                     <svg id="north-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
+                  </div>
+
+                  <!-- Sri Lankan (Sinhala) kendaraya: the diamond with houses running clockwise -->
+                  <div id="srilanka-chart-container" class="north-chart-wrapper" hidden>
+                    <svg id="srilanka-svg" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
                   </div>
 
                   <!-- East Indian Grid -->
@@ -1978,6 +1984,10 @@
           <option value="ta">தமிழ்</option>
           <option value="en">English</option>
         </select>
+      </label>
+      <label class="print-language">
+        <span data-i18n="print_chart_style">Chart style</span>
+        <select id="print-chart-style"></select>
       </label>
       <p class="muted print-hint" data-i18n="print_pdf_hint">To make a PDF, choose "Save as PDF" as the destination in the print window.</p>
       <div class="print-dialog-actions">

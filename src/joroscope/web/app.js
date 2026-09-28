@@ -280,6 +280,7 @@ const I18N = {
     south_indian: 'South Indian',
     north_diamond: 'North Indian (Diamond)',
     east_indian: 'East Indian',
+    sri_lankan: 'Sri Lankan',
     click_house: 'Click any house',
     occupant_planets: 'Occupant Planets',
     aspects_received: 'Aspects Received From',
@@ -550,6 +551,7 @@ const I18N = {
     print_dialog_title: "Print or save as PDF",
     print_sections: "Choose sections",
     print_language: "Language",
+    print_chart_style: "Chart style",
     print_pdf_hint: "To make a PDF, choose \"Save as PDF\" as the destination in the print window.",
     cancel: "Cancel",
     print_now: "Print / PDF",
@@ -701,6 +703,7 @@ const I18N = {
     south_indian: 'தென்னிந்திய கட்டம்',
     north_diamond: 'வடஇந்திய வைரம்',
     east_indian: 'கிழக்கிந்திய கட்டம்',
+    sri_lankan: 'இலங்கை (சிங்கள) கட்டம்',
     click_house: 'கட்டத்தை சொடுக்கவும்',
     occupant_planets: 'இருக்கும் கிரகங்கள்',
     aspects_received: 'பார்வை தரும் கிரகங்கள்',
@@ -971,6 +974,7 @@ const I18N = {
     print_dialog_title: "அச்சிடுக அல்லது PDF ஆகச் சேமிக்கவும்",
     print_sections: "பகுதிகளைத் தேர்ந்தெடுக்கவும்",
     print_language: "மொழி",
+    print_chart_style: "சக்கர வடிவம்",
     print_pdf_hint: "PDF உருவாக்க, அச்சு சாளரத்தில் \"Save as PDF\" என்பதைத் தேர்ந்தெடுக்கவும்.",
     cancel: "ரத்து",
     print_now: "அச்சு / PDF",
@@ -1163,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => {
   $('#btn-south-style').addEventListener('click', () => setChartStyle('south'));
   $('#btn-north-style').addEventListener('click', () => setChartStyle('north'));
   $('#btn-east-style').addEventListener('click', () => setChartStyle('east'));
+  $('#btn-srilanka-style').addEventListener('click', () => setChartStyle('srilanka'));
   $('#btn-dual-style').addEventListener('click', () => setChartStyle('dual'));
 
   // Varga selector pills
@@ -1723,7 +1728,7 @@ function kurippuRows() {
 // Chart Style & Varga Switching
 function setChartStyle(style) {
   currentStyle = style;
-  ['south', 'north', 'east', 'dual'].forEach(st => {
+  ['south', 'north', 'east', 'srilanka', 'dual'].forEach(st => {
     $(`#btn-${st}-style`).classList.toggle('active', style === st);
     $(`#${st}-chart-container`).hidden = (style !== st);
   });
@@ -1761,6 +1766,8 @@ function renderCurrentChart() {
     renderNorthChart();
   } else if (currentStyle === 'east') {
     renderEastChart();
+  } else if (currentStyle === 'srilanka') {
+    renderSriLankanChart();
   }
 }
 
@@ -1870,84 +1877,91 @@ function renderSouthChart(container, varga, compact = false) {
   container.append(center);
 }
 
-// 2. North Indian Diamond Layout (SVG Renderer)
-function renderNorthChart() {
-  const svg = $('#north-svg');
-  svg.innerHTML = '';
+// Colours for the SVG charts: the page theme on screen, black on white on paper
+function chartPalette(print = false) {
+  if (print) return { fill: '#ffffff', lagnaFill: '#f1ece0', stroke: '#444444', text: '#111111', accent: '#333333' };
+  const light = document.documentElement.getAttribute('data-theme') === 'light';
+  return light
+    ? { fill: '#fafbf7', lagnaFill: '#f3ead2', stroke: '#b38628', text: '#15221b', accent: '#b38628' }
+    : { fill: 'rgba(15, 20, 42, 0.6)', lagnaFill: 'rgba(229, 195, 120, 0.14)', stroke: '#e5c378', text: '#ffffff', accent: '#e5c378' };
+}
 
-  const ascSign = currentChart.planets.Ascendant.vargas[currentVarga];
-  const w = 600, h = 600;
+// Graha labels for an SVG chart cell, retrograde marked
+function svgGrahaLabels(varga, sign) {
+  const isTa = currentLang === 'ta';
+  return chartBodies()
+    .filter(([, pData]) => pData.vargas[varga] === sign)
+    .map(([n, pData]) => `${grahaAbbrev(n)}${pData.retrograde && !['Rahu', 'Ketu'].includes(n) ? (isTa ? '(வ)' : 'ᴿ') : ''}`);
+}
 
-  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-  const houseFill = isLight ? '#fafbf7' : 'rgba(15, 20, 42, 0.6)';
-  const houseStroke = isLight ? '#b38628' : '#e5c378';
-  const signColor = isLight ? '#b38628' : '#e5c378';
-  const planetColor = isLight ? '#15221b' : '#ffffff';
+// 2. North Indian Diamond Layout (SVG Renderer). Houses are fixed with the Lagna in the top
+// diamond and run anticlockwise; the Sri Lankan (Sinhala) kendaraya is the same drawing with
+// the houses running clockwise, so it is this chart mirrored left to right.
+const DIAMOND_HOUSES = [  // outline, centre of the graha labels, sign number, labels per line
+  { path: [[300, 0], [450, 150], [300, 300], [150, 150]], text: [300, 150], num: [300, 40], per: 3 },
+  { path: [[300, 0], [150, 150], [0, 0]], text: [150, 52], num: [150, 124], per: 3 },
+  { path: [[0, 0], [150, 150], [0, 300]], text: [52, 150], num: [124, 150], per: 2 },
+  { path: [[0, 300], [150, 150], [300, 300], [150, 450]], text: [150, 300], num: [60, 300], per: 3 },
+  { path: [[0, 300], [150, 450], [0, 600]], text: [52, 450], num: [124, 450], per: 2 },
+  { path: [[0, 600], [150, 450], [300, 600]], text: [150, 548], num: [150, 476], per: 3 },
+  { path: [[300, 600], [150, 450], [300, 300], [450, 450]], text: [300, 450], num: [300, 560], per: 3 },
+  { path: [[300, 600], [450, 450], [600, 600]], text: [450, 548], num: [450, 476], per: 3 },
+  { path: [[600, 600], [450, 450], [600, 300]], text: [548, 450], num: [476, 450], per: 2 },
+  { path: [[600, 300], [450, 450], [300, 300], [450, 150]], text: [450, 300], num: [540, 300], per: 3 },
+  { path: [[600, 300], [450, 150], [600, 0]], text: [548, 150], num: [476, 150], per: 2 },
+  { path: [[600, 0], [450, 150], [300, 0]], text: [450, 52], num: [450, 124], per: 3 }
+];
 
-  const houses = [
-    { num: 1, path: 'M 300,0 L 450,150 L 300,300 L 150,150 Z', textPos: [300, 160], numPos: [300, 50] },
-    { num: 2, path: 'M 300,0 L 150,150 L 0,0 Z', textPos: [150, 65], numPos: [210, 45] },
-    { num: 3, path: 'M 0,0 L 150,150 L 0,300 Z', textPos: [50, 150], numPos: [45, 90] },
-    { num: 4, path: 'M 0,300 L 150,150 L 300,300 L 150,450 Z', textPos: [150, 300], numPos: [65, 300] },
-    { num: 5, path: 'M 0,300 L 150,450 L 0,600 Z', textPos: [50, 450], numPos: [45, 510] },
-    { num: 6, path: 'M 0,600 L 150,450 L 300,600 Z', textPos: [150, 535], numPos: [210, 555] },
-    { num: 7, path: 'M 300,600 L 150,450 L 300,300 L 450,450 Z', textPos: [300, 440], numPos: [300, 550] },
-    { num: 8, path: 'M 300,600 L 450,450 L 600,600 Z', textPos: [450, 535], numPos: [390, 555] },
-    { num: 9, path: 'M 600,600 L 450,450 L 600,300 Z', textPos: [550, 450], numPos: [555, 510] },
-    { num: 10, path: 'M 600,300 L 450,450 L 300,300 L 450,150 Z', textPos: [450, 300], numPos: [535, 300] },
-    { num: 11, path: 'M 600,300 L 450,150 L 600,0 Z', textPos: [550, 150], numPos: [555, 90] },
-    { num: 12, path: 'M 600,0 L 450,150 L 300,0 Z', textPos: [450, 65], numPos: [390, 45] }
-  ];
+function renderDiamondChart(svg, varga, { mirror = false, print = false } = {}) {
+  const NS = 'http://www.w3.org/2000/svg';
+  svg.replaceChildren();
+  const pal = chartPalette(print);
+  const ascSign = currentChart.planets.Ascendant.vargas[varga];
+  const rasiAsc = currentChart.planets.Ascendant.sign_index;
+  const fx = x => (mirror ? 600 - x : x);
+  const text = (x, y, content, size, color, weight = 700) => {
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', fx(x));
+    t.setAttribute('y', y);
+    t.setAttribute('fill', color);
+    t.setAttribute('font-size', size);
+    t.setAttribute('font-weight', weight);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('dominant-baseline', 'middle');
+    t.textContent = content;
+    return t;
+  };
 
-  // Draw house segments
-  houses.forEach(hItem => {
-    // In North Indian chart: House numbers are fixed (1-12). Sign rotating starts at House 1 = ascSign
-    const signIdx = (ascSign + hItem.num - 1) % 12;
-
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.style.cursor = 'pointer';
-    // The inspector describes the Rasi (D1) house of this sign
-    g.onclick = () => openHouseInspector((signIdx - currentChart.planets.Ascendant.sign_index + 12) % 12 + 1, signIdx);
-
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', hItem.path);
-    path.setAttribute('fill', houseFill);
-    path.setAttribute('stroke', houseStroke);
+  DIAMOND_HOUSES.forEach((house, i) => {
+    const signIdx = (ascSign + i) % 12;
+    const g = document.createElementNS(NS, 'g');
+    if (!print) {
+      g.style.cursor = 'pointer';
+      // The inspector describes the Rasi (D1) house of this sign
+      g.onclick = () => openHouseInspector((signIdx - rasiAsc + 12) % 12 + 1, signIdx);
+    }
+    const path = document.createElementNS(NS, 'path');
+    path.setAttribute('d', 'M ' + house.path.map(([x, y]) => `${fx(x)},${y}`).join(' L ') + ' Z');
+    path.setAttribute('fill', i === 0 ? pal.lagnaFill : pal.fill);
+    path.setAttribute('stroke', pal.stroke);
     path.setAttribute('stroke-width', '1.2');
     g.append(path);
-
-    // Sign number text (1 = Aries, 12 = Pisces)
-    const signText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    signText.setAttribute('x', hItem.numPos[0]);
-    signText.setAttribute('y', hItem.numPos[1]);
-    signText.setAttribute('fill', signColor);
-    signText.setAttribute('font-size', '13');
-    signText.setAttribute('font-weight', '700');
-    signText.setAttribute('text-anchor', 'middle');
-    signText.textContent = signIdx + 1;
-    g.append(signText);
-
-    // Planet labels in this house
-    const planetsInHouse = chartBodies().filter(([pName, pData]) => {
-      return pData.vargas[currentVarga] === signIdx;
-    });
-
-    if (planetsInHouse.length) {
-      const planText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      planText.setAttribute('x', hItem.textPos[0]);
-      planText.setAttribute('y', hItem.textPos[1]);
-      planText.setAttribute('fill', planetColor);
-      planText.setAttribute('font-size', '12');
-      planText.setAttribute('font-weight', '700');
-      planText.setAttribute('text-anchor', 'middle');
-
-      const names = planetsInHouse.map(([n, p]) => `${grahaAbbrev(n)}${p.retrograde && !['Rahu', 'Ketu'].includes(n) ? 'ᴿ' : ''}`).join(' ');
-      planText.textContent = names;
-      g.append(planText);
-    }
-
+    // Sign number (1 = Aries ... 12 = Pisces), as North Indian and Sinhala charts write it
+    g.append(text(house.num[0], house.num[1], signIdx + 1, 14, pal.accent));
+    const names = svgGrahaLabels(varga, signIdx);
+    const lines = [];
+    for (let k = 0; k < names.length; k += house.per) lines.push(names.slice(k, k + house.per).join(' '));
+    lines.forEach((line, k) => g.append(text(house.text[0], house.text[1] + (k - (lines.length - 1) / 2) * 17, line, 14, pal.text)));
     svg.append(g);
   });
+}
+
+function renderNorthChart() {
+  renderDiamondChart($('#north-svg'), currentVarga);
+}
+
+function renderSriLankanChart() {
+  renderDiamondChart($('#srilanka-svg'), currentVarga, { mirror: true });
 }
 
 // 3. East Indian Layout (SVG Renderer): signs are fixed with Aries at the top centre,
@@ -1967,20 +1981,15 @@ const EAST_CELLS = [
   { pts: '400,0 600,0 400,200', at: [467, 62] }              // Pisces
 ];
 
-function renderEastChart() {
-  const svg = $('#east-svg');
-  svg.innerHTML = '';
+function renderEastChart(svg = $('#east-svg'), varga = currentVarga, { print = false } = {}) {
+  svg.replaceChildren();
   const NS = 'http://www.w3.org/2000/svg';
   const isTa = currentLang === 'ta';
-  const light = document.documentElement.getAttribute('data-theme') === 'light';
-  const fill = light ? '#fafbf7' : 'rgba(15, 20, 42, 0.6)';
-  const lagnaFill = light ? '#f3ead2' : 'rgba(229, 195, 120, 0.14)';
-  const stroke = light ? '#b38628' : '#e5c378';
-  const textColor = light ? '#15221b' : '#ffffff';
+  const pal = chartPalette(print);
+  const [fill, lagnaFill, stroke, textColor] = [pal.fill, pal.lagnaFill, pal.stroke, pal.text];
 
-  const vargaAsc = currentChart.planets.Ascendant.vargas[currentVarga];
+  const vargaAsc = currentChart.planets.Ascendant.vargas[varga];
   const rasiAsc = currentChart.planets.Ascendant.sign_index;
-  const bodies = chartBodies();
 
   const text = (x, y, content, size, color, weight = 700) => {
     const t = document.createElementNS(NS, 'text');
@@ -1996,8 +2005,10 @@ function renderEastChart() {
 
   EAST_CELLS.forEach((cell, s) => {
     const g = document.createElementNS(NS, 'g');
-    g.style.cursor = 'pointer';
-    g.onclick = () => openHouseInspector((s - rasiAsc + 12) % 12 + 1, s);
+    if (!print) {
+      g.style.cursor = 'pointer';
+      g.onclick = () => openHouseInspector((s - rasiAsc + 12) % 12 + 1, s);
+    }
 
     const poly = document.createElementNS(NS, 'polygon');
     poly.setAttribute('points', cell.pts);
@@ -2012,16 +2023,14 @@ function renderEastChart() {
     g.append(text(x, y - 22, `${signName} · ${isTa ? houseNum : `H${houseNum}`}`, 11, stroke));
 
     // Up to three grahas per line so the corner triangles stay legible
-    const names = bodies
-      .filter(([, pData]) => pData.vargas[currentVarga] === s)
-      .map(([n, pData]) => `${grahaAbbrev(n)}${pData.retrograde && !['Rahu', 'Ketu'].includes(n) ? (isTa ? '(வ)' : 'ᴿ') : ''}`);
+    const names = svgGrahaLabels(varga, s);
     for (let i = 0; i < names.length; i += 3) {
       g.append(text(x, y + (i / 3) * 16, names.slice(i, i + 3).join(' '), 12, textColor));
     }
     svg.append(g);
   });
 
-  const title = VARGA_NAMES[currentVarga] || [currentVarga, currentVarga];
+  const title = VARGA_NAMES[varga] || [varga, varga];
   svg.append(text(300, 292, isTa ? title[1] : title[0], 18, stroke));
   svg.append(text(300, 316, currentChart.profile.name || 'JoRoScope', 12, textColor, 500));
 }

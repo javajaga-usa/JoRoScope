@@ -3432,6 +3432,12 @@ input:focus, select:focus {
     margin: 0;
     break-inside: avoid;
   }
+  .print-jathagam .pj-svg-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+  }
   .print-jathagam figcaption {
     text-align: center;
     font-size: 8.5pt;

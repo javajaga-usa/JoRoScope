@@ -51,6 +51,13 @@ const PRINT_PRESETS = {
 const PRINT_GRAHAS = ['Ascendant', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
 const PRINT_SEVEN = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'];
 let pendingCharts = [];  // [element id, varga] rendered after the sheet's HTML is in place
+let printChartStyle = 'south';  // south, north, east or srilanka
+const PRINT_CHART_STYLES = {
+  south: ['South Indian (Tamil, Kerala)', 'தென்னிந்திய (தமிழ், கேரளம்)'],
+  north: ['North Indian', 'வடஇந்திய'],
+  east: ['East Indian', 'கிழக்கிந்திய'],
+  srilanka: ['Sri Lankan (Sinhala)', 'இலங்கை (சிங்கள)']
+};
 
 // ---------- small builders ----------
 const pjKV = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${v}</strong></div>`).join('');
@@ -62,7 +69,10 @@ const pjTable = (head, rows, cls = '') => `
 const pjChart = (varga, caption) => {
   const id = `pj-chart-${varga}-${pendingCharts.length}`;
   pendingCharts.push([id, varga]);
-  return `<figure class="pj-figure"><div id="${id}" class="south-chart-grid compact"></div>${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
+  const drawing = printChartStyle === 'south'
+    ? `<div id="${id}" class="south-chart-grid compact"></div>`
+    : `<svg id="${id}" class="pj-svg-chart" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>`;
+  return `<figure class="pj-figure">${drawing}${caption ? `<figcaption>${esc(caption)}</figcaption>` : ''}</figure>`;
 };
 const pjDate = iso => iso ? localDate(iso) : '—';
 const pjLatLon = (v, pos, neg) => `${Math.abs(Number(v)).toFixed(4)}° ${Number(v) >= 0 ? pos : neg}`;
@@ -312,8 +322,9 @@ function printPredictions(c) {
 }
 
 // ---------- assembling and printing ----------
-function buildPrintReport(presetKey, sectionKeys) {
+function buildPrintReport(presetKey, sectionKeys, chartStyle = 'south') {
   const c = currentChart;
+  printChartStyle = PRINT_CHART_STYLES[chartStyle] ? chartStyle : 'south';
   const preset = PRINT_PRESETS[presetKey] || PRINT_PRESETS.jathagam;
   const prof = c.profile;
   pendingCharts = [];
@@ -340,7 +351,10 @@ function buildPrintReport(presetKey, sectionKeys) {
       `ஜோரோஸ்கோப் சுவிஸ் எபிமெரிஸ் கணிதம் · ${ayanamsaLabel(prof.ayanamsa)} அயனாம்சம் · அச்சிட்ட நாள் ${new Date().toLocaleDateString('ta-IN')}. பலன்கள் பாரம்பரிய வழிகாட்டுதல் மட்டுமே; முக்கிய முடிவுகளுக்கு ஜோதிடரை அணுகவும்.`))}</footer>`;
   pendingCharts.forEach(([id, varga]) => {
     const el = document.getElementById(id);
-    if (el) renderSouthChart(el, varga, true);
+    if (!el) return;
+    if (printChartStyle === 'south') renderSouthChart(el, varga, true);
+    else if (printChartStyle === 'east') renderEastChart(el, varga, { print: true });
+    else renderDiamondChart(el, varga, { mirror: printChartStyle === 'srilanka', print: true });
   });
   setPrintPageStyle(`${title} · ${prof.name || ''}`);
 }
@@ -398,6 +412,13 @@ function openPrintDialog(presetKey = 'jathagam') {
   tick(presetKey);
   $$('#print-presets input').forEach(radio => radio.addEventListener('change', () => tick(radio.value)));
   $('#print-language').value = currentLang;
+  const styleSelect = $('#print-chart-style');
+  if (styleSelect) {
+    const chosen = styleSelect.value || (['north', 'east', 'srilanka'].includes(currentStyle) ? currentStyle : 'south');
+    styleSelect.innerHTML = Object.entries(PRINT_CHART_STYLES).map(([key, [en, ta]]) =>
+      `<option value="${key}">${esc(txt(en, ta))}</option>`).join('');
+    styleSelect.value = chosen;
+  }
   dialog.showModal();
 }
 
@@ -406,12 +427,13 @@ function submitPrintDialog(event) {
   const preset = $('#print-presets input:checked')?.value || 'jathagam';
   const sections = [...$$('#print-section-list input:checked')].map(b => b.value);
   const lang = $('#print-language').value;
+  const chartStyle = $('#print-chart-style')?.value || 'south';
   $('#print-dialog').close();
   if (!sections.length) {
     notify(txt('Choose at least one section.', 'குறைந்தது ஒரு பகுதியைத் தேர்ந்தெடுக்கவும்.'));
     return;
   }
-  printWithLanguage(lang, () => buildPrintReport(preset, sections));
+  printWithLanguage(lang, () => buildPrintReport(preset, sections, chartStyle));
 }
 
 // The header Print button: a Porutham report on the matching page, the report dialog for a
