@@ -494,6 +494,8 @@ function switchPredictionTab(ptab) {
 // Language Management
 function toggleLanguage() {
   currentLang = nextLanguage(currentLang);
+  // A chart fetched in English or Tamil has no Malayalam readings: fetch it again
+  if (currentLang === 'ml' && currentChart && currentChartPayload?.lang !== 'ml') $('#birth-form').requestSubmit();
   try {
     localStorage.setItem('joroscope_lang', currentLang);
   } catch (e) {}
@@ -699,6 +701,7 @@ async function handleFormSubmit(e) {
   try {
     const formData = new FormData(e.target);
     const payload = Object.fromEntries(formData);
+    payload.lang = currentLang;  // the server sends Malayalam readings only when asked
     const resp = await fetch('/api/chart', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -708,6 +711,7 @@ async function handleFormSubmit(e) {
     if (!resp.ok) throw new Error(result.error || 'Calculation failed.');
 
     currentChart = result;
+    learnMalayalam(result);
     currentChartPayload = payload;
     timelineDetailsLoad = null;
     $('#chart-empty').hidden = true;

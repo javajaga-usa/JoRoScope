@@ -96,6 +96,7 @@ async function runHoroscopeMatch() {
     const match = await resp.json();
     if (!resp.ok) throw new Error(match.error);
     lastMatch = match;
+    learnMalayalam(match);
     syncProfilesFromMatch(match);
     renderMatchResult(match);
     notify(txt('Horoscope compatibility calculated', 'திருமணப் பொருத்தம் கணிக்கப்பட்டது'));

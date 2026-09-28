@@ -32,6 +32,7 @@ async function loadDailyPanchangam() {
     const panch = await resp.json();
     if (!resp.ok) throw new Error(panch.error || 'Panchangam calculation failed.');
     lastDailyPanchangam = panch;
+    learnMalayalam(panch);
     populatePanchangamView(panch);
   } catch (err) {
     errorEl.textContent = errorText(err.message);
@@ -73,6 +74,7 @@ async function loadMuhurthams() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Muhurtham search failed.');
     lastMuhurthams = data;
+    learnMalayalam(data);
     renderMuhurthams(data);
   } catch (err) {
     notify(errorText(err.message));
@@ -122,6 +124,7 @@ async function loadMonthCalendar() {
     const cal = await resp.json();
     if (!resp.ok) throw new Error(cal.error || 'Calendar calculation failed.');
     lastCalendar = cal;
+    learnMalayalam(cal);
     renderMonthCalendar(cal);
   } catch (err) {
     notify(errorText(err.message));
@@ -476,6 +479,7 @@ async function askPrasna() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Prasna failed.');
     lastPrasna = data;
+    learnMalayalam(data);
     renderChapterInto($('#prasna-result'), data);
   } catch (err) {
     notify(errorText(err.message));
@@ -528,6 +532,7 @@ async function runRectification() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Rectification failed.');
     lastRectification = data;
+    learnMalayalam(data);
     renderChapterInto($('#rect-result'), data);
   } catch (err) {
     notify(errorText(err.message));

@@ -439,9 +439,10 @@ function loadTimelineDetails() {
     timelineDetailsLoad = fetch('/api/timeline', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(currentChartPayload)
+      body: JSON.stringify({ ...currentChartPayload, lang: currentLang })
     }).then(resp => resp.json().then(data => {
       if (!resp.ok) throw new Error(data.error || 'Timeline details failed.');
+      learnMalayalam(data);
       (chart.predictions.timeline_predictions.periods || []).forEach(p => {
         const details = data.details[p.id];
         if (details) {
