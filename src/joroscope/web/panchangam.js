@@ -87,6 +87,7 @@ function renderMuhurthams(data) {
   $('#muhurtham-summary').textContent = txt(
     `${data.days_found} suitable day${data.days_found === 1 ? '' : 's'} for ${data.event_en} in the ${data.days} days from ${data.start}.${personal}`,
     `${data.start} முதல் ${data.days} நாட்களில் ${data.event_ta} செய்ய ${data.days_found} உகந்த நாட்கள்.${personal}`);
+  $('#muhurtham-ics-btn').hidden = !data.results.length;
   $('#muhurtham-list').innerHTML = data.results.map(d => `
     <div class="muhurtham-day">
       <h4>${d.date} · ${esc(txt(d.weekday, d.weekday_ta))} <small class="muted">(${esc(d.tamil_date)})</small></h4>
@@ -395,4 +396,48 @@ function renderPersonalBalam(personal) {
   status.textContent = good ? (isTa ? 'சாதகமான நாள்' : 'Favourable day')
     : (bad ? (isTa ? 'கவனம் தேவை' : 'Take care') : (isTa ? 'கலப்பு' : 'Mixed'));
   renderUpcomingDates();
+}
+
+// Calendar (.ics) export of muhurthams, the month's observances and Chandrashtamam periods, in
+// the page language
+function exportMuhurthamsIcs() {
+  const data = lastMuhurthams;
+  if (!data || !data.results.length) return;
+  const events = data.results.flatMap(d => d.windows.map((w, i) => ({
+    uid: `muhurtham-${data.event}-${d.date}-${i}`,
+    title: txt(`Muhurtham: ${data.event_en}`, `முகூர்த்தம்: ${data.event_ta}`),
+    description: txt(`${w.nakshatra} · ${w.tithi} (${w.paksha}) · ${w.lagna} Lagna · ${w.tamil_yogam.en}${w.notes_en.length ? ' · ' + w.notes_en.join(', ') : ''}`,
+      `${w.nakshatra_ta} · ${w.tithi_ta} · ${w.lagna_ta} லக்னம் · ${w.tamil_yogam.ta}${w.notes_ta.length ? ' · ' + w.notes_ta.join(', ') : ''}`),
+    start: w.start_local, end: w.end_local
+  })));
+  downloadText(`JoRoScope-Muhurtham-${data.event}-${data.start}.ics`, buildIcs(events, txt('JoRoScope Muhurthams', 'ஜோரோஸ்கோப் முகூர்த்தங்கள்')), 'text/calendar');
+}
+
+function exportMonthIcs() {
+  const cal = lastCalendar;
+  if (!cal) return;
+  const events = cal.days.flatMap(d => d.observances.map(o => ({
+    uid: `observance-${o.key}-${d.date}`, title: txt(o.en, o.ta),
+    description: txt(`${d.tithi_name} · ${d.nakshatra} · ${d.tamil_month} ${d.tamil_day}`, `${d.tithi_ta} · ${d.nakshatra_ta} · ${d.tamil_month_ta} ${d.tamil_day}`),
+    start: d.date
+  })));
+  if (!events.length) {
+    notify(txt('No observances this month.', 'இம்மாதம் விரத நாட்கள் இல்லை.'));
+    return;
+  }
+  downloadText(`JoRoScope-Observances-${cal.days[0].date.slice(0, 7)}.ics`, buildIcs(events, txt('JoRoScope Tamil calendar', 'ஜோரோஸ்கோப் தமிழ் நாட்காட்டி')), 'text/calendar');
+}
+
+function exportChandrashtamamIcs() {
+  const up = currentChart?.south_indian?.upcoming;
+  if (!up) return;
+  const name = currentChart.profile?.name || 'JoRoScope';
+  const events = up.chandrashtamam.periods.map(pr => ({
+    uid: `chandrashtamam-${name.replace(/\W+/g, '')}-${pr.start_local.slice(0, 10)}`,
+    title: txt(`Chandrashtamam (${name})`, `சந்திராஷ்டமம் (${name})`),
+    description: txt('The Moon transits the 8th sign from the birth Moon: avoid starting important work.',
+      'சந்திரன் ஜன்ம ராசிக்கு 8-ஆம் ராசியில்: முக்கிய காரியங்களைத் தொடங்குவதைத் தவிர்க்கவும்.'),
+    start: pr.start_local, end: pr.end_local
+  }));
+  downloadText(`JoRoScope-Chandrashtamam-${name.replace(/\W+/g, '-')}.ics`, buildIcs(events, txt('Chandrashtamam', 'சந்திராஷ்டமம்')), 'text/calendar');
 }

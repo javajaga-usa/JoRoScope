@@ -3658,3 +3658,16 @@ input:focus, select:focus {
 .report-panel .report-table-card h3 {
   margin-bottom: 10px;
 }
+
+/* Calendar export buttons */
+.ics-btn {
+  margin-top: 10px;
+}
+.link-btn.ics-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+}

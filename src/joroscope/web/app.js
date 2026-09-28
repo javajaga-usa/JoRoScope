@@ -386,6 +386,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Profiles toolbar buttons
   $('#export-profiles-btn')?.addEventListener('click', exportProfilesJSON);
+  $('#muhurtham-ics-btn')?.addEventListener('click', exportMuhurthamsIcs);
+  $('#month-ics-btn')?.addEventListener('click', exportMonthIcs);
+  $('#chandrashtamam-ics-btn')?.addEventListener('click', exportChandrashtamamIcs);
   $('#import-profiles-input')?.addEventListener('change', importProfilesJSON);
   $('#profile-search')?.addEventListener('input', renderProfilesList);
   $('#profiles-add-new-btn')?.addEventListener('click', () => {
