@@ -46,6 +46,9 @@ __all__ = [
 
 
 def generate_comprehensive_predictions(chart):
+    # Modules that need the ephemeris import the engine, which imports this module
+    from .monthly import calculate_monthly_transits
+
     planets = chart['planets']
     asc = planets['Ascendant']
     moon = planets['Moon']
@@ -116,5 +119,6 @@ def generate_comprehensive_predictions(chart):
         'sahams': sahams,
         'timeline_predictions': timeline_predictions,
         'numerology': calculate_numerology(chart),
-        'remedies': calculate_remedies(chart)
+        'remedies': calculate_remedies(chart),
+        'monthly': calculate_monthly_transits(chart)
     }

@@ -63,5 +63,27 @@ class RemediesTests(unittest.TestCase):
             en, ta = graha_remedy_text(g)
             self.assertTrue(en and ta)
 
+
+class MonthlyTransitTests(unittest.TestCase):
+    def test_twelve_months_with_vedha_and_bindus(self):
+        from datetime import datetime, timezone
+        from joroscope.core.monthly import calculate_monthly_transits, VEDHA
+        chart = calculate(BIRTH)
+        m = calculate_monthly_transits(dict(planets=chart['planets'], ashtakavarga=chart['ashtakavarga'],
+                                            timezone='Asia/Kolkata', ayanamsa='Lahiri'),
+                                       now=datetime(2026, 9, 28, tzinfo=timezone.utc))
+        check_chapter(self, m)
+        self.assertEqual([x['month'] for x in m['months']][:2], ['2026-09', '2026-10'])
+        october = m['months'][1]
+        self.assertIn(('Jupiter', 'Leo', '2026-10-31'), [(c['planet'], c['sign'], c['date']) for c in october['changes']])
+        moon = chart['planets']['Moon']['sign_index']
+        for month in m['months']:
+            for c in month['chandrashtamam']:
+                self.assertTrue(c['start'] < c['end'])
+            for g in month['grahas']:
+                if g['vedha_by']:
+                    self.assertIn(g['house'], VEDHA[g['planet']])
+        self.assertEqual(moon, 10)  # Aquarius Moon: Chandrashtamam is the Moon in Virgo
+
 if __name__ == '__main__':
     unittest.main()
