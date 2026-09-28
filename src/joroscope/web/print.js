@@ -61,11 +61,20 @@ const PRINT_CHART_STYLES = {
 
 // ---------- small builders ----------
 const pjKV = rows => rows.map(([k, v]) => `<div class="pj-kv"><span>${esc(k)}</span><strong>${v}</strong></div>`).join('');
-const pjTable = (head, rows, cls = '') => `
+// Tables are kept whole on a page; long ones go out in chunks that each carry the header row,
+// since WebKit (Safari) does not repeat a table header after a page break
+const PJ_TABLE_CHUNK = 28;
+const pjTable = (head, rows, cls = '') => {
+  const chunks = [];
+  for (let i = 0; i < rows.length; i += PJ_TABLE_CHUNK) chunks.push(rows.slice(i, i + PJ_TABLE_CHUNK));
+  if (!chunks.length) chunks.push([]);
+  const header = `<thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>`;
+  return chunks.map(chunk => `
   <table class="pj-table ${cls}">
-    <thead><tr>${head.map(h => `<th>${h}</th>`).join('')}</tr></thead>
-    <tbody>${rows.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
-  </table>`;
+    ${header}
+    <tbody>${chunk.map(r => `<tr>${r.map(cell => `<td>${cell}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`).join('');
+};
 const pjChart = (varga, caption) => {
   const id = `pj-chart-${varga}-${pendingCharts.length}`;
   pendingCharts.push([id, varga]);

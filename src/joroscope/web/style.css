@@ -3553,6 +3553,7 @@ input:focus, select:focus {
     background: none !important;
   }
   .print-jathagam .pj-table {
+    break-inside: avoid;
     width: 100%;
     border-collapse: collapse;
     margin: 2px 0 6px;
