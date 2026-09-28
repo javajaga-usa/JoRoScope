@@ -1855,7 +1855,6 @@ def generate_comprehensive_predictions(chart):
     planets = chart['planets']
     asc = planets['Ascendant']
     moon = planets['Moon']
-    sun = planets['Sun']
     panch = chart['panchanga']
     active_dasa = chart.get('active_dasha')
     dasha_rows = chart.get('dasha', [])

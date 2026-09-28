@@ -1,4 +1,4 @@
-import unittest, math, sys
+import unittest, sys
 from pathlib import Path
 from datetime import datetime, timezone
 
@@ -7,7 +7,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from joroscope.core.engine import (
     calculate, local_to_utc, placement, dasha, calculate_vargas,
-    calculate_match, calculate_panchangam, YEAR, swe
+    calculate_match, YEAR, swe
 )
 
 class ChartTests(unittest.TestCase):

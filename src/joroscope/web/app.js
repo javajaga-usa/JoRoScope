@@ -258,6 +258,7 @@ const I18N = {
     annual_projections_title: '10-Year Rolling Annual Projections',
     annual_projections_sub: 'Milestones and astrological favorability score for current era',
     open_timeline_studio: 'Open Interactive 81-Period Timeline Studio →',
+    city_helper: 'Search historical database or use coordinates below.',
     rasi_navamsa: 'Rasi + Navamsa',
     jathaga_kurippu: 'Tamil Jathaga Kurippu',
     jathaga_kurippu_sub: 'Birth notes in the Tamil almanac tradition',
@@ -398,6 +399,7 @@ const I18N = {
     annual_projections_title: '10 ஆண்டுக்கான வருடாந்திர மைல்கல் பலன்கள்',
     annual_projections_sub: 'ஒவ்வொரு ஆண்டின் வயது, இயங்கும் தசை மற்றும் சாதக சுட்டெண்',
     open_timeline_studio: '81 தசா-புக்தி காலவரிசை ஸ்டுடியோவைக் காண்க →',
+    city_helper: 'நகரத் தரவுத்தளத்தில் தேடவும் அல்லது கீழே அட்சரேகை, தீர்க்கரேகையை உள்ளிடவும்.',
     rasi_navamsa: 'இராசி + அம்சம்',
     jathaga_kurippu: 'ஜாதகக் குறிப்பு',
     jathaga_kurippu_sub: 'பஞ்சாங்க முறைப்படி பிறப்புக் குறிப்புகள்',
@@ -713,6 +715,44 @@ function detectCurrentLocation() {
   );
 }
 
+// Single-timezone countries named in the city database's "(country)" suffixes
+const COUNTRY_ZONES = {
+  'sl': 'Asia/Colombo', 'sri lanka': 'Asia/Colombo', 'ceylon': 'Asia/Colombo', 'colombo': 'Asia/Colombo',
+  'singapore': 'Asia/Singapore', 'malaysia': 'Asia/Kuala_Lumpur', 'uae': 'Asia/Dubai', 'dubai': 'Asia/Dubai',
+  'saudi arab': 'Asia/Riyadh', 'saudia': 'Asia/Riyadh', 'saudi arabia': 'Asia/Riyadh', 'iraq': 'Asia/Baghdad',
+  'iran': 'Asia/Tehran', 'yemen': 'Asia/Aden', 'jordan': 'Asia/Amman', 'syria': 'Asia/Damascus',
+  'turkey': 'Europe/Istanbul', 'egypt': 'Africa/Cairo', 'nigeria': 'Africa/Lagos', 'ghana': 'Africa/Accra',
+  'uganda': 'Africa/Kampala', 'burma': 'Asia/Yangon', 'china': 'Asia/Shanghai', 'japan': 'Asia/Tokyo',
+  'mangolia': 'Asia/Ulaanbaatar', 'nepal': 'Asia/Kathmandu', 'pakistan': 'Asia/Karachi',
+  'bangladesh': 'Asia/Dhaka', 'afghanistan': 'Asia/Kabul', 'thailand': 'Asia/Bangkok',
+  'germany': 'Europe/Berlin', 'italy': 'Europe/Rome', 'france': 'Europe/Paris', 'switzerland': 'Europe/Zurich',
+  'poland': 'Europe/Warsaw', 'sweden': 'Europe/Stockholm', 'finland': 'Europe/Helsinki',
+  'holland': 'Europe/Amsterdam', 'ireland': 'Europe/Dublin', 'uk': 'Europe/London', 'england': 'Europe/London',
+  'london': 'Europe/London', 'scotland': 'Europe/London', 'hawai': 'Pacific/Honolulu', 'alaska': 'America/Anchorage',
+  'new york': 'America/New_York'
+};
+// A representative zone for each standard offset in the database, used when nothing better is known
+const OFFSET_ZONES = {
+  '00.00W': 'Europe/London', '01.00E': 'Europe/Paris', '02.00E': 'Africa/Cairo', '03.00E': 'Asia/Riyadh',
+  '03.30E': 'Asia/Tehran', '04.00E': 'Asia/Dubai', '04.30E': 'Asia/Kabul', '05.00E': 'Asia/Karachi',
+  '05.30E': 'Asia/Kolkata', '06.00E': 'Asia/Dhaka', '06.30E': 'Asia/Yangon', '07.00E': 'Asia/Bangkok',
+  '08.00E': 'Asia/Shanghai', '09.00E': 'Asia/Tokyo', '10.00E': 'Australia/Sydney', '12.00E': 'Pacific/Auckland',
+  '03.00W': 'America/Sao_Paulo', '04.00W': 'America/Halifax', '05.00W': 'America/New_York',
+  '06.00W': 'America/Chicago', '08.00W': 'America/Los_Angeles', '09.00W': 'America/Anchorage',
+  '10.00W': 'Pacific/Honolulu'
+};
+
+function guessTimezone(city) {
+  const name = city.name.toLowerCase();
+  const suffix = (name.match(/\(([^)]*)\)?\s*$/) || [])[1]?.trim();
+  if (suffix && COUNTRY_ZONES[suffix]) return { zone: COUNTRY_ZONES[suffix], confident: true };
+  const named = Object.keys(COUNTRY_ZONES).find(k => k.length > 3 && name.includes(k));
+  if (named) return { zone: COUNTRY_ZONES[named], confident: true };
+  const inIndia = city.longitude > 68 && city.longitude < 97 && city.latitude > 8 && city.latitude < 37;
+  if (name.includes('india') || (inIndia && city.legacy_offset !== '06.00E')) return { zone: 'Asia/Kolkata', confident: true };
+  return { zone: OFFSET_ZONES[city.legacy_offset] || null, confident: false };
+}
+
 // City Search Autocomplete
 function setupCityAutocomplete() {
   const cityInput = $('#city-search');
@@ -740,21 +780,12 @@ function setupCityAutocomplete() {
         $('#input-lon').value = c.longitude;
         dropdown.hidden = true;
 
-        // Auto-suggest timezone if Indian city or known
-        const n = c.name.toLowerCase();
-        if (n.includes('india') || c.longitude > 68 && c.longitude < 97 && c.latitude > 8 && c.latitude < 37) {
-          $('#input-timezone').value = 'Asia/Kolkata';
-        } else if (n.includes('colombo') || n.includes('sri lanka')) {
-          $('#input-timezone').value = 'Asia/Colombo';
-        } else if (n.includes('singapore')) {
-          $('#input-timezone').value = 'Asia/Singapore';
-        } else if (n.includes('dubai') || n.includes('uae')) {
-          $('#input-timezone').value = 'Asia/Dubai';
-        } else if (n.includes('london') || n.includes('uk')) {
-          $('#input-timezone').value = 'Europe/London';
-        } else if (n.includes('new york') || n.includes('usa')) {
-          $('#input-timezone').value = 'America/New_York';
-        }
+        const guess = guessTimezone(c);
+        if (guess.zone) $('#input-timezone').value = guess.zone;
+        $('#city-helper').textContent = guess.confident ? I18N[currentLang].city_helper : (currentLang === 'ta'
+          ? `நேர வலயம் நகரின் நிலையான நேர வேறுபாட்டிலிருந்து (${c.legacy_offset}) ஊகிக்கப்பட்டது; பிறந்த இடத்தின் சரியான IANA வலயத்தை உறுதிசெய்யவும்.`
+          : `Timezone guessed from the city's standard offset (${c.legacy_offset}); confirm the birthplace's IANA zone.`);
+        $('#city-helper').classList.toggle('field-warning', !guess.confident);
         notify(`Selected ${c.name}`);
       };
       dropdown.append(b);
@@ -1159,12 +1190,80 @@ function renderNorthChart() {
   });
 }
 
-// 3. East Indian Layout (SVG Renderer)
+// 3. East Indian Layout (SVG Renderer): signs are fixed with Aries at the top centre,
+// running anticlockwise; each corner square is split diagonally toward the centre.
+const EAST_CELLS = [
+  { pts: '200,0 400,0 400,200 200,200', at: [300, 100] },    // Aries
+  { pts: '0,0 200,0 200,200', at: [133, 62] },               // Taurus
+  { pts: '0,0 0,200 200,200', at: [67, 138] },               // Gemini
+  { pts: '0,200 200,200 200,400 0,400', at: [100, 300] },    // Cancer
+  { pts: '0,400 200,400 0,600', at: [67, 462] },             // Leo
+  { pts: '200,400 200,600 0,600', at: [133, 538] },          // Virgo
+  { pts: '200,400 400,400 400,600 200,600', at: [300, 500] }, // Libra
+  { pts: '400,400 400,600 600,600', at: [467, 538] },        // Scorpio
+  { pts: '400,400 600,400 600,600', at: [533, 462] },        // Sagittarius
+  { pts: '400,200 600,200 600,400 400,400', at: [500, 300] }, // Capricorn
+  { pts: '400,200 600,200 600,0', at: [533, 138] },          // Aquarius
+  { pts: '400,0 600,0 400,200', at: [467, 62] }              // Pisces
+];
+
 function renderEastChart() {
   const svg = $('#east-svg');
   svg.innerHTML = '';
-  // East Indian grid
-  renderNorthChart(); // Fallback elegant SVG display with shared geometric harmony
+  const NS = 'http://www.w3.org/2000/svg';
+  const isTa = currentLang === 'ta';
+  const light = document.documentElement.getAttribute('data-theme') === 'light';
+  const fill = light ? '#fafbf7' : 'rgba(15, 20, 42, 0.6)';
+  const lagnaFill = light ? '#f3ead2' : 'rgba(229, 195, 120, 0.14)';
+  const stroke = light ? '#b38628' : '#e5c378';
+  const textColor = light ? '#15221b' : '#ffffff';
+
+  const vargaAsc = currentChart.planets.Ascendant.vargas[currentVarga];
+  const rasiAsc = currentChart.planets.Ascendant.sign_index;
+  const bodies = chartBodies();
+
+  const text = (x, y, content, size, color, weight = 700) => {
+    const t = document.createElementNS(NS, 'text');
+    t.setAttribute('x', x);
+    t.setAttribute('y', y);
+    t.setAttribute('fill', color);
+    t.setAttribute('font-size', size);
+    t.setAttribute('font-weight', weight);
+    t.setAttribute('text-anchor', 'middle');
+    t.textContent = content;
+    return t;
+  };
+
+  EAST_CELLS.forEach((cell, s) => {
+    const g = document.createElementNS(NS, 'g');
+    g.style.cursor = 'pointer';
+    g.onclick = () => openHouseInspector((s - rasiAsc + 12) % 12 + 1, s);
+
+    const poly = document.createElementNS(NS, 'polygon');
+    poly.setAttribute('points', cell.pts);
+    poly.setAttribute('fill', s === vargaAsc ? lagnaFill : fill);
+    poly.setAttribute('stroke', stroke);
+    poly.setAttribute('stroke-width', s === vargaAsc ? '2.4' : '1.2');
+    g.append(poly);
+
+    const [x, y] = cell.at;
+    const houseNum = (s - vargaAsc + 12) % 12 + 1;
+    const signName = isTa ? SIGNS_TA[s] : SIGNS_EN[s].slice(0, 3);
+    g.append(text(x, y - 22, `${signName} · ${isTa ? houseNum : `H${houseNum}`}`, 11, stroke));
+
+    // Up to three grahas per line so the corner triangles stay legible
+    const names = bodies
+      .filter(([, pData]) => pData.vargas[currentVarga] === s)
+      .map(([n, pData]) => `${grahaAbbrev(n)}${pData.retrograde && !['Rahu', 'Ketu'].includes(n) ? (isTa ? '(வ)' : 'ᴿ') : ''}`);
+    for (let i = 0; i < names.length; i += 3) {
+      g.append(text(x, y + (i / 3) * 16, names.slice(i, i + 3).join(' '), 12, textColor));
+    }
+    svg.append(g);
+  });
+
+  const title = VARGA_NAMES[currentVarga] || [currentVarga, currentVarga];
+  svg.append(text(300, 292, isTa ? title[1] : title[0], 18, stroke));
+  svg.append(text(300, 316, currentChart.profile.name || 'JoRoScope', 12, textColor, 500));
 }
 
 // House Inspector Drawer

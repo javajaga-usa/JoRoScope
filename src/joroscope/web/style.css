@@ -595,6 +595,10 @@ input:focus, select:focus {
   color: var(--text-dim);
   margin-top: 5px;
 }
+.field-hint.field-warning {
+  color: var(--gold);
+  font-weight: 600;
+}
 
 /* City Autocomplete Dropdown */
 .city-dropdown {

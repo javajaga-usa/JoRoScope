@@ -344,7 +344,6 @@ def calculate_vargas(lon):
     is_odd = (sign % 2 == 0)  # 0=Aries (odd), 1=Taurus (even)
     movable = (sign in (0, 3, 6, 9))
     fixed = (sign in (1, 4, 7, 10))
-    dual = (sign in (2, 5, 8, 11))
 
     vargas = {}
     # D1 - Rasi
@@ -406,7 +405,7 @@ def calculate_vargas(lon):
         elif deg < 10: vargas['D30'] = 10  # Aquarius (Saturn)
         elif deg < 18: vargas['D30'] = 8   # Sagittarius (Jupiter)
         elif deg < 25: vargas['D30'] = 2   # Gemini (Mercury)
-        else: vargas['D30'] = 1            # Taurus (Venus)
+        else: vargas['D30'] = 6            # Libra (Venus's odd sign)
     else:
         if deg < 5: vargas['D30'] = 1      # Taurus (Venus)
         elif deg < 12: vargas['D30'] = 5   # Virgo (Mercury)
@@ -453,7 +452,6 @@ def calculate_dignity(planet_name, sign_idx, deg, planet_positions):
         if planet_name == 'Ketu':
             if sign_idx in (7, 8): return 'Exalted'
             if sign_idx in (1, 2): return 'Debilitated'
-            if sign_idx == 7: return 'Own Sign'
             return 'Neutral'
         return 'Ascendant'
 
@@ -558,10 +556,8 @@ def calculate_ashtakavarga(planets):
 def detect_yogas(planets):
     """Detect prominent Vedic Yogas and Doshas."""
     yogas = []
-    asc_h = 1
     # Kendra houses: 1, 4, 7, 10
     kendras = [1, 4, 7, 10]
-    trikonas = [1, 5, 9]
 
     # 1. Pancha Mahapurusha Yogas
     pancha = [
@@ -740,7 +736,6 @@ def detect_yogas(planets):
     ketu = planets.get('Ketu')
     if rahu and ketu:
         r_lon = rahu['longitude']
-        k_lon = ketu['longitude']
         classical_7 = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn']
         diffs = [((planets[p]['longitude'] - r_lon) % 360) for p in classical_7]
         all_one_side = all(d < 180 for d in diffs) or all(d >= 180 for d in diffs)
@@ -1102,16 +1097,22 @@ def calculate_match(boy, girl):
     varna_pts = 1 if varna_rank[b_sign % 4] >= varna_rank[g_sign % 4] else 0
     # 2. Vashya (2)
     vashya_pts = 2 if vasiya_ok else 1
-    # 3. Tara (3)
-    tara_pts = 3 if dina_ok else 1.5
+    # 3. Tara (3): 1.5 for each direction whose tara is not Vipat, Pratyak or Naidhana
+    def tara_good(from_star, to_star):
+        return ((to_star - from_star) % 27) % 9 + 1 not in (3, 5, 7)
+    tara_pts = 1.5 * tara_good(g_star, b_star) + 1.5 * tara_good(b_star, g_star)
     # 4. Yoni (4)
     yoni_milan_pts = yoni_pts
-    # 5. Graha Maitri (5)
-    graha_pts = 5 if b_lord == g_lord or lord_rel == 1 else (3 if lord_rel == 0 else 0)
+    # 5. Graha Maitri (5): natural friendship of the two Moon-sign lords, seen from both sides
+    if b_lord == g_lord:
+        graha_pts = 5
+    else:
+        views = sorted((lord_rel, NATURAL_FRIENDS.get(g_lord, {}).get(b_lord, 0)))
+        graha_pts = {(1, 1): 5, (0, 1): 4, (0, 0): 3, (-1, 1): 1, (-1, 0): 0.5, (-1, -1): 0}[tuple(views)]
     # 6. Gana (6)
     gana_pts = 6 if b_gana == g_gana else (3 if b_gana == 'Deva' and g_gana == 'Manushya' else 0)
-    # 7. Bhakoot (7)
-    bhakoot_pts = 7 if sign_dist in (7, 11, 10, 9, 3, 4, 5) else 0
+    # 7. Bhakoot (7): the 2/12, 5/9 and 6/8 sign relationships are doshas
+    bhakoot_pts = 7 if sign_dist in (1, 3, 4, 7, 10, 11) else 0
     # 8. Nadi (8)
     nadi_pts = 8 if STAR_NADIS[b_star] != STAR_NADIS[g_star] else 0
 

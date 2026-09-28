@@ -22,6 +22,12 @@
 - Divisional charts numbered houses from the Rasi Lagna instead of their own Lagna.
 - The South Indian grid stayed visible after switching chart styles.
 - Seed profiles carried incorrect stars and signs.
+- The standalone executable served 404 for the whole UI: web assets were bundled outside the package.
+- The East Indian chart was blank; it now has its own renderer (fixed signs, Aries at the top, anticlockwise).
+- D30 Trimsamsa placed the Venus portion of odd signs in Taurus instead of Libra.
+- Guna Milan: Bhakoot scored 5/9 as good and same-rasi as bad; Tara and Graha Maitri looked at only one partner.
+- Choosing most non-Indian cities kept the previous timezone; the form now infers one and flags guesses to confirm.
+- CI now also runs the Node frontend tests; dead code and unused imports removed across the package.
 
 ## [2.0.0] - 2026-09-12
 

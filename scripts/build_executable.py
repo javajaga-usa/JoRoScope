@@ -4,6 +4,7 @@ Usage:
 """
 
 from pathlib import Path
+import os
 import sys
 
 try:
@@ -19,7 +20,7 @@ vendor_dir = root / "vendor"
 dist_dir = root / "dist"
 build_dir = root / "build"
 
-print(f"Building JoRoScope standalone executable...")
+print("Building JoRoScope standalone executable...")
 print(f"  Entry script: {server_script}")
 print(f"  Web assets:   {web_dir}")
 
@@ -30,7 +31,8 @@ PyInstaller.__main__.run([
     "--console",
     "--paths", str(vendor_dir),
     "--paths", str(root / "src"),
-    "--add-data", f"{web_dir};web",
+    # Bundle the web assets inside the package, where joroscope.server looks for them
+    "--add-data", f"{web_dir}{os.pathsep}joroscope/web",
     "--collect-all", "tzdata",
     "--distpath", str(dist_dir),
     "--workpath", str(build_dir),

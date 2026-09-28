@@ -1,5 +1,5 @@
 from pathlib import Path
-import csv, json, shutil
+import csv, json
 root=Path(__file__).resolve().parent
 legacy=root.parent/'legacy-inspection'/'recovered'
 def coord(text):

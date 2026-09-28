@@ -6,7 +6,7 @@ import json
 import sys
 from . import __version__
 from .server import run_server
-from .core.engine import calculate, calculate_match
+from .core.engine import calculate
 
 
 def main():

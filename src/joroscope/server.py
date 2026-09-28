@@ -13,12 +13,9 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlsplit, unquote
 
-try:
-    from .core.engine import calculate, calculate_match
-    from .core.south_indian import daily_panchangam
-except (ImportError, ValueError):
-    from core.engine import calculate, calculate_match
-    from core.south_indian import daily_panchangam
+from . import __version__
+from .core.engine import calculate, calculate_match
+from .core.south_indian import daily_panchangam
 
 MODULE_DIR = Path(__file__).resolve().parent
 # Locate web assets directory
@@ -46,7 +43,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         name = unquote(urlsplit(self.path).path)
         if name == '/api/health':
-            self.send(b'{"application":"joroscope","version":"2.0.0","status":"healthy"}')
+            self.send(json.dumps({'application': 'joroscope', 'version': __version__, 'status': 'healthy'}).encode())
             return
         if name == '/':
             name = '/index.html'
@@ -131,11 +128,11 @@ def run_server(port=8765, open_browser=True):
         raise RuntimeError(f"Could not bind HTTP server to any port from {port} to {port + 9}")
 
     url = f"http://127.0.0.1:{actual_port}"
-    print(f"============================================================")
-    print(f"  JoRoScope v2.0 — Modern Precision Vedic Astrology")
+    print("============================================================")
+    print(f"  JoRoScope v{__version__} — Modern Precision Vedic Astrology")
     print(f"  Live at: {url}")
     print(f"  Web root: {WEB_DIR}")
-    print(f"============================================================")
+    print("============================================================")
 
     if open_browser:
         try:

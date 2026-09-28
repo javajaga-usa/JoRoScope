@@ -206,6 +206,35 @@ class PoruthamTableTests(unittest.TestCase):
         self.assertIsNone(self.match(0, 1)['dosha_samyam'])
 
 
+class ClassicalTableTests(unittest.TestCase):
+    def match(self, boy_star, boy_sign, girl_star, girl_sign):
+        return calculate_match({'nakshatra_index': boy_star, 'sign_index': boy_sign},
+                               {'nakshatra_index': girl_star, 'sign_index': girl_sign})['guna_milan']
+
+    def test_trimsamsa_venus_portion_of_odd_signs_is_libra(self):
+        from joroscope.core.engine import calculate_vargas
+        self.assertEqual(calculate_vargas(27.0)['D30'], 6)       # Aries 27°: Libra
+        self.assertEqual(calculate_vargas(30 + 27.0)['D30'], 7)  # Taurus 27°: Scorpio
+
+    def test_bhakoot_doshas(self):
+        # Girl in Aries; the boy's sign counted from hers
+        for dist, pts in [(1, 7), (2, 0), (3, 7), (4, 7), (5, 0), (6, 0), (7, 7), (8, 0), (9, 0), (10, 7), (11, 7), (12, 0)]:
+            self.assertEqual(self.match(0, dist - 1, 0, 0)['bhakoot'], pts, dist)
+
+    def test_tara_is_judged_from_both_stars(self):
+        self.assertEqual(self.match(0, 0, 0, 0)['tara'], 3)    # Janma both ways
+        self.assertEqual(self.match(2, 0, 0, 0)['tara'], 1.5)  # 3rd (Vipat) one way, 26th (Mitra) the other
+        self.assertEqual(self.match(4, 1, 0, 0)['tara'], 1.5)  # 5th (Pratyak) one way only
+
+    def test_graha_maitri_matrix(self):
+        # Moon signs Leo (Sun) and Cancer (Moon): mutual friends
+        self.assertEqual(self.match(9, 4, 7, 3)['graha_maitri'], 5)
+        # Taurus (Venus) and Leo (Sun): mutual enemies
+        self.assertEqual(self.match(3, 1, 9, 4)['graha_maitri'], 0)
+        # Gemini (Mercury) and Cancer (Moon): the Moon befriends Mercury, Mercury treats the Moon as an enemy
+        self.assertEqual(self.match(5, 2, 7, 3)['graha_maitri'], 1)
+
+
 class DailyPanchangamTests(unittest.TestCase):
     def test_local_timings_and_end_times(self):
         p = daily_panchangam('2026-09-27', '21:00:00', 'Asia/Kolkata', 13.0827, 80.2707,

@@ -4,8 +4,8 @@ Calculates 81 Dasa-Bhukti periods across a 120-year cycle with mutual planetary
 aspects, dignities, house rulerships, ratings, and bilingual predictions (English & தமிழ்).
 """
 
-from datetime import datetime, timezone, timedelta
-from typing import Dict, Any, List
+from datetime import datetime, timezone
+from typing import Dict, Any
 
 PLANET_TAMIL = {
     'Sun': 'சூரியன்', 'Moon': 'சந்திரன்', 'Mars': 'செவ்வாய்', 'Mercury': 'புதன்',
@@ -775,7 +775,6 @@ def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dign
 
     is_trikone = mutual_kendra in (1, 5, 9)
     is_upachaya = mutual_kendra in (3, 11)
-    is_kendra = mutual_kendra in (4, 7, 10)
     is_dusthana = mutual_kendra in (6, 8, 12)
 
     if is_trikone:
@@ -830,8 +829,8 @@ def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dign
         health_ta = f"{b_info['health_neg_ta']} மன உளைச்சல் மற்றும் உடல் சோர்வு வராமல் தியானம், யோகா மற்றும் எளிய சத்தான உணவு ஏற்கவும்."
         family_en = f"{b_info['family_neg_en']} Practice diplomatic tact and emotional generosity with household members during stressful days."
         family_ta = f"{b_info['family_neg_ta']} குடும்பத்தாரிடம் வீண் சந்தேகங்களையும் வாக்குவாதங்களையும் தவிர்த்து அமைதி காப்பது ஒற்றுமை தரும்."
-        milestones_en = f"Sacred pilgrimage to powerful remedial shrines, mastering personal resilience, and overcoming karmic debts."
-        milestones_ta = f"புனித ஸ்தல யாத்திரைகள், குலதெய்வ பிரார்த்தனைகளை நிறைவேற்றுதல் மற்றும் சவால்களை வெல்லும் மன உறுதி பெறுதல்."
+        milestones_en = "Sacred pilgrimage to powerful remedial shrines, mastering personal resilience, and overcoming karmic debts."
+        milestones_ta = "புனித ஸ்தல யாத்திரைகள், குலதெய்வ பிரார்த்தனைகளை நிறைவேற்றுதல் மற்றும் சவால்களை வெல்லும் மன உறுதி பெறுதல்."
         remedy_en = f"{b_info['remedy_en']} Perform Navagraha homam or dedicated archana to mitigate adverse planetary transits."
         remedy_ta = f"{b_info['remedy_ta']} நவக்கிரக சாந்தி மற்றும் எளியோருக்கு அன்னதானம் செய்வது தோஷங்களை நீக்கி நலம் பயக்கும்."
 
