@@ -3740,3 +3740,65 @@ input:focus, select:focus {
 /* Shown only when the page is in Malayalam */
 .ml-only { display: none; }
 html[lang="ml"] .ml-only { display: block; }
+
+/* Parisodhanai (chart verification) */
+.verify-score {
+  margin-top: 10px;
+  font-weight: 600;
+  color: var(--gold);
+}
+.verify-group h3 {
+  margin-bottom: 8px;
+}
+.verify-item {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-top: 1px solid var(--border-divider);
+}
+.verify-item.marked-right .verify-text strong { color: var(--emerald); }
+.verify-item.marked-wrong .verify-text strong { color: var(--ruby); }
+.verify-text p {
+  margin: 0 0 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.verify-date {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.verify-buttons {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+.verify-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-card);
+  background: var(--bg-subtle);
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+}
+.verify-btn:hover { background: var(--bg-subtle-hover); }
+.verify-btn.right.active { border-color: var(--emerald); color: var(--emerald); }
+.verify-btn.wrong.active { border-color: var(--ruby); color: var(--ruby); }
+.verify-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+@media (max-width: 640px) {
+  .verify-item { flex-direction: column; }
+}
