@@ -86,7 +86,8 @@ class Handler(BaseHTTPRequestHandler):
             return
 
         origin = self.headers.get('Origin')
-        if origin and origin != f'http://{self.headers.get("Host")}':
+        host = self.headers.get('Host')
+        if origin and origin not in (f'http://{host}', f'https://{host}'):  # https when served through a tunnel or proxy
             self.send(b'{"error":"Origin rejected"}', 403)
             return
 
