@@ -1,7 +1,7 @@
 """JoRoScope — Modern Precision Vedic Astrology Application & Calculation Engine
 """
 
-__version__ = "2.4.0"
+__version__ = "2.5.0"
 __author__ = "JoRoScope Team"
 __license__ = "AGPLv3"
 

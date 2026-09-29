@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.5.0] - 2026-09-29
 
 ### Year-by-year forecast
 - A new **Year-by-Year Forecast** tab covers the next twelve years. Each year lists its Dasa-Bhukti periods (dated), the sign changes of Saturn, Jupiter and Rahu (with retrograde returns marked) and any Sade Sati, Ashtama or Kandaka Sani, then reads career, money, family and marriage, health and travel.
