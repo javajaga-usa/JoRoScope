@@ -963,6 +963,15 @@ function renderParisodhanai(ch) {
         'കഴിഞ്ഞ സംഭവങ്ങളുടെ തീയതികളും സഹോദരങ്ങളുടെ യഥാർത്ഥ എണ്ണവും ടൂൾസ് പേജിൽ ജനനസമയം പരിശോധിക്കാൻ സഹായിക്കും.'))}</p>
       <button type="button" class="action-btn" id="verify-to-rect">${esc(txt('Send to Birth Time Rectification',
         'ஜனன நேரத் திருத்தத்திற்கு அனுப்பு', 'ജനനസമയ തിരുത്തലിലേക്ക് അയയ്ക്കുക'))}</button>
+    </div>
+    <div class="cosmic-card verify-share">
+      <h3>${esc(txt('Help make JoRoScope more accurate', 'JoRoScope-ஐ மேலும் துல்லியமாக்க உதவுங்கள்', 'JoRoScope കൂടുതൽ കൃത്യമാക്കാൻ സഹായിക്കുക'))}</h3>
+      <p class="muted">${esc(txt('Share your right/wrong marks, the dates you entered and your sibling numbers with the owner of this JoRoScope, to measure which rules work. Your name, birth date, time and place are not stored.',
+        'எந்த விதிகள் சரியாக வேலை செய்கின்றன என அளக்க, உங்கள் சரி/தவறு குறிப்புகள், உள்ளிட்ட தேதிகள், உடன்பிறப்பு எண்ணிக்கையை இந்த JoRoScope உரிமையாளருடன் பகிரவும். உங்கள் பெயர், பிறந்த தேதி, நேரம், இடம் சேமிக்கப்படாது.',
+        'ഏത് നിയമങ്ങൾ ശരിയാകുന്നു എന്ന് അളക്കാൻ, നിങ്ങളുടെ ശരി/തെറ്റ് അടയാളങ്ങൾ, നൽകിയ തീയതികൾ, സഹോദരങ്ങളുടെ എണ്ണം എന്നിവ ഈ JoRoScope ഉടമയുമായി പങ്കിടുക. നിങ്ങളുടെ പേര്, ജനനതീയതി, സമയം, സ്ഥലം എന്നിവ സൂക്ഷിക്കില്ല.'))}</p>
+      <label class="verify-consent"><input type="checkbox" id="share-consent">
+        ${esc(txt('I agree to share these marks anonymously.', 'இந்தக் குறிப்புகளைப் பெயரின்றிப் பகிர ஒப்புக்கொள்கிறேன்.', 'ഈ അടയാളങ്ങൾ പേരില്ലാതെ പങ്കിടാൻ ഞാൻ സമ്മതിക്കുന്നു.'))}</label>
+      <button type="button" class="action-btn" id="share-marks">${esc(txt('Share my marks', 'என் குறிப்புகளைப் பகிர்', 'എന്റെ അടയാളങ്ങൾ പങ്കിടുക'))}</button>
     </div>`;
 
   const refresh = () => { $('#verify-score').textContent = verifyScoreText(ch.statements, marks); };
@@ -985,6 +994,7 @@ function renderParisodhanai(ch) {
       saveVerify(marks);
     });
   });
+  $('#share-marks').addEventListener('click', () => shareMarks(marks));
   panel.querySelectorAll('[data-family]').forEach(input => input.addEventListener('change', () => {
     marks.family = { ...(marks.family || {}), [input.dataset.family]: input.value };
     saveVerify(marks);
@@ -1222,5 +1232,85 @@ async function sendAsk(question, mode) {
     askBusy = false;
     if ($('#ask-send')) $('#ask-send').disabled = false;
     if (askChat === chat) drawAskLog();
+  }
+}
+
+// A random id per chart in this browser, so sharing again replaces the earlier entry
+function shareId() {
+  const make = () => [...crypto.getRandomValues(new Uint8Array(16))].map(b => b.toString(16).padStart(2, '0')).join('');
+  const key = `${verifyKey()}_share`;
+  try {
+    let id = localStorage.getItem(key);
+    if (!id) {
+      id = make();
+      localStorage.setItem(key, id);
+    }
+    return id;
+  } catch (e) {
+    return make();
+  }
+}
+
+async function shareMarks(marks) {
+  if (!$('#share-consent')?.checked) {
+    notify(txt('Tick the box to agree first.', 'முதலில் ஒப்புதல் பெட்டியைத் தேர்ந்தெடுக்கவும்.', 'ആദ്യം സമ്മതം അടയാളപ്പെടുത്തുക.'));
+    return;
+  }
+  try {
+    const resp = await fetch('/api/feedback', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birth: currentChartPayload, marks, submission_id: shareId(), consent: true })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Sharing failed.');
+    const n = data.items + data.siblings;
+    notify(txt(`Thank you: ${n} marks shared.`, `நன்றி: ${n} குறிப்புகள் பகிரப்பட்டன.`, `നന്ദി: ${n} അടയാളങ്ങൾ പങ്കിട്ടു.`));
+  } catch (err) {
+    notify(errorText(err.message));
+  }
+}
+
+// The owner's accuracy report of shared marks (Tools page)
+function renderAccuracyCard() {
+  const box = document.getElementById('accuracy-card');
+  if (!box) return;
+  box.innerHTML = `
+    <div class="card-header"><div>
+      <h2>${esc(txt('Accuracy report', 'துல்லிய அறிக்கை', 'കൃത്യതാ റിപ്പോർട്ട്'))}</h2>
+      <p class="card-subtitle">${esc(txt('For the owner: how often each kind of statement was marked right, from the marks people shared in Chart Verification.',
+        'உரிமையாளருக்கு: ஜாதகப் பரிசோதனையில் பகிரப்பட்ட குறிப்புகளின்படி ஒவ்வொரு வகைக் கூற்றும் எவ்வளவு முறை சரியாக இருந்தது.',
+        'ഉടമയ്ക്ക്: ജാതക പരിശോധനയിൽ പങ്കിട്ട അടയാളങ്ങൾ പ്രകാരം ഓരോ തരം പ്രസ്താവനയും എത്ര തവണ ശരിയായി.'))}</p>
+    </div><span class="card-badge">📊</span></div>
+    <div class="muhurtham-controls">
+      <input type="password" id="owner-passcode" autocomplete="off" placeholder="${esc(txt('Owner passcode (not needed on this computer)', 'உரிமையாளர் கடவுக்குறி (இந்தக் கணினியில் தேவையில்லை)', 'ഉടമ പാസ്‌കോഡ് (ഈ കമ്പ്യൂട്ടറിൽ ആവശ്യമില്ല)'))}">
+      <button type="button" class="action-btn" id="accuracy-run">${esc(txt('Show report', 'அறிக்கையைக் காட்டு', 'റിപ്പോർട്ട് കാണിക്കുക'))}</button>
+    </div>
+    <div id="accuracy-result"></div>`;
+  $('#accuracy-run').addEventListener('click', loadAccuracyReport);
+}
+
+async function loadAccuracyReport() {
+  const out = $('#accuracy-result');
+  try {
+    const resp = await fetch('/api/feedback-report', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: $('#owner-passcode').value })
+    });
+    const r = await resp.json();
+    if (!resp.ok) throw new Error(r.error || 'The report could not be loaded.');
+    const pct = v => v == null ? '—' : `${v}%`;
+    const tableHtml = (head, rows) => `<div class="table-responsive"><table class="luxury-table"><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
+      <tbody>${rows.map(row => `<tr>${row.map(c => `<td>${esc(String(c))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    out.innerHTML = `<p class="muted">${esc(txt(`${r.entries} people have shared their marks.`, `${r.entries} பேர் குறிப்புகளைப் பகிர்ந்துள்ளனர்.`, `${r.entries} പേർ അടയാളങ്ങൾ പങ്കിട്ടു.`))}</p>`
+      + (r.statements.length ? tableHtml([txt('Statement', 'கூற்று', 'പ്രസ്താവന'), txt('Right', 'சரி', 'ശരി'), txt('Wrong', 'தவறு', 'തെറ്റ്'), '%',
+          txt('Dates given', 'தேதிகள்', 'തീയതികൾ'), txt('In window', 'காலத்துக்குள்', 'കാലത്തിനുള്ളിൽ'), txt('In months', 'மாதங்களுக்குள்', 'മാസങ്ങൾക്കുള്ളിൽ')],
+        r.statements.map(s => [s.key, s.right, s.wrong, pct(s.right_pct), s.dated, pct(s.in_window_pct), pct(s.in_months_pct)])) : '')
+      + (r.confidence.length ? tableHtml([txt('Confidence', 'நம்பகத்தன்மை', 'ഉറപ്പ്'), txt('Right', 'சரி', 'ശരി'), txt('Wrong', 'தவறு', 'തെറ്റ്'), '%'],
+        r.confidence.map(c => [c.level, c.right, c.wrong, pct(c.right_pct)])) : '')
+      + (r.siblings.length ? tableHtml([txt('Siblings', 'உடன்பிறப்புகள்', 'സഹോദരങ്ങൾ'), txt('People', 'நபர்கள்', 'ആളുകൾ'),
+          txt('Exact', 'சரியாக', 'കൃത്യം'), txt('Total right', 'மொத்தம் சரி', 'ആകെ ശരി')],
+        r.siblings.map(s => [s.group, s.count, pct(s.exact_pct), pct(s.total_pct)])) : '');
+  } catch (err) {
+    out.innerHTML = `<p class="muted">${esc(errorText(err.message))}</p>`;
   }
 }

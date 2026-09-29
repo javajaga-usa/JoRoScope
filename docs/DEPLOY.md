@@ -30,6 +30,15 @@ without visitors, and the first visit after that takes 30 to 60 seconds to wake 
 marks people choose to share are lost then. Download the accuracy report regularly, or add a Render
 disk (a paid add-on) mounted at, for example, `/var/data`, and set `JOROSCOPE_DATA_DIR` to it.
 
+## What the collected marks contain
+
+When someone ticks the consent box in Chart Verification and shares, the server keeps one line per
+browser in `feedback.jsonl` inside `JOROSCOPE_DATA_DIR` (by default `~/.local/share/joroscope`):
+each statement's type, confidence and right-or-wrong mark, whether a real event date fell inside
+the predicted window and months, and the predicted and real sibling counts. No name, birth date,
+time or place is stored. The owner reads the totals under **Accuracy report** on the Tools page,
+on the computer running JoRoScope or with `JOROSCOPE_OWNER_PASSCODE`.
+
 ## Docker (Fly.io, Railway, a server of your own)
 
 The [`Dockerfile`](../Dockerfile) builds a small image that listens on port 8080:

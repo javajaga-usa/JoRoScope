@@ -275,7 +275,10 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
-  if (pageName === 'tools') fillPrasnaQuestions();
+  if (pageName === 'tools') {
+    fillPrasnaQuestions();
+    renderAccuracyCard();
+  }
   if (pageName === 'panchangam') {
     loadDailyPanchangam();
     loadMonthCalendar();
@@ -526,6 +529,7 @@ function toggleLanguage() {
   fillPrasnaQuestions();
   if (lastPrasna) renderChapterInto($('#prasna-result'), lastPrasna);
   renderRectEvents();
+  renderAccuracyCard();
   if (lastRectification) renderChapterInto($('#rect-result'), lastRectification);
   populateQuickProfileDropdown();
   renderProfilesList();

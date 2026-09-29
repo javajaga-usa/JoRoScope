@@ -4,6 +4,7 @@ Zero external tracking — 100% private and offline capable.
 """
 
 import gzip
+import hmac
 import json
 import mimetypes
 import sys
@@ -17,7 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, unquote
 
 from . import __version__
-from .core import ai
+from .core import ai, feedback
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
 from .core.muhurtham import find_muhurthams
@@ -134,7 +135,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt', '/api/chapters'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt', '/api/chapters', '/api/feedback', '/api/feedback-report'):
             self.send(b'{}', 404)
             return
 
@@ -156,6 +157,15 @@ class Handler(BaseHTTPRequestHandler):
             if req_path == '/api/ai-prompt':
                 self.chat_prompt(data)
                 return
+            if req_path == '/api/feedback-report':
+                given, expected = str(data.get('passcode') or ''), feedback.owner_passcode()
+                if not (self.is_local() or (expected and hmac.compare_digest(given.encode(), expected.encode()))):
+                    time.sleep(1)  # slows guessing
+                    self.send(json.dumps({'error': 'The accuracy report is for the owner: open it on the computer running '
+                                                   'JoRoScope, or with the owner passcode.'}).encode(), 401)
+                    return
+                self.send(json.dumps(feedback.report()).encode())
+                return
             with COMPUTE_LOCK:
                 if req_path == '/api/chart':
                     result = calculate(data)
@@ -167,6 +177,12 @@ class Handler(BaseHTTPRequestHandler):
                     if data.get('lang') != 'ml':
                         result = strip_malayalam(result)
                     self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/feedback':
+                    if data.get('consent') is not True:
+                        raise ValueError('Sharing needs your consent.')
+                    entry = feedback.entry_from_marks(calculate(data.get('birth') or {}), data.get('marks') or {}, data.get('submission_id'))
+                    feedback.save(entry)
+                    self.send(json.dumps({'saved': True, 'items': len(entry['items']), 'siblings': len(entry['siblings'])}).encode())
                 elif req_path == '/api/chapters':
                     pred = calculate(data).get('predictions') or {}
                     chapters = {k: pred[k] for k in data.get('keys') or DEFERRED_CHAPTERS if k in DEFERRED_CHAPTERS and k in pred}
