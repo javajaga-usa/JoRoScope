@@ -108,7 +108,7 @@ function renderSouthChart(container, varga, compact = false) {
     header.innerHTML = `
       <div>
         <span class="sign-label">${isTa ? SIGNS_TA[s] : SIGNS_EN[s]}</span>
-        ${compact ? '' : `<span class="tamil-sign-label">${isTa ? SIGNS_EN[s] : SIGNS_TA[s]}</span>`}
+        ${compact ? '' : `<span class="tamil-sign-label" data-keep-en>${currentLang === 'en' ? SIGNS_TA[s] : SIGNS_EN[s]}</span>`}
       </div>
       <span class="house-num-badge">${isTa ? houseNum : `H${houseNum}`}</span>
     `;
@@ -328,7 +328,8 @@ function openHouseInspector(houseNum, signIdx) {
   $('#inspect-title').textContent = txt(`House ${houseNum} (${sign}) Inspector`, `${houseNum}-ம் பாவம் (${sign}) விவரம்`);
   $('#inspect-sign').textContent = txt(
     `Sign: ${sign} · Lord: ${signLord} · House ${houseNum} from Lagna`,
-    `ராசி: ${sign} · அதிபதி: ${signLord} · லக்னத்திலிருந்து ${houseNum}-ம் பாவம்`);
+    `ராசி: ${sign} · அதிபதி: ${signLord} · லக்னத்திலிருந்து ${houseNum}-ம் பாவம்`,
+    `രാശി: ${sign} · നാഥൻ: ${signLord} · ലഗ്നത്തിൽ നിന്ന് ${houseNum}-ാം ഭാവം`);
 
   // Occupants in D1
   const occupants = Object.entries(currentChart.planets).filter(([n, p]) => p.house === houseNum);
@@ -483,9 +484,10 @@ function renderYogasAndDoshas() {
       status.className = 'status-pill neutral';
       status.textContent = isTa ? 'இல்லை' : 'Not Present';
     }
-    $('#manglik-desc').textContent = isTa
-      ? `செவ்வாய் ${cv.mars_sign_ta} ராசியில் உள்ளது. லக்னம், சந்திரன், சுக்கிரனிலிருந்து 2, 4, 7, 8, 12-ம் வீடுகளில் செவ்வாய் இருந்தால் தோஷம்.`
-      : `Mars is in ${cv.mars_sign}. The dosha arises when Mars occupies houses 2, 4, 7, 8 or 12 counted from Lagna, Moon or Venus.`;
+    $('#manglik-desc').textContent = txt(
+      `Mars is in ${cv.mars_sign}. The dosha arises when Mars occupies houses 2, 4, 7, 8 or 12 counted from Lagna, Moon or Venus.`,
+      `செவ்வாய் ${cv.mars_sign_ta} ராசியில் உள்ளது. லக்னம், சந்திரன், சுக்கிரனிலிருந்து 2, 4, 7, 8, 12-ம் வீடுகளில் செவ்வாய் இருந்தால் தோஷம்.`,
+      `ചൊവ്വ ${mlTerm(cv.mars_sign)} രാശിയിലാണ്. ലഗ്നം, ചന്ദ്രൻ, ശുക്രൻ എന്നിവയിൽ നിന്ന് 2, 4, 7, 8, 12 ഭാവങ്ങളിൽ ചൊവ്വ നിന്നാൽ ദോഷം.`);
     $('#chevvai-references').innerHTML = cv.references.map(r => {
       const state = r.afflicting ? (isTa ? 'தோஷம்' : 'afflicts') : (r.exempt ? (isTa ? 'விதிவிலக்கு' : 'exempt by sign') : (isTa ? 'தோஷமில்லை' : 'clear'));
       const cls = r.afflicting ? 'danger' : (r.exempt ? 'success' : 'neutral');
@@ -510,9 +512,10 @@ function renderYogasAndDoshas() {
     rkCard.className = `cosmic-card dosha-card${rk.present ? ' active-dosha' : ''}`;
     status.className = `status-pill ${rk.present ? 'danger' : 'neutral'}`;
     status.textContent = rk.present ? (isTa ? 'உள்ளது' : 'Present') : (isTa ? 'இல்லை' : 'Not Present');
-    $('#rahuketu-desc').textContent = isTa
-      ? 'லக்னம் அல்லது சந்திரனிலிருந்து 1, 2, 7, 8-ம் வீடுகளில் ராகு அல்லது கேது இருந்தால் தோஷம்; திருமணப் பொருத்தத்தில் இருவருக்கும் சமமாக இருப்பது நல்லது.'
-      : 'Arises when Rahu or Ketu occupies houses 1, 2, 7 or 8 from Lagna or Moon. In matching, it is best balanced by a similar dosha in the partner.';
+    $('#rahuketu-desc').textContent = txt(
+      'Arises when Rahu or Ketu occupies houses 1, 2, 7 or 8 from Lagna or Moon. In matching, it is best balanced by a similar dosha in the partner.',
+      'லக்னம் அல்லது சந்திரனிலிருந்து 1, 2, 7, 8-ம் வீடுகளில் ராகு அல்லது கேது இருந்தால் தோஷம்; திருமணப் பொருத்தத்தில் இருவருக்கும் சமமாக இருப்பது நல்லது.',
+      'ലഗ്നം അല്ലെങ്കിൽ ചന്ദ്രനിൽ നിന്ന് 1, 2, 7, 8 ഭാവങ്ങളിൽ രാഹുവോ കേതുവോ നിന്നാൽ ദോഷം; വിവാഹപ്പൊരുത്തത്തിൽ ഇരുവർക്കും സമാനമായിരിക്കുന്നത് നല്ലത്.');
     $('#rahuketu-references').innerHTML = rk.references.map(r => {
       const nodes = isTa ? `ராகு ${r.rahu_house} · கேது ${r.ketu_house}` : `Rahu ${r.rahu_house} · Ketu ${r.ketu_house}`;
       const cls = r.afflicting ? 'danger' : 'neutral';

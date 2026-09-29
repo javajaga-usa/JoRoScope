@@ -19,7 +19,7 @@ from .engine import (
     STAR_GANAS, STAR_YONIS, STAR_RAJJUS, STAR_NADIS, GANA_TA, RAJJU_TA, NADI_TA, YONI_TA,
     placement, local_to_utc, utc_to_jd, jd_to_utc, sun_events, sidereal_position, calculate_panchangam
 )
-from .readings.common import PLANET_TAMIL
+from .readings.common import MALAYALAM_SIGNS, PLANET_TAMIL
 
 NAK_SPAN = 40 / 3
 
@@ -361,16 +361,20 @@ def chevvai_dosham(planets):
     if present:
         if mars_sign in (4, 10):
             cancellations.append(dict(en='Mars in Leo or Aquarius does not cause Chevvai Dosham',
-                                      ta='சிம்மம் அல்லது கும்பத்தில் உள்ள செவ்வாய்க்கு தோஷம் இல்லை'))
+                                      ta='சிம்மம் அல்லது கும்பத்தில் உள்ள செவ்வாய்க்கு தோஷம் இல்லை',
+                                      ml='ചിങ്ങത്തിലോ കുംഭത്തിലോ ഉള്ള ചൊവ്വയ്ക്ക് ദോഷമില്ല'))
         if mars.get('dignity') in ('Own Sign', 'Exalted', 'Moolatrikona'):
             cancellations.append(dict(en=f'Mars is strong in its {mars["dignity"].lower()} ({SIGNS[mars_sign]})',
-                                      ta=f'செவ்வாய் ஆட்சி / உச்சம் பெற்றுள்ளது ({TAMIL[mars_sign]})'))
+                                      ta=f'செவ்வாய் ஆட்சி / உச்சம் பெற்றுள்ளது ({TAMIL[mars_sign]})',
+                                      ml=f'ചൊവ്വ സ്വക്ഷേത്രം / ഉച്ചം നേടിയിരിക്കുന്നു ({MALAYALAM_SIGNS[mars_sign]})'))
         if _house_from(mars_sign, planets['Jupiter']['sign_index']) in (1, 5, 7, 9):
             cancellations.append(dict(en='Jupiter conjoins or aspects Mars',
-                                      ta='குருவின் சேர்க்கை அல்லது பார்வை செவ்வாய்க்கு உள்ளது'))
+                                      ta='குருவின் சேர்க்கை அல்லது பார்வை செவ்வாய்க்கு உள்ளது',
+                                      ml='ചൊവ്വയ്ക്ക് വ്യാഴത്തിന്റെ യോഗമോ ദൃഷ്ടിയോ ഉണ്ട്'))
         if planets['Ascendant']['sign_index'] in (3, 4):
             cancellations.append(dict(en='Mars is Yogakaraka for Cancer and Leo Lagna',
-                                      ta='கடக, சிம்ம லக்னத்திற்கு செவ்வாய் யோககாரகன்'))
+                                      ta='கடக, சிம்ம லக்னத்திற்கு செவ்வாய் யோககாரகன்',
+                                      ml='കർക്കടകം, ചിങ്ങം ലഗ്നങ്ങൾക്ക് ചൊവ്വ യോഗകാരകനാണ്'))
     cancelled = bool(cancellations)
     return dict(
         present=present,

@@ -114,9 +114,11 @@ function renderExtraDasas() {
   if (note) {
     note.textContent = (chart.ashtottari_applicable
       ? txt('Applies to this chart: Rahu is in a kendra or trikona from the Lagna lord, not in the Lagna.',
-        'இந்த ஜாதகத்திற்குப் பொருந்தும்: ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில், லக்னத்தில் இல்லை.')
+        'இந்த ஜாதகத்திற்குப் பொருந்தும்: ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில், லக்னத்தில் இல்லை.',
+        'ഈ ജാതകത്തിന് ബാധകം: രാഹു ലഗ്നാധിപനിൽ നിന്ന് കേന്ദ്ര / ത്രികോണത്തിൽ, ലഗ്നത്തിലല്ല.')
       : txt('Classically used when Rahu is in a kendra or trikona from the Lagna lord; that does not hold here, so read it alongside Vimshottari.',
-        'ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில் இருக்கும்போது பாரம்பரியமாகப் பயன்படும்; இங்கு அது இல்லை, எனவே விம்சோத்தரியுடன் சேர்த்துப் பார்க்கவும்.')) + yearNote;
+        'ராகு லக்னாதிபதிக்குக் கேந்திர / திரிகோணத்தில் இருக்கும்போது பாரம்பரியமாகப் பயன்படும்; இங்கு அது இல்லை, எனவே விம்சோத்தரியுடன் சேர்த்துப் பார்க்கவும்.',
+        'രാഹു ലഗ്നാധിപനിൽ നിന്ന് കേന്ദ്ര / ത്രികോണത്തിലായിരിക്കുമ്പോൾ പരമ്പരാഗതമായി ഉപയോഗിക്കുന്നു; ഇവിടെ അങ്ങനെയല്ല, അതിനാൽ വിംശോത്തരിയോടൊപ്പം ചേർത്തു നോക്കുക.')) + yearNote;
   }
   renderPeriodAccordion($('#ashtottari-accordion'), chart.ashtottari_dasha, d => grahaName(d.lord), b => grahaName(b.lord),
     txt('Bhukti', 'புக்தி'));
@@ -169,6 +171,13 @@ function handleTimelineYearJump() {
     $$('.timeline-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.tfilter === 'all'));
   }
   renderDasaTimelineView();
+}
+
+// The label of a period's details toggle, open or closed
+function detailsToggleLabel(open) {
+  return open
+    ? txt('Detailed Breakdown (Expanded - Click to Collapse)', 'விரிவான பலாபலன்கள் (திறக்கப்பட்டுள்ளது - மூட கிளிக் செய்யவும்)', 'വിശദമായ ഫലങ്ങൾ (തുറന്നിരിക്കുന്നു - അടയ്ക്കാൻ ക്ലിക്ക് ചെയ്യുക)')
+    : txt('Detailed Breakdown (Career, Wealth, Health, Family, Remedies)', 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)', 'വിശദമായ ഫലങ്ങൾ (തൊഴിൽ, ധനം, ആരോഗ്യം, കുടുംബം, പരിഹാരം)');
 }
 
 function renderDasaTimelineView() {
@@ -363,9 +372,7 @@ function renderTimelineStream(periods, isTa) {
 
       <button type="button" class="timeline-details-toggle ${p.is_active ? 'expanded' : ''}" aria-expanded="${p.is_active ? 'true' : 'false'}">
         <span class="toggle-icon">${p.is_active ? '▼' : '▶'}</span>
-        <span class="toggle-label">${isTa
-          ? (p.is_active ? 'விரிவான பலாபலன்கள் (திறக்கப்பட்டுள்ளது - மூட கிளிக் செய்யவும்)' : 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)')
-          : (p.is_active ? 'Detailed Breakdown (Expanded - Click to Collapse)' : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)')}</span>
+        <span class="toggle-label">${detailsToggleLabel(p.is_active)}</span>
       </button>
 
       <div class="timeline-details-panel" ${p.is_active ? '' : 'hidden'} style="display: ${p.is_active ? 'grid' : 'none'};">
@@ -389,9 +396,7 @@ function renderTimelineStream(periods, isTa) {
           toggleBtn.classList.add('expanded');
           toggleBtn.setAttribute('aria-expanded', 'true');
           toggleBtn.querySelector('.toggle-icon').textContent = '▼';
-          toggleBtn.querySelector('.toggle-label').textContent = isTa
-            ? 'விரிவான பலாபலன்கள் (திறக்கப்பட்டுள்ளது - மூட கிளிக் செய்யவும்)'
-            : 'Detailed Breakdown (Expanded - Click to Collapse)';
+          toggleBtn.querySelector('.toggle-label').textContent = detailsToggleLabel(true);
         } else {
           panel.hidden = true;
           panel.setAttribute('hidden', '');
@@ -399,9 +404,7 @@ function renderTimelineStream(periods, isTa) {
           toggleBtn.classList.remove('expanded');
           toggleBtn.setAttribute('aria-expanded', 'false');
           toggleBtn.querySelector('.toggle-icon').textContent = '▶';
-          toggleBtn.querySelector('.toggle-label').textContent = isTa
-            ? 'விரிவான பலாபலன்கள் (தொழில், தனம், நலம், குடும்பம், பரிகாரம்)'
-            : 'Detailed Breakdown (Career, Wealth, Health, Family, Remedies)';
+          toggleBtn.querySelector('.toggle-label').textContent = detailsToggleLabel(false);
         }
       });
     }

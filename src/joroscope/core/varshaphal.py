@@ -20,7 +20,9 @@ from datetime import datetime, timezone
 
 from .engine import (AYAN, NATURAL_FRIENDS, SIGNS, TAMIL, calculate_vargas, jd_to_utc, sidereal_position,
                      swe, utc_to_jd)
-from .readings.common import DASA_LORDS, HOUSE_THEMES, PLANET_TAMIL, SIGN_LORDS, _ordinal
+from .readings.common import (
+    DASA_LORDS, HOUSE_THEMES, HOUSE_THEMES_ML, MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGN_LORDS, _ordinal
+)
 from .readings.report import card, chapter, table
 
 SIDEREAL_YEAR = 365.256364
@@ -65,6 +67,19 @@ MUNTHA_RESULT = {
 MATTERS = ((2, 'Wealth', 'செல்வம்'), (7, 'Marriage and partnership', 'திருமணம், கூட்டு'), (10, 'Career and status', 'தொழில், அந்தஸ்து'),
            (11, 'Gains and wishes', 'லாபம், விருப்பங்கள்'), (5, 'Children and learning', 'குழந்தைகள், கல்வி'),
            (4, 'Home and property', 'வீடு, சொத்து'))
+
+MUNTHA_RESULT_ML = {
+    9: 'അത്യുത്തമം: ഭാഗ്യം, ധർമ്മം, മുതിർന്നവരുടെ പിന്തുണ', 10: 'അത്യുത്തമം: തൊഴിൽ ഉയർച്ച, പദവി, അംഗീകാരം',
+    11: 'അത്യുത്തമം: ലാഭം, ആഗ്രഹസാഫല്യം, നല്ല സുഹൃത്തുക്കൾ', 1: 'നല്ലത്: ആരോഗ്യം, ആത്മവിശ്വാസം, പുതിയ തുടക്കങ്ങൾ',
+    2: 'നല്ലത്: സമ്പത്ത്, കുടുംബ ഐക്യം', 3: 'നല്ലത്: ധൈര്യം, പ്രയത്നം, സഹോദരസഹായം', 5: 'നല്ലത്: സന്താനങ്ങൾ, വിദ്യ, വിവേകപൂർണ്ണമായ തീരുമാനങ്ങൾ',
+    4: 'പ്രയാസം: വീട്, അമ്മ, സ്വത്ത് എന്നിവയെക്കുറിച്ചുള്ള ആകുലതകൾ', 6: 'പ്രയാസം: രോഗം, കടം, തർക്കങ്ങൾ എന്നിവയിൽ ശ്രദ്ധ',
+    7: 'പ്രയാസം: പങ്കാളികളുമായി ഉരസൽ, യാത്രാതടസ്സങ്ങൾ', 8: 'പ്രയാസം: തടസ്സങ്ങൾ, ക്ഷീണം, അപ്രതീക്ഷിത നഷ്ടങ്ങൾ',
+    12: 'പ്രയാസം: ചെലവുകൾ, അസ്വസ്ഥത, വേർപാട്',
+}
+MATTERS_ML = {2: 'സമ്പത്ത്', 7: 'വിവാഹം, പങ്കാളിത്തം', 10: 'തൊഴിൽ, പദവി', 11: 'ലാഭം, ആഗ്രഹങ്ങൾ', 5: 'സന്താനങ്ങൾ, വിദ്യ', 4: 'വീട്, സ്വത്ത്'}
+OFFICES_ML = {'Muntha lord': 'മുന്ഥാധിപൻ', 'Birth Lagna lord': 'ജന്മലഗ്നാധിപൻ', 'Year Lagna lord': 'വർഷലഗ്നാധിപൻ',
+              'Tri-rasi lord': 'ത്രിരാശ്യധിപൻ', 'Sun-sign lord (day year)': 'സൂര്യരാശ്യധിപൻ (പകൽ വർഷം)',
+              'Moon-sign lord (night year)': 'ചന്ദ്രരാശ്യധിപൻ (രാത്രി വർഷം)'}
 
 
 def _to_lord(p, lord):
@@ -195,19 +210,26 @@ def calculate_varshaphal(chart, now=None):
     m_en, m_ta, m_verdict = MUNTHA_RESULT[muntha_house]
     yl_house = house_of(year_lord)
     yl_strength = 'strong' if pvb[year_lord] >= 10 else 'weak'
+    M, P = MALAYALAM_SIGNS, PLANET_ML
     cards = [
         card('🎉', f'Year {years + 1} of life', f'{years + 1}-ஆம் வயது வருடம்',
              f"The Varshaphal year runs from {pravesh:%d %b %Y %H:%M} to {local(next_jd):%d %b %Y}. "
              f"The year's Lagna is {SIGNS[asc]} and it is a {'day' if day_year else 'night'} year.",
              f"இந்த வருடபலன் {pravesh:%d-%m-%Y %H:%M} முதல் {local(next_jd):%d-%m-%Y} வரை. வருட லக்னம் {TAMIL[asc]}; "
              f"இது {'பகல்' if day_year else 'இரவு'} வருடம்.",
-             'Varsha Pravesh: the Sun returns to its birth position', 'வருட பிரவேசம்: சூரியன் ஜனன நிலைக்குத் திரும்பும் நேரம்'),
+             'Varsha Pravesh: the Sun returns to its birth position', 'வருட பிரவேசம்: சூரியன் ஜனன நிலைக்குத் திரும்பும் நேரம்',
+             title_ml=f'ജീവിതത്തിലെ {years + 1}-ാം വർഷം',
+             body_ml=(f"ഈ വർഷഫലം {pravesh:%d-%m-%Y %H:%M} മുതൽ {local(next_jd):%d-%m-%Y} വരെ. വർഷലഗ്നം {M[asc]}; "
+                      f"ഇത് {'പകൽ' if day_year else 'രാത്രി'} വർഷമാണ്."),
+             sub_ml='വർഷപ്രവേശം: സൂര്യൻ ജനനസ്ഥാനത്തേക്ക് മടങ്ങുന്ന സമയം'),
         card('🎯', f'Muntha in {SIGNS[muntha]}, house {muntha_house}', f'முந்தா {TAMIL[muntha]}, {muntha_house}-ஆம் இடம்',
              f"Muntha, the progressed Lagna, falls in the {_ordinal(muntha_house)} house of the year: {m_en}. "
              f"Its lord {lord(muntha)} sits in house {house_of(lord(muntha))}.",
              f"முன்னேறிய லக்னமான முந்தா வருட ஜாதகத்தின் {muntha_house}-ஆம் இடத்தில்: {m_ta}. "
              f"அதன் அதிபதி {PLANET_TAMIL[lord(muntha)]} {house_of(lord(muntha))}-ஆம் இடத்தில்.",
-             verdict=m_verdict),
+             verdict=m_verdict, title_ml=f'മുന്ഥ {M[muntha]}, {muntha_house}-ാം ഭാവം',
+             body_ml=(f"പുരോഗമിച്ച ലഗ്നമായ മുന്ഥ വർഷജാതകത്തിന്റെ {muntha_house}-ാം ഭാവത്തിൽ: {MUNTHA_RESULT_ML[muntha_house]}. "
+                      f"അതിന്റെ അധിപൻ {P[lord(muntha)]} {house_of(lord(muntha))}-ാം ഭാവത്തിൽ.")),
         card('👑', f'Lord of the year: {year_lord}', f'வருடாதிபதி: {PLANET_TAMIL[year_lord]}',
              f"{year_lord} ({', '.join(en for en, _, p in offices if p == year_lord)}) rules the year from house {yl_house} "
              f"({HOUSE_THEMES[yl_house][0]}) with Pancha-vargeeya Bala {pvb[year_lord]}. "
@@ -217,7 +239,11 @@ def calculate_varshaphal(chart, now=None):
              f"({HOUSE_THEMES[yl_house][1]}) வருடத்தை ஆள்கிறது; பஞ்சவர்கீய பலம் {pvb[year_lord]}. "
              + ('பலமான வருடாதிபதி அதன் காரியங்களை நிறைவேற்றும்.' if yl_strength == 'strong' else
                 'வருடாதிபதி பலவீனம்; முயற்சியால் பலன் வரும்; அதன் பரிகாரங்கள் உதவும்.'),
-             verdict='good' if yl_strength == 'strong' else 'mixed'),
+             verdict='good' if yl_strength == 'strong' else 'mixed', title_ml=f'വർഷാധിപൻ: {P[year_lord]}',
+             body_ml=(f"{P[year_lord]} ({', '.join(OFFICES_ML[en] for en, _, p in offices if p == year_lord)}) {yl_house}-ാം ഭാവത്തിൽ നിന്ന് "
+                      f"({HOUSE_THEMES_ML[yl_house]}) വർഷത്തെ ഭരിക്കുന്നു; പഞ്ചവർഗ്ഗീയ ബലം {pvb[year_lord]}. "
+                      + ('ബലമുള്ള വർഷാധിപൻ അതിന്റെ കാര്യങ്ങൾ സഫലമാക്കും.' if yl_strength == 'strong' else
+                         'വർഷാധിപൻ ബലഹീനനാണ്; പ്രയത്നത്താൽ ഫലം വരും; അതിന്റെ പരിഹാരങ്ങൾ സഹായിക്കും.'))),
     ]
     ylord = lord(asc)
     for h, en, ta in MATTERS:
@@ -230,20 +256,26 @@ def calculate_varshaphal(chart, now=None):
                               + f": {HOUSE_THEMES[h][0]} come forward this year.",
                               f"வருட லக்னாதிபதி {PLANET_TAMIL[ylord]} {h}-ஆம் அதிபதி {PLANET_TAMIL[hl]} உடன் "
                               f"{'ஒன்றே' if state == 'same' else 'இத்தசால யோகம்'}: {HOUSE_THEMES[h][1]} இவ்வருடம் முன்னேறும்.",
-                              verdict='good'))
+                              verdict='good', title_ml=f'{MATTERS_ML[h]}: ഈ വർഷം സഫലമാകും',
+                              body_ml=(f"വർഷലഗ്നാധിപൻ {P[ylord]}, {h}-ാം അധിപൻ {P[hl]} എന്നിവ "
+                                       f"{'ഒന്നുതന്നെ' if state == 'same' else 'ഇത്ഥശാല യോഗത്തിൽ'}: {HOUSE_THEMES_ML[h]} ഈ വർഷം മുന്നേറും.")))
         elif state == 'separating':
             cards.append(card('⌛', f'{en}: passing', f'{ta}: கடந்து செல்கிறது',
                               f"{ylord} is separating from {hl} (Easarapha): a matter of the {_ordinal(h)} house that has just been settled, "
                               f"or an opportunity already passing.",
                               f"{PLANET_TAMIL[ylord]} {PLANET_TAMIL[hl]}-இலிருந்து பிரிகிறது (ஈசராப யோகம்): {h}-ஆம் இடக் காரியம் "
-                              f"முடிந்தது அல்லது வாய்ப்பு கடந்து செல்கிறது.", verdict='mixed'))
+                              f"முடிந்தது அல்லது வாய்ப்பு கடந்து செல்கிறது.", verdict='mixed',
+                              title_ml=f'{MATTERS_ML[h]}: കടന്നുപോകുന്നു',
+                              body_ml=(f"{P[ylord]} {P[hl]}-ൽ നിന്ന് വേർപിരിയുന്നു (ഈസരാഫ യോഗം): {h}-ാം ഭാവകാര്യം "
+                                       f"പൂർത്തിയായി, അല്ലെങ്കിൽ അവസരം കടന്നുപോകുന്നു.")))
 
-    planet_rows = [((p, PLANET_TAMIL[p]), (SIGNS[sign_of[p]], TAMIL[sign_of[p]]), f"{lons[p] % 30:.2f}°", house_of(p),
+    planet_rows = [((p, PLANET_TAMIL[p], P[p]), (SIGNS[sign_of[p]], TAMIL[sign_of[p]], M[sign_of[p]]), f"{lons[p] % 30:.2f}°", house_of(p),
                     str(pvb[p]) if p in pvb else '—') for p in (*SEVEN, 'Rahu', 'Ketu')]
-    mudda_rows = [((m['lord'], PLANET_TAMIL[m['lord']]), m['start'][:10], m['end'][:10],
-                   ('running', 'நடப்பு') if m['active'] else '') for m in mudda]
-    office_rows = [((en, ta), (p, PLANET_TAMIL[p]), house_of(p), str(pvb[p]),
-                    ('aspects the Lagna', 'லக்னத்தைப் பார்க்கிறது') if p in aspecting else '') for en, ta, p in offices]
+    mudda_rows = [((m['lord'], PLANET_TAMIL[m['lord']], P[m['lord']]), m['start'][:10], m['end'][:10],
+                   ('running', 'நடப்பு', 'നടപ്പ്') if m['active'] else '') for m in mudda]
+    office_rows = [((en, ta, OFFICES_ML[en]), (p, PLANET_TAMIL[p], P[p]), house_of(p), str(pvb[p]),
+                    ('aspects the Lagna', 'லக்னத்தைப் பார்க்கிறது', 'ലഗ്നത്തെ നോക്കുന്നു') if p in aspecting else '')
+                   for en, ta, p in offices]
     return chapter(
         'varshaphal', 'Varshaphal (Annual Horoscope)', 'வருட பலன் (தாஜிக வருஷபலன்)',
         'The Tajika annual chart for your current year of life, cast for the moment the Sun returns to its birth position, '
@@ -251,11 +283,16 @@ def calculate_varshaphal(chart, now=None):
         'சூரியன் ஜனன நிலைக்குத் திரும்பும் நேரத்திற்கான தாஜிக வருட ஜாதகம்: முந்தா, வருடாதிபதி, இத்தசால யோகங்கள், முத்தா தசை.',
         cards=cards,
         tables=[table('Annual chart', 'வருட ஜாதகம்',
-                      [('Graha', 'கிரகம்'), ('Sign', 'ராசி'), ('Degree', 'பாகை'), ('House', 'இடம்'), ('Pancha-vargeeya Bala', 'பஞ்சவர்கீய பலம்')],
-                      planet_rows),
+                      [('Graha', 'கிரகம்', 'ഗ്രഹം'), ('Sign', 'ராசி', 'രാശി'), ('Degree', 'பாகை', 'ഡിഗ്രി'), ('House', 'இடம்', 'ഭാവം'),
+                       ('Pancha-vargeeya Bala', 'பஞ்சவர்கீய பலம்', 'പഞ്ചവർഗ്ഗീയ ബലം')],
+                      planet_rows, title_ml='വർഷജാതകം'),
                 table('The five office-bearers', 'பஞ்ச அதிகாரிகள்',
-                      [('Office', 'பதவி'), ('Graha', 'கிரகம்'), ('House', 'இடம்'), ('Bala', 'பலம்'), ('', '')], office_rows),
-                table('Mudda Dasa', 'முத்தா தசை', [('Dasa', 'தசை'), ('From', 'முதல்'), ('To', 'வரை'), ('', '')], mudda_rows)],
+                      [('Office', 'பதவி', 'പദവി'), ('Graha', 'கிரகம்', 'ഗ്രഹം'), ('House', 'இடம்', 'ഭാവം'), ('Bala', 'பலம்', 'ബലം'),
+                       ('', '', '')], office_rows, title_ml='പഞ്ചാധികാരികൾ'),
+                table('Mudda Dasa', 'முத்தா தசை', [('Dasa', 'தசை', 'ദശ'), ('From', 'முதல்', 'മുതൽ'), ('To', 'வரை', 'വരെ'), ('', '', '')],
+                      mudda_rows, title_ml='മുദ്ദ ദശ')],
+        title_ml='വർഷഫലം (താജിക വാർഷിക ജാതകം)',
+        intro_ml='സൂര്യൻ ജനനസ്ഥാനത്തേക്ക് മടങ്ങുന്ന സമയത്തെ താജിക വർഷജാതകം: മുന്ഥ, വർഷാധിപൻ, ഇത്ഥശാല യോഗങ്ങൾ, മുദ്ദ ദശ.',
         years_completed=years, pravesh=pravesh.isoformat(timespec='minutes'), lagna=SIGNS[asc], muntha=SIGNS[muntha],
         muntha_house=muntha_house, year_lord=year_lord, day_year=day_year, pancha_vargeeya_bala=pvb, mudda=mudda,
         annual_signs={p: sign_of[p] for p in sign_of}, annual_lagna=asc)

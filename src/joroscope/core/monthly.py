@@ -9,7 +9,7 @@ result. Chandrashtamam days (the Moon in the 8th from the natal Moon) are listed
 from datetime import datetime, timezone
 
 from .engine import AYAN, GOCHARA_GOOD_HOUSES, SIGNS, TAMIL, jd_to_utc, sidereal_position, sign_ingresses, swe, utc_to_jd
-from .readings.common import HOUSE_THEMES, PLANET_TAMIL
+from .readings.common import HOUSE_THEMES, HOUSE_THEMES_ML, MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL
 from .readings.report import card, chapter, table
 
 TRANSIT_BODIES = (('Sun', swe.SUN), ('Mars', swe.MARS), ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER),
@@ -23,6 +23,7 @@ VEDHA = {
 }
 NO_VEDHA_BETWEEN = ({'Sun', 'Saturn'}, {'Moon', 'Mercury'})
 WEIGHT = {'Saturn': 2.0, 'Jupiter': 2.0, 'Rahu': 1.5, 'Ketu': 1.5, 'Sun': 1.0, 'Mars': 1.0, 'Mercury': 0.75, 'Venus': 0.75}
+MONTHS_ML = ['ജനുവരി', 'ഫെബ്രുവരി', 'മാർച്ച്', 'ഏപ്രിൽ', 'മേയ്', 'ജൂൺ', 'ജൂലൈ', 'ഓഗസ്റ്റ്', 'സെപ്റ്റംബർ', 'ഒക്ടോബർ', 'നവംബർ', 'ഡിസംബർ']
 MONTHS_TA = ['ஜனவரி', 'பிப்ரவரி', 'மார்ச்', 'ஏப்ரல்', 'மே', 'ஜூன்', 'ஜூலை', 'ஆகஸ்ட்', 'செப்டம்பர்', 'அக்டோபர்', 'நவம்பர்', 'டிசம்பர்']
 
 
@@ -50,7 +51,7 @@ def month_forecast(planets, bav, jd0, jd1, tz):
             for start, _, sign in segs[1:]:
                 sg = _node_sign(sign, nm)
                 changes.append(dict(planet=nm, date=jd_to_utc(start).astimezone(tz).date().isoformat(),
-                                    sign=SIGNS[sg], sign_ta=TAMIL[sg], house=(sg - moon) % 12 + 1))
+                                    sign=SIGNS[sg], sign_ta=TAMIL[sg], sign_ml=MALAYALAM_SIGNS[sg], house=(sg - moon) % 12 + 1))
     house = {nm: (sg - moon) % 12 + 1 for nm, sg in signs.items()}
     rows, score, good, bad = [], 0.0, [], []
     for nm in ('Jupiter', 'Saturn', 'Rahu', 'Ketu', 'Sun', 'Mars', 'Mercury', 'Venus'):
@@ -69,8 +70,10 @@ def month_forecast(planets, bav, jd0, jd1, tz):
         (good if value > 0 else bad if value < 0 else []).append((nm, h))
         verdict_en = 'favourable' if value > 0 else ('obstructed (Vedha)' if blocked_by else ('mixed' if value == 0 else 'unfavourable'))
         verdict_ta = 'சாதகம்' if value > 0 else ('வேதை தடை' if blocked_by else ('கலப்பு' if value == 0 else 'பாதகம்'))
-        rows.append(dict(planet=nm, sign=SIGNS[signs[nm]], sign_ta=TAMIL[signs[nm]], house=h, bindus=bindus,
-                         vedha_by=blocked_by, verdict_en=verdict_en, verdict_ta=verdict_ta, value=value))
+        verdict_ml = 'അനുകൂലം' if value > 0 else ('വേധ തടസ്സം' if blocked_by else ('സമ്മിശ്രം' if value == 0 else 'പ്രതികൂലം'))
+        rows.append(dict(planet=nm, sign=SIGNS[signs[nm]], sign_ta=TAMIL[signs[nm]], sign_ml=MALAYALAM_SIGNS[signs[nm]], house=h,
+                         bindus=bindus, vedha_by=blocked_by, verdict_en=verdict_en, verdict_ta=verdict_ta, verdict_ml=verdict_ml,
+                         value=value))
     # Chandrashtamam: the Moon in the 8th sign from the natal Moon
     eighth = (moon + 7) % 12
     chandrashtamam = [dict(start=jd_to_utc(s).astimezone(tz).isoformat(timespec='minutes'),
@@ -99,7 +102,17 @@ def _summary(m):
         ta += ' சந்திராஷ்டமம்: ' + ', '.join(
             f"{day(c['start']).day} {MONTHS_TA[day(c['start']).month - 1]} {day(c['start']):%H:%M} முதல் "
             f"{day(c['end']).day} {MONTHS_TA[day(c['end']).month - 1]} {day(c['end']):%H:%M} வரை" for c in m['chandrashtamam']) + '.'
-    return en, ta
+    good_ml = '; '.join(f"{PLANET_ML[g]} ({h}-ാം ഭാവം: {HOUSE_THEMES_ML[h]})" for g, h in m['good'][:3])
+    bad_ml = '; '.join(f"{PLANET_ML[g]} ({h}-ാം ഭാവം: {HOUSE_THEMES_ML[h]})" for g, h in m['bad'][:3])
+    ml = (f"പിന്തുണയ്ക്കുന്നവ: {good_ml}. " if good_ml else 'ഈ മാസം പിന്തുണയ്ക്കുന്ന ഗ്രഹങ്ങൾ കുറവാണ്. ') + \
+         (f"ശ്രദ്ധ വേണ്ടത്: {bad_ml}." if bad_ml else 'വലിയതോതിൽ ബാധിക്കുന്ന ഗോചരമില്ല.')
+    if m['changes']:
+        ml += ' രാശിമാറ്റങ്ങൾ: ' + ', '.join(f"{PLANET_ML[c['planet']]} {c['sign_ml']} ({c['date']})" for c in m['changes']) + '.'
+    if m['chandrashtamam']:
+        ml += ' ചന്ദ്രാഷ്ടമം: ' + ', '.join(
+            f"{day(c['start']).day} {MONTHS_ML[day(c['start']).month - 1]} {day(c['start']):%H:%M} മുതൽ "
+            f"{day(c['end']).day} {MONTHS_ML[day(c['end']).month - 1]} {day(c['end']):%H:%M} വരെ" for c in m['chandrashtamam']) + '.'
+    return en, ta, ml
 
 
 def calculate_monthly_transits(chart, months=12, now=None):
@@ -123,15 +136,17 @@ def calculate_monthly_transits(chart, months=12, now=None):
     for m in results:
         verdict = 'good' if m['score'] >= high and m['score'] > 0 else ('bad' if m['score'] <= low and m['score'] < 0 else 'mixed')
         m['verdict'] = verdict
-        en, ta = _summary(m)
+        en, ta, ml = _summary(m)
         y, mo = int(m['month'][:4]), int(m['month'][5:])
         label_en = datetime(y, mo, 1).strftime('%B %Y')
         cards.append(card('🗓️', label_en, f'{MONTHS_TA[mo - 1]} {y}', en, ta,
-                          f"Transit score {m['score']:+.1f}", f"கோச்சார மதிப்பு {m['score']:+.1f}", verdict=verdict))
+                          f"Transit score {m['score']:+.1f}", f"கோச்சார மதிப்பு {m['score']:+.1f}", verdict=verdict,
+                          title_ml=f'{MONTHS_ML[mo - 1]} {y}', body_ml=ml, sub_ml=f"ഗോചര മൂല്യം {m['score']:+.1f}"))
     first = results[0]
-    rows = [((g['planet'], PLANET_TAMIL[g['planet']]), (g['sign'], g['sign_ta']), g['house'],
+    rows = [((g['planet'], PLANET_TAMIL[g['planet']], PLANET_ML[g['planet']]), (g['sign'], g['sign_ta'], g['sign_ml']), g['house'],
              '—' if g['bindus'] is None else g['bindus'], (g['verdict_en'] + (f" by {g['vedha_by']}" if g['vedha_by'] else ''),
-                                                          g['verdict_ta'] + (f" ({PLANET_TAMIL[g['vedha_by']]})" if g['vedha_by'] else '')))
+                                                          g['verdict_ta'] + (f" ({PLANET_TAMIL[g['vedha_by']]})" if g['vedha_by'] else ''),
+                                                          g['verdict_ml'] + (f" ({PLANET_ML[g['vedha_by']]})" if g['vedha_by'] else '')))
             for g in first['grahas']]
     return chapter(
         'monthly', 'Monthly Transit Forecast', 'மாதாந்திர கோச்சார பலன்',
@@ -141,6 +156,9 @@ def calculate_monthly_transits(chart, months=12, now=None):
         'சந்திராஷ்டம நாட்கள். மாதங்கள் இந்த ஜாதகத்திற்குள் ஒப்பிடப்படுகின்றன.',
         cards=cards,
         tables=[table('This month, graha by graha', 'இம்மாதம், கிரக வாரியாக',
-                      [('Graha', 'கிரகம்'), ('Sign', 'ராசி'), ('House from Moon', 'சந்திரனிலிருந்து'), ('Bindus', 'பரல்கள்'),
-                       ('Result', 'பலன்')], rows)],
+                      [('Graha', 'கிரகம்', 'ഗ്രഹം'), ('Sign', 'ராசி', 'രാശി'), ('House from Moon', 'சந்திரனிலிருந்து', 'ചന്ദ്രനിൽ നിന്ന്'),
+                       ('Bindus', 'பரல்கள்', 'ബിന്ദുക്കൾ'), ('Result', 'பலன்', 'ഫലം')], rows, title_ml='ഈ മാസം, ഗ്രഹം തിരിച്ച്')],
+        title_ml='മാസാന്ത ഗോചരഫലം',
+        intro_ml=('നിങ്ങളുടെ ജന്മരാശിയിൽ നിന്ന് അടുത്ത 12 മാസങ്ങൾ: ഓരോ ഗ്രഹത്തിന്റെയും ഭാവം, വേധ നിയമം, അഷ്ടകവർഗ്ഗ ബിന്ദുക്കൾ, രാശിമാറ്റങ്ങൾ, '
+                  'ചന്ദ്രാഷ്ടമ ദിവസങ്ങൾ. മാസങ്ങൾ ഈ ജാതകത്തിനുള്ളിൽ പരസ്പരം താരതമ്യം ചെയ്യുന്നു.'),
         months=results)

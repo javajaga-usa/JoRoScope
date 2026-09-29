@@ -8,7 +8,7 @@ the Lucky Factors chapter, which names only the Lagna and 9th lords' stones.
 """
 from datetime import datetime, timezone
 
-from .common import PLANET_TAMIL, SIGN_LORDS, _functional_role
+from .common import PLANET_ML, PLANET_ML_CASE, PLANET_TAMIL, SIGN_LORDS, _functional_role
 from .report import card, chapter, table
 
 # graha: (temple, temple_ta, deity, deity_ta, day, day_ta, beeja mantra, japa count, charity, charity_ta)
@@ -63,6 +63,40 @@ SATURN_CYCLE_REMEDY = {
     'ardhashtama': ('Ardhashtama Sani is running', 'அர்த்தாஷ்டம சனி நடக்கிறது'),
 }
 
+# graha: (temple, deity, day, charity, fasting) in Malayalam
+GRAHA_REMEDIES_ML = {
+    'Sun': ('സൂര്യനാർ കോവിൽ', 'ശിവനും സൂര്യഭഗവാനും', 'ഞായറാഴ്ച', 'ഗോതമ്പ്, ശർക്കര, ചുവന്ന തുണി', 'ഞായർ'),
+    'Moon': ('തിങ്കളൂർ', 'പാർവ്വതീദേവി', 'തിങ്കളാഴ്ച', 'അരി, പാൽ, വെള്ളത്തുണി', 'തിങ്കൾ (സോമവാര വ്രതം)'),
+    'Mars': ('വൈത്തീശ്വരൻ കോവിൽ', 'സുബ്രഹ്മണ്യൻ', 'ചൊവ്വാഴ്ച', 'തുവരപ്പരിപ്പ്, ചുവന്ന തുണി', 'ചൊവ്വ (ചൊവ്വാ വ്രതം)'),
+    'Mercury': ('തിരുവെൺകാട്', 'മഹാവിഷ്ണു', 'ബുധനാഴ്ച', 'ചെറുപയർ, പച്ചത്തുണി', 'ബുധൻ'),
+    'Jupiter': ('ആലങ്കുടി', 'ദക്ഷിണാമൂർത്തി', 'വ്യാഴാഴ്ച', 'കടല, മഞ്ഞൾ, മഞ്ഞത്തുണി', 'വ്യാഴം (ഗുരു വ്രതം)'),
+    'Venus': ('കഞ്ചനൂർ', 'മഹാലക്ഷ്മി', 'വെള്ളിയാഴ്ച', 'അരി, തൈര്, വെള്ളപ്പട്ട്', 'വെള്ളി (ശുക്രവാര വ്രതം)'),
+    'Saturn': ('തിരുനള്ളാർ', 'ശനീശ്വരനും ഹനുമാനും', 'ശനിയാഴ്ച', 'എള്ള്, നല്ലെണ്ണ, കറുത്ത തുണി', 'ശനി (ശനി വ്രതം)'),
+    'Rahu': ('തിരുനാഗേശ്വരം', 'ദുർഗ്ഗാദേവി', 'ശനിയാഴ്ച', 'ഉഴുന്ന്, നീലത്തുണി', 'ശനി, രാഹുകാല ആരാധനയോടെ'),
+    'Ketu': ('കീഴപ്പെരുമ്പള്ളം', 'ഗണപതി', 'ചൊവ്വാഴ്ച', 'മുതിര, പലനിറത്തുണി', 'ചൊവ്വ, ഗണപതി ആരാധനയോടെ'),
+}
+DOSHA_REMEDIES_ML = {
+    'chevvai': ('ചൊവ്വാദോഷം',
+                'ചൊവ്വാഴ്ചകളിലും ഷഷ്ഠിയിലും സുബ്രഹ്മണ്യനെ ആരാധിക്കുക; വൈത്തീശ്വരൻ കോവിലോ പഴനിയോ സന്ദർശിക്കുക; കന്ദഷഷ്ഠി കവചം ചൊല്ലുക. '
+                'സമാന അളവിൽ ചൊവ്വാദോഷമുള്ള പങ്കാളിയുമായി ചേർക്കുന്നത് (ദോഷസാമ്യം) പരമ്പരാഗത സന്തുലനമാണ്.'),
+    'kaal_sarp': ('കാലസർപ്പ ദോഷം',
+                  'ശ്രീകാളഹസ്തിയിലോ തിരുനാഗേശ്വരത്തോ രാഹു-കേതു (സർപ്പ) ശാന്തി; തിങ്കളാഴ്ചകളിലും പ്രദോഷത്തിലും ശിവാരാധന; '
+                  'നാഗപഞ്ചമിക്ക് സർപ്പക്കാവിൽ നാഗപ്രതിമകൾക്ക് പാലഭിഷേകം.'),
+    'rahu_ketu': ('രാഹു-കേതു (നാഗ) ദോഷം',
+                  'തിരുനാഗേശ്വരം (രാഹു), കീഴപ്പെരുമ്പള്ളം (കേതു) ആരാധന; ചൊവ്വ, വെള്ളി ദിവസങ്ങളിൽ രാഹുകാലത്ത് ദുർഗ്ഗയ്ക്ക് വിളക്ക്; '
+                  'വിവാഹത്തിന് മുമ്പ് അരയാൽ-വേപ്പ് ചുവട്ടിൽ നാഗപ്രതിഷ്ഠ പരമ്പരാഗത പരിഹാരമാണ്.'),
+}
+SATURN_CYCLE_ML = {'sade_sati': 'ഏഴരശ്ശനി നടക്കുന്നു', 'ashtama': 'അഷ്ടമശ്ശനി നടക്കുന്നു', 'kandaka': 'കണ്ടകശ്ശനി നടക്കുന്നു',
+                   'ardhashtama': 'അർദ്ധാഷ്ടമശ്ശനി നടക്കുന്നു'}
+
+
+def graha_remedy_ml(g):
+    temple, deity, day, charity, fast = GRAHA_REMEDIES_ML[g]
+    mantra, japa = GRAHA_REMEDIES[g][6], GRAHA_REMEDIES[g][7]
+    return (f"{day}കളിൽ {deity} ആരാധന; {PLANET_ML_CASE['gen'][g]} നവഗ്രഹ ക്ഷേത്രമായ {temple} സന്ദർശിക്കുക. "
+            f"\"{mantra}\" മന്ത്രം ഒരു മണ്ഡലകാലത്ത് (48 ദിവസം) {japa:,} തവണ ജപിക്കുക. {charity} ദാനം ചെയ്യുക; "
+            f"{fast} വ്രതം നോക്കുക.")
+
 
 def graha_remedy_text(g):
     temple, temple_ta, deity, deity_ta, day, day_ta, mantra, japa, charity, charity_ta = GRAHA_REMEDIES[g]
@@ -79,13 +113,13 @@ def calculate_remedies(chart):
     asc = planets['Ascendant']['sign_index']
     doshas = chart.get('doshas') or {}
     shadbala = chart.get('shadbala') or {}
-    reasons = {}  # graha -> list of (en, ta) reasons
+    reasons = {}  # graha -> list of (en, ta, ml) reasons
     cards = []
 
-    def add(g, en, ta):
+    def add(g, en, ta, ml):
         reasons.setdefault(g, [])
-        if (en, ta) not in reasons[g]:
-            reasons[g].append((en, ta))
+        if (en, ta, ml) not in reasons[g]:
+            reasons[g].append((en, ta, ml))
 
     # Doshas
     chevvai = doshas.get('chevvai') or {}
@@ -94,8 +128,10 @@ def calculate_remedies(chart):
                                ('rahu_ketu', (doshas.get('rahu_ketu') or {}).get('present'))):
         if present:
             en, ta, g, rem_en, rem_ta = DOSHA_REMEDIES[dosha_key]
-            cards.append(card('🛡️', en, ta, rem_en, rem_ta, 'Dosha in the birth chart', 'ஜாதகத்தில் உள்ள தோஷம்', verdict='bad'))
-            add(g, f'{en} in the chart', f'ஜாதகத்தில் {ta}')
+            ml, rem_ml = DOSHA_REMEDIES_ML[dosha_key]
+            cards.append(card('🛡️', en, ta, rem_en, rem_ta, 'Dosha in the birth chart', 'ஜாதகத்தில் உள்ள தோஷம்', verdict='bad',
+                              title_ml=ml, body_ml=rem_ml, sub_ml='ജാതകത്തിലുള്ള ദോഷം'))
+            add(g, f'{en} in the chart', f'ஜாதகத்தில் {ta}', f'ജാതകത്തിൽ {ml}')
 
     # Saturn's cycle running now
     now = datetime.now(timezone.utc)
@@ -106,6 +142,7 @@ def calculate_remedies(chart):
             continue
         if running and cycle.get('kind') in SATURN_CYCLE_REMEDY:
             en, ta = SATURN_CYCLE_REMEDY[cycle['kind']]
+            ml = SATURN_CYCLE_ML[cycle['kind']]
             until = cycle['end'][:10]
             cards.append(card(
                 '🪔', en, ta,
@@ -115,52 +152,64 @@ def calculate_remedies(chart):
                 f"சுமார் {until} வரை. சனிக்கிழமைகளில் சனி பகவானுக்கு நல்லெண்ணெய் தீபம் ஏற்றவும்; ஆஞ்சநேயரை வழிபடவும் (ஹனுமான் சாலீசா அல்லது "
                 f"சுந்தர காண்டம்); இயன்றால் திருநள்ளாறு செல்லவும்; முதியோருக்கும் உழைப்பாளர்களுக்கும் உதவவும். வாக்குறுதிகளைக் காத்து "
                 f"குறுக்கு வழிகளைத் தவிர்க்கவும்: பொறுமைக்கும் நேர்மையான உழைப்பிற்கும் சனி பலன் தரும்.",
-                'Saturn transit from the natal Moon', 'ஜன்ம சந்திரனிலிருந்து சனி கோச்சாரம்', verdict='bad'))
-            add('Saturn', en, ta)
+                'Saturn transit from the natal Moon', 'ஜன்ம சந்திரனிலிருந்து சனி கோச்சாரம்', verdict='bad',
+                title_ml=ml,
+                body_ml=(f"ഏകദേശം {until} വരെ. ശനിയാഴ്ചകളിൽ ശനിഭഗവാന് നല്ലെണ്ണ വിളക്ക് കത്തിക്കുക; ഹനുമാനെ ആരാധിക്കുക (ഹനുമാൻ ചാലിസ അല്ലെങ്കിൽ "
+                         f"സുന്ദരകാണ്ഡം); സാധിക്കുമെങ്കിൽ തിരുനള്ളാർ സന്ദർശിക്കുക; പ്രായമായവരെയും തൊഴിലാളികളെയും സഹായിക്കുക. വാക്ക് പാലിക്കുക, "
+                         f"കുറുക്കുവഴികൾ ഒഴിവാക്കുക: ക്ഷമയ്ക്കും സത്യസന്ധമായ അധ്വാനത്തിനും ശനി ഫലം നൽകും."),
+                sub_ml='ജന്മചന്ദ്രനിൽ നിന്നുള്ള ശനി ഗോചരം'))
+            add('Saturn', en, ta, ml)
 
     # Weak or debilitated grahas
     for g in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'):
         sb = shadbala.get(g) or {}
         if sb.get('rupas') is not None and sb.get('required_rupas') and sb['rupas'] < sb['required_rupas']:
             add(g, f"Shadbala {sb['rupas']:.2f} of the {sb['required_rupas']} rupas it needs",
-                f"ஷட்பலம் தேவையான {sb['required_rupas']} ரூபத்தில் {sb['rupas']:.2f} மட்டுமே")
+                f"ஷட்பலம் தேவையான {sb['required_rupas']} ரூபத்தில் {sb['rupas']:.2f} மட்டுமே",
+                f"ഷഡ്ബലം ആവശ്യമായ {sb['required_rupas']} രൂപത്തിൽ {sb['rupas']:.2f} മാത്രം")
         if planets[g].get('dignity') == 'Debilitated':
-            add(g, 'debilitated', 'நீசம்')
+            add(g, 'debilitated', 'நீசம்', 'നീചം')
 
     # The running dasa lords, when weak or ruling dusthanas
     active = chart.get('active_dasha') or {}
-    for level, level_en, level_ta in (('dasa', 'Maha Dasa', 'மகா தசை'), ('bhukti', 'Bhukti', 'புக்தி')):
+    for level, level_en, level_ta, level_ml in (('dasa', 'Maha Dasa', 'மகா தசை', 'മഹാദശ'), ('bhukti', 'Bhukti', 'புக்தி', 'ഭുക്തി')):
         g = active.get(level)
         if not g:
             continue
         lord_of = g if g not in ('Rahu', 'Ketu') else SIGN_LORDS[planets[g]['sign_index']]
         role, _ = _functional_role(lord_of, asc)
         if g in reasons or role == 'malefic' or g in ('Rahu', 'Ketu'):
-            add(g, f'its {level_en} is running now', f'அதன் {level_ta} தற்போது நடக்கிறது')
+            add(g, f'its {level_en} is running now', f'அதன் {level_ta} தற்போது நடக்கிறது', f'അതിന്റെ {level_ml} ഇപ്പോൾ നടക്കുന്നു')
 
     # Difficult yogas
     for y in chart.get('yogas') or []:
         if y.get('nature') == 'bad':
             for g in y.get('planets', []):
                 if g in GRAHA_REMEDIES:
-                    add(g, y['name'], y.get('name_ta', y['name']))
+                    add(g, y['name'], y.get('name_ta', y['name']), y.get('name_ml', y['name']))
 
     for g, why in reasons.items():
         rem_en, rem_ta = graha_remedy_text(g)
         cards.append(card(
             '🕉️', f'{g} (strengthen and pacify)', f'{PLANET_TAMIL[g]} (பலப்படுத்தவும் சாந்தப்படுத்தவும்)',
             rem_en, rem_ta,
-            'Why: ' + '; '.join(en for en, _ in why), 'காரணம்: ' + '; '.join(ta for _, ta in why), verdict='mixed'))
+            'Why: ' + '; '.join(w[0] for w in why), 'காரணம்: ' + '; '.join(w[1] for w in why), verdict='mixed',
+            title_ml=f'{PLANET_ML[g]} (ബലപ്പെടുത്താനും ശാന്തമാക്കാനും)', body_ml=graha_remedy_ml(g),
+            sub_ml='കാരണം: ' + '; '.join(w[2] for w in why)))
 
     if not cards:
         cards.append(card('✅', 'No major affliction', 'பெரிய தோஷம் இல்லை',
                           'No dosha, Saturn cycle or weak graha in this chart calls for a special remedy. Regular worship of the family deity '
                           '(kula deivam) and the Navagrahas keeps the chart\'s strengths working.',
                           'இந்த ஜாதகத்தில் சிறப்புப் பரிகாரம் தேவைப்படும் தோஷம், சனி சுழற்சி அல்லது பலவீன கிரகம் இல்லை. குலதெய்வ வழிபாடும் '
-                          'நவக்கிரக வழிபாடும் ஜாதக பலத்தைத் தொடர்ந்து காக்கும்.', verdict='good'))
+                          'நவக்கிரக வழிபாடும் ஜாதக பலத்தைத் தொடர்ந்து காக்கும்.', verdict='good',
+                          title_ml='വലിയ ദോഷമില്ല',
+                          body_ml='ഈ ജാതകത്തിൽ പ്രത്യേക പരിഹാരം ആവശ്യമുള്ള ദോഷമോ ശനിചക്രമോ ബലഹീന ഗ്രഹമോ ഇല്ല. കുലദേവതാ ആരാധനയും '
+                                  'നവഗ്രഹ ആരാധനയും ജാതകബലം തുടർന്നും കാക്കും.'))
 
-    ref_rows = [((g, PLANET_TAMIL[g]), (GRAHA_REMEDIES[g][0], GRAHA_REMEDIES[g][1]), (GRAHA_REMEDIES[g][2], GRAHA_REMEDIES[g][3]),
-                 (GRAHA_REMEDIES[g][4], GRAHA_REMEDIES[g][5]), f'{GRAHA_REMEDIES[g][7]:,}') for g in GRAHA_REMEDIES]
+    R, M = GRAHA_REMEDIES, GRAHA_REMEDIES_ML
+    ref_rows = [((g, PLANET_TAMIL[g], PLANET_ML[g]), (R[g][0], R[g][1], M[g][0]), (R[g][2], R[g][3], M[g][1]),
+                 (R[g][4], R[g][5], M[g][2]), f'{R[g][7]:,}') for g in GRAHA_REMEDIES]
     return chapter(
         'parihara', 'Parihara (Remedies)', 'பரிகாரங்கள்',
         'Remedies for what this chart shows: its doshas, the Saturn cycle running now, weak or debilitated grahas and the running '
@@ -169,6 +218,10 @@ def calculate_remedies(chart):
         'இவை வழிபாடு, மந்திரம், தானம், ஒழுக்கம்; கிரகத்தின் கிழமையில், இயன்றால் அதன் ஓரையில் தொடங்கவும்.',
         cards=cards,
         tables=[table('Navagraha temples and japa', 'நவக்கிரகத் தலங்களும் ஜபமும்',
-                      [('Graha', 'கிரகம்'), ('Temple', 'தலம்'), ('Deity', 'தெய்வம்'), ('Day', 'கிழமை'), ('Japa count', 'ஜப எண்ணிக்கை')],
-                      ref_rows)],
+                      [('Graha', 'கிரகம்', 'ഗ്രഹം'), ('Temple', 'தலம்', 'ക്ഷേത്രം'), ('Deity', 'தெய்வம்', 'ദേവത'), ('Day', 'கிழமை', 'ദിവസം'),
+                       ('Japa count', 'ஜப எண்ணிக்கை', 'ജപ സംഖ്യ')],
+                      ref_rows, title_ml='നവഗ്രഹ ക്ഷേത്രങ്ങളും ജപവും')],
+        title_ml='പരിഹാരങ്ങൾ',
+        intro_ml=('ഈ ജാതകം കാണിക്കുന്നവയ്ക്കുള്ള പരിഹാരങ്ങൾ: ദോഷങ്ങൾ, ഇപ്പോഴത്തെ ശനിചക്രം, ബലഹീനമോ നീചമോ ആയ ഗ്രഹങ്ങൾ, നടപ്പ് ദശാനാഥന്മാർ. '
+                  'ഇവ ആരാധന, മന്ത്രം, ദാനം, സദാചാരം എന്നിവയാണ്; ഗ്രഹത്തിന്റെ ആഴ്ചയിൽ, സാധിക്കുമെങ്കിൽ അതിന്റെ ഹോരയിൽ തുടങ്ങുക.'),
         grahas=sorted(reasons))

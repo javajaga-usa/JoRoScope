@@ -1,5 +1,14 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+### Malayalam readings
+- Every reading now has Malayalam: natal, the twelve bhavas, planets in houses, the Dasa-Bhukti forecast and all 81 periods of the timeline, transits, lucky factors, yogas and their cancellations, Bhrigu Nandi Nadi, avasthas, nakshatra pada, sahams, Panchanga Phala, Sudarshana Chakra, Shadbala and Vimsopaka, the KP cusps, Jaimini karakas and arudhas, D-10 career, Ayur-Jyotish, double transit, kakshya transits, the doshas, and every report chapter (Parihara, monthly transits, Varshaphal, marriage, career, Sarvatobhadra and Kota, numerology).
+- Tools in Malayalam too: Prasna, birth time rectification and the Muhurtham finder.
+- The chart sends Malayalam only when the page is in Malayalam, so English and Tamil charts stay small; switching to Malayalam fetches the chart again.
+- In Malayalam, the second label beside a sign shows English instead of Tamil, and the "readings appear in English" notice is gone.
+- A new test checks that no Tamil reading in a chart lacks its Malayalam.
+
 ## [2.2.0] - 2026-09-28
 
 Reports in the style of Astro-Vision's, a Tools page for Prasna and birth time rectification, and Malayalam.

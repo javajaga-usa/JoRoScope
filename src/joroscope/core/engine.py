@@ -95,6 +95,8 @@ KAAL_SARP_TYPES = [
     ('Padma', 'பத்ம'), ('Mahapadma', 'மகாபத்ம'), ('Takshak', 'தக்ஷக'), ('Karkotak', 'கார்கோடக'),
     ('Shankhachur', 'சங்கசூட'), ('Ghatak', 'காதக'), ('Vishdhar', 'விஷதர'), ('Sheshnag', 'சேஷநாக')
 ]
+KAAL_SARP_ML = ['അനന്ത', 'കുളിക', 'വാസുകി', 'ശംഖപാല', 'പദ്മ', 'മഹാപദ്മ', 'തക്ഷക', 'കാർക്കോടക', 'ശംഖചൂഡ', 'ഘാതക',
+                'വിഷധര', 'ശേഷനാഗ']
 
 STAR_NADIS = [
     'Aadi','Madhya','Antya','Antya','Madhya','Aadi','Aadi','Madhya','Antya',
@@ -805,13 +807,16 @@ def detect_yogas(planets):
                 'type_ta': f'{ks_ta} கால சர்ப்ப தோஷம்',
                 'rahu_house': r_house,
                 'description': f'All 7 classical planets are hemmed between Rahu and Ketu ({ks_en} Kaal Sarp). Fosters intense ambition and karmic acceleration.',
-                'description_ta': f'ஏழு கிரகங்களும் ராகு-கேது அச்சுக்குள் அடங்கியுள்ளன ({ks_ta} கால சர்ப்பம்). தீவிர லட்சியத்தையும் கர்ம வேகத்தையும் தூண்டும்.'
+                'description_ta': f'ஏழு கிரகங்களும் ராகு-கேது அச்சுக்குள் அடங்கியுள்ளன ({ks_ta} கால சர்ப்பம்). தீவிர லட்சியத்தையும் கர்ம வேகத்தையும் தூண்டும்.',
+                'type_ml': f'{KAAL_SARP_ML[(r_house - 1) % 12]} കാലസർപ്പ ദോഷം',
+                'description_ml': f'ഏഴ് ഗ്രഹങ്ങളും രാഹു-കേതു അച്ചുതണ്ടിനുള്ളിൽ ഒതുങ്ങിയിരിക്കുന്നു ({KAAL_SARP_ML[(r_house - 1) % 12]} കാലസർപ്പം). തീവ്രമായ ലക്ഷ്യബോധവും കർമ്മവേഗവും ഉണർത്തും.'
             }
         else:
             doshas['kaal_sarp'] = {
                 'present': False, 'type': 'None', 'type_ta': 'இல்லை',
                 'description': 'Planets are freely dispersed around the nodal axis.',
-                'description_ta': 'கிரகங்கள் ராகு-கேது அச்சின் இரு பக்கங்களிலும் பரவியுள்ளன.'
+                'description_ta': 'கிரகங்கள் ராகு-கேது அச்சின் இரு பக்கங்களிலும் பரவியுள்ளன.',
+                'type_ml': 'ഇല്ല', 'description_ml': 'ഗ്രഹങ്ങൾ രാഹു-കേതു അച്ചുതണ്ടിന്റെ ഇരുവശത്തും വ്യാപിച്ചിരിക്കുന്നു.'
             }
 
     return yogas, doshas

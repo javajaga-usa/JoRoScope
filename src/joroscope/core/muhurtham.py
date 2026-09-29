@@ -13,6 +13,7 @@ from datetime import timedelta
 
 from .engine import (AYAN, NITYA_YOGAS, KARANAS, SIGNS, STARS, TAMIL, TAMIL_STARS, TITHIS, swe, local_to_utc,
                      sidereal_position, sun_events)
+from .readings.common import MALAYALAM_SIGNS, MALAYALAM_STARS
 from .south_indian import (
     TARAS, CHANDRA_BALAM_HOUSES, VAARAM, TITHI_TA, NAK_SPAN, _elongation, _moon, _yoga_sum, _local_iso, _zone,
     tamil_calendar, tamil_yogam
@@ -31,6 +32,10 @@ MUHURTHA_EVENTS = {
     'general': dict(en='Any auspicious beginning', ta='பொதுவான சுப காரியம்',
                     stars=(0, 3, 4, 6, 7, 11, 12, 13, 14, 16, 20, 21, 22, 23, 25, 26), avoid_months=())
 }
+EVENTS_ML = {'marriage': 'വിവാഹം', 'griha_pravesam': 'ഗൃഹപ്രവേശം', 'business': 'വ്യാപാരം / കട തുറക്കൽ',
+             'vehicle': 'വാഹനം വാങ്ങൽ', 'general': 'പൊതുവായ ശുഭകാര്യം'}
+WEEKDAYS_ML = ['ഞായറാഴ്ച', 'തിങ്കളാഴ്ച', 'ചൊവ്വാഴ്ച', 'ബുധനാഴ്ച', 'വ്യാഴാഴ്ച', 'വെള്ളിയാഴ്ച', 'ശനിയാഴ്ച']
+TARAS_ML = ['ജന്മ', 'സമ്പത്', 'വിപത്', 'ക്ഷേമ', 'പ്രത്യക്', 'സാധക', 'നൈധന', 'മിത്ര', 'പരമമിത്ര']
 GOOD_WEEKDAYS = (0, 1, 3, 4, 5)             # Tuesday and Saturday avoided; Sunday allowed, as in Tamil practice
 GOOD_TITHIS = (2, 3, 5, 7, 10, 11, 12, 13)  # within a paksha; Rikta (4, 9, 14), Ashtami and the 15th avoided
 # Difficult nitya yogas (Muhurta Chintamani): Vyatipata and Vaidhriti are avoided whole, Parigha for
@@ -187,29 +192,35 @@ def find_muhurthams(event_key, start_date, days, tz_name, lat, lon, natal_star=N
         for w, end in windows:
             a = w['angas']
             in_paksha = (a['tithi'] - 1) % 15 + 1
-            notes_en, notes_ta = [], []
+            notes_en, notes_ta, notes_ml = [], [], []
             if a['tithi'] <= 15:
                 notes_en.append('waxing Moon')
                 notes_ta.append('வளர்பிறை')
+                notes_ml.append('വെളുത്ത പക്ഷം')
             if natal_star is not None:
                 tara = TARAS[((a['star'] - natal_star) % 27) % 9]
                 notes_en.append(f"{tara[0]} tara")
                 notes_ta.append(f"{tara[1]} தாரை")
+                notes_ml.append(f"{TARAS_ML[((a['star'] - natal_star) % 27) % 9]} താര")
             lagna = w['lagna']
             if any((w['signs'][g] - lagna) % 12 + 1 in (1, 4, 7, 10) for g in LAGNA_BENEFICS):
                 notes_en.append('Jupiter or Venus in a kendra')
                 notes_ta.append('குரு / சுக்கிரன் கேந்திரத்தில்')
+                notes_ml.append('വ്യാഴം / ശുക്രൻ കേന്ദ്രത്തിൽ')
             if event_key == 'marriage' and not any((sg - lagna) % 12 == 6 for sg in w['signs'].values()):
                 notes_en.append('7th house clear')
                 notes_ta.append('7-ஆம் இடம் சுத்தம்')
+                notes_ml.append('7-ാം ഭാവം ശുദ്ധം')
             if lagna in FIXED_SIGNS and event_key == 'griha_pravesam':
                 notes_en.append('fixed Lagna')
                 notes_ta.append('ஸ்திர லக்னம்')
+                notes_ml.append('സ്ഥിര ലഗ്നം')
             if natal_sign is not None:
                 house = (a['moon_sign'] - natal_sign) % 12 + 1
                 if house in CHANDRA_BALAM_HOUSES:
                     notes_en.append('Chandra Balam')
                     notes_ta.append('சந்திர பலம்')
+                    notes_ml.append('ചന്ദ്രബലം')
             rows.append(dict(
                 start_local=_local_iso(w['start'], tz), end_local=_local_iso(end, tz),
                 minutes=round((end - w['start']) * 1440),
@@ -217,11 +228,12 @@ def find_muhurthams(event_key, start_date, days, tz_name, lat, lon, natal_star=N
                 tithi=TITHIS[a['tithi'] - 1], tithi_ta=TITHI_TA[in_paksha - 1],
                 paksha='Shukla' if a['tithi'] <= 15 else 'Krishna', yoga=a['yoga'], karana=a['karana'],
                 tamil_yogam=tamil_yogam(weekday, a['star']), lagna=SIGNS[lagna], lagna_ta=TAMIL[lagna], lagna_index=lagna,
-                notes_en=notes_en, notes_ta=notes_ta))
-        results.append(dict(date=day.isoformat(), weekday=VAARAM[weekday][0], weekday_ta=VAARAM[weekday][1],
+                notes_en=notes_en, notes_ta=notes_ta, notes_ml=notes_ml, nakshatra_ml=MALAYALAM_STARS[a['star']],
+                lagna_ml=MALAYALAM_SIGNS[lagna]))
+        results.append(dict(date=day.isoformat(), weekday=VAARAM[weekday][0], weekday_ta=VAARAM[weekday][1], weekday_ml=WEEKDAYS_ML[weekday],
                             tamil_date=f"{cal['month_ta']} {cal['day']}", windows=rows))
         if len(results) >= limit:
             break
-    return dict(event=event_key, event_en=event['en'], event_ta=event['ta'], start=first.isoformat(), days=days,
+    return dict(event=event_key, event_en=event['en'], event_ta=event['ta'], event_ml=EVENTS_ML[event_key], start=first.isoformat(), days=days,
                 personal=natal_star is not None or natal_sign is not None, days_found=len(results), results=results,
                 skipped_days=skipped)

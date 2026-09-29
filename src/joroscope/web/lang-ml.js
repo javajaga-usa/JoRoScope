@@ -6,7 +6,6 @@
  * Loaded after i18n.js.
  */
 I18N.ml = {
-  "ml_readings_note": "വിശദ ഫലങ്ങൾ മലയാള വിവർത്തനം പൂർത്തിയാകുന്നതുവരെ ഇംഗ്ലീഷിൽ കാണിക്കും.",
   "workspace": "പ്രവർത്തനമേഖല",
   "birth_chart": "ജാതകവും വർഗ്ഗങ്ങളും",
   "planets_strengths": "ഗ്രഹങ്ങളും ബലവും",
@@ -140,6 +139,7 @@ I18N.ml = {
   "rasi_navamsa": "രാശി + നവാംശം",
   "jathaga_kurippu": "ജാതകക്കുറിപ്പ്",
   "jathaga_kurippu_sub": "പഞ്ചാംഗ പാരമ്പര്യത്തിലെ ജനനക്കുറിപ്പുകൾ",
+  "badge_ja": "ജാ",
   "chevvai_dosham": "ചൊവ്വാ ദോഷം (കുജ ദോഷം)",
   "rahu_ketu_dosham": "രാഹു-കേതു ദോഷം (സർപ്പ ദോഷം)",
   "dosha_samyam": "ദോഷസാമ്യം (ചൊവ്വ, പാപ ബലം)",
@@ -990,6 +990,7 @@ function translateTree(root) {
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
+    if (node.parentElement?.closest('[data-keep-en]')) return;  // an English second label kept on purpose
     const raw = node.nodeValue;
     const key = raw.trim();
     if (!key) return;

@@ -22,31 +22,27 @@ function renderLifeReadings() {
   const ov = pred.overview;
   if (ov) {
     // Star
-    $('#pred-star-title').textContent = isTa
-      ? `ஜென்ம நட்சத்திரம்: ${ov.tamil_nakshatra} (${ov.nakshatra})`
-      : `Birth Star: ${ov.nakshatra} (${ov.tamil_nakshatra})`;
-    $('#pred-star-sub').textContent = isTa
-      ? 'குணம், மனோபாவம் மற்றும் விதியின் தாக்கம்'
-      : 'Core Character, Temperament & Destiny';
+    $('#pred-star-title').textContent = txt(`Birth Star: ${ov.nakshatra} (${ov.tamil_nakshatra})`,
+      `ஜென்ம நட்சத்திரம்: ${ov.tamil_nakshatra} (${ov.nakshatra})`, `ജന്മനക്ഷത്രം: ${mlTerm(ov.nakshatra)}`);
+    $('#pred-star-sub').textContent = txt('Core Character, Temperament & Destiny',
+      'குணம், மனோபாவம் மற்றும் விதியின் தாக்கம்', 'സ്വഭാവം, മനോഭാവം, വിധി');
     $('#pred-star-text').textContent = isTa ? ov.nakshatra_pred_ta : ov.nakshatra_pred_en;
 
     // Lagna
-    $('#pred-lagna-title').textContent = isTa
-      ? `லக்னம் (உதய ராசி): ${ov.tamil_lagna} (${ov.lagna})`
-      : `Ascendant (Lagna): ${ov.lagna} (${ov.tamil_lagna})`;
-    $('#pred-lagna-sub').textContent = isTa
-      ? 'உடல்வாகு, தலைமைப் பண்பு மற்றும் வாழ்க்கை திசை'
-      : 'Body Constitution, Leadership & Life Path';
+    $('#pred-lagna-title').textContent = txt(`Ascendant (Lagna): ${ov.lagna} (${ov.tamil_lagna})`,
+      `லக்னம் (உதய ராசி): ${ov.tamil_lagna} (${ov.lagna})`, `ലഗ്നം (ഉദയ രാശി): ${mlTerm(ov.lagna)}`);
+    $('#pred-lagna-sub').textContent = txt('Body Constitution, Leadership & Life Path',
+      'உடல்வாகு, தலைமைப் பண்பு மற்றும் வாழ்க்கை திசை', 'ശരീരപ്രകൃതി, നേതൃഗുണം, ജീവിതദിശ');
     $('#pred-lagna-text').textContent = isTa ? ov.lagna_pred_ta : ov.lagna_pred_en;
 
     // Moon Sign
-    $('#pred-moon-title').textContent = isTa
-      ? `சந்திர ராசி: ${ov.tamil_moon_sign} (${ov.moon_sign})`
-      : `Moon Sign (Rasi): ${ov.moon_sign} (${ov.tamil_moon_sign})`;
-    $('#pred-moon-sub').textContent = isTa
-      ? 'உள்மன உணர்வுகள், சிந்தனை ஓட்டம் மற்றும் கற்பனை வளம்'
-      : 'Emotional Landscape, Instincts & Mental Equanimity';
-    $('#pred-moon-text').textContent = isTa
+    $('#pred-moon-title').textContent = txt(`Moon Sign (Rasi): ${ov.moon_sign} (${ov.tamil_moon_sign})`,
+      `சந்திர ராசி: ${ov.tamil_moon_sign} (${ov.moon_sign})`, `ചന്ദ്രരാശി: ${mlTerm(ov.moon_sign)}`);
+    $('#pred-moon-sub').textContent = txt('Emotional Landscape, Instincts & Mental Equanimity',
+      'உள்மன உணர்வுகள், சிந்தனை ஓட்டம் மற்றும் கற்பனை வளம்', 'ഉള്ളിലെ വികാരങ്ങൾ, ചിന്താഗതി, മനസ്സമാധാനം');
+    $('#pred-moon-text').textContent = currentLang === 'ml'
+      ? `മനഃകാരകനായ ചന്ദ്രൻ ${mlTerm(ov.moon_sign)} രാശിയിൽ നിന്ന് നിങ്ങളുടെ ഉപബോധ സ്വഭാവം, സഹാനുഭൂതി, ഉൾക്കാഴ്ചയോടെയുള്ള പ്രതികരണങ്ങൾ എന്നിവയെ നയിക്കുന്നു. വൈകാരികമായ ഇണക്കം, ഭാവനയുടെ തെളിച്ചം, അമ്മയുടെ അനുഗ്രഹം, ഗൃഹൈശ്വര്യം എന്നിവ സ്വാഭാവികമായി ലഭിക്കും.`
+      : isTa
       ? `சந்திர பகவான் உங்கள் மனோகாரகனாக ${ov.tamil_moon_sign} ராசியில் அமைந்து, சிந்தனைத் தெளிவையும் உணர்ச்சிப் பெருக்கையும் நிர்வகிக்கிறார். கற்பனை வளம், தாய்வழி ஆசிகள், சூழலுக்கு ஏற்ப பொருந்தும் நெகிழ்வுத்தன்மை இயல்பாகவே அமையும்.`
       : `The Moon placed in ${ov.moon_sign} governs your subconscious temperament, empathy, and intuitive reactions. It provides emotional adaptability, imaginative clarity, maternal grace, and domestic prosperity.`;
 
@@ -235,9 +231,9 @@ function renderLifeReadings() {
   const jk = pred.jaimini_karakas;
   if (jk) {
     if (jk.karakamsha) {
-      $('#jaimini-karakamsha-title').textContent = isTa
-        ? `காரகாம்சம்: ${jk.karakamsha.tamil_sign} (${jk.karakamsha.sign})`
-        : `Karakamsha Lagna: ${jk.karakamsha.sign} (${jk.karakamsha.tamil_sign})`;
+      $('#jaimini-karakamsha-title').textContent = txt(`Karakamsha Lagna: ${jk.karakamsha.sign} (${jk.karakamsha.tamil_sign})`,
+        `காரகாம்சம்: ${jk.karakamsha.tamil_sign} (${jk.karakamsha.sign})`,
+        `കാരകാംശ ലഗ്നം: ${mlTerm(jk.karakamsha.sign)}`);
       $('#jaimini-karakamsha-desc').textContent = isTa
         ? jk.karakamsha.interpretation_ta
         : jk.karakamsha.interpretation_en;
@@ -775,23 +771,23 @@ function reportCardHtml(c) {
       <div class="reading-header">
         <span class="reading-icon">${esc(c.icon || '✦')}</span>
         <div>
-          <h3>${esc(txt(c.title.en, c.title.ta))}</h3>
-          ${c.sub && (c.sub.en || c.sub.ta) ? `<small class="muted">${esc(txt(c.sub.en, c.sub.ta))}</small>` : ''}
+          <h3>${esc(txt(c.title.en, c.title.ta, c.title.ml))}</h3>
+          ${c.sub && (c.sub.en || c.sub.ta) ? `<small class="muted">${esc(txt(c.sub.en, c.sub.ta, c.sub.ml))}</small>` : ''}
         </div>
         ${pill ? `<span class="status-pill ${pill[0]}">${txt(pill[1], pill[2])}</span>` : ''}
       </div>
-      <p class="reading-body">${esc(txt(c.body.en, c.body.ta))}</p>
+      <p class="reading-body">${esc(txt(c.body.en, c.body.ta, c.body.ml))}</p>
     </div>`;
 }
 
 function reportTableHtml(t) {
   return `
     <div class="cosmic-card report-table-card">
-      <h3>${esc(txt(t.title.en, t.title.ta))}</h3>
+      <h3>${esc(txt(t.title.en, t.title.ta, t.title.ml))}</h3>
       <div class="table-responsive">
         <table class="luxury-table">
-          <thead><tr>${t.head.map(h => `<th>${esc(txt(h.en, h.ta))}</th>`).join('')}</tr></thead>
-          <tbody>${t.rows.map(row => `<tr>${row.map(c => `<td>${esc(txt(c.en, c.ta))}</td>`).join('')}</tr>`).join('')}</tbody>
+          <thead><tr>${t.head.map(h => `<th>${esc(txt(h.en, h.ta, h.ml))}</th>`).join('')}</tr></thead>
+          <tbody>${t.rows.map(row => `<tr>${row.map(c => `<td>${esc(txt(c.en, c.ta, c.ml))}</td>`).join('')}</tr>`).join('')}</tbody>
         </table>
       </div>
     </div>`;
@@ -800,7 +796,7 @@ function reportTableHtml(t) {
 // A square chakra (the Sarvatobhadra's 9 x 9 cells), east on top
 function reportGridHtml(grid) {
   return `<div class="cosmic-card report-table-card"><div class="chakra-grid">${grid.flat().map(c =>
-    `<div class="chakra-cell ${esc(c.cls || '')}">${esc(txt(c.en, c.ta))}</div>`).join('')}</div></div>`;
+    `<div class="chakra-cell ${esc(c.cls || '')}">${esc(txt(c.en, c.ta, c.ml))}</div>`).join('')}</div></div>`;
 }
 
 function renderReportChapter(key, ch) {
@@ -815,8 +811,8 @@ function renderChapterInto(panel, ch) {
   }
   panel.innerHTML = `
     <div class="cosmic-card report-intro">
-      <h2>${esc(txt(ch.title.en, ch.title.ta))}</h2>
-      <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta))}</p>
+      <h2>${esc(txt(ch.title.en, ch.title.ta, ch.title.ml))}</h2>
+      <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta, ch.intro.ml))}</p>
     </div>
     ${ch.grid ? reportGridHtml(ch.grid) : ''}
     ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}

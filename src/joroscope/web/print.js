@@ -220,7 +220,7 @@ function printOtherDasas(c) {
 // The chapters in the shared report shape (numerology and the newer reports), one after another
 function printReportChapters(c) {
   const pred = c.predictions || {};
-  const cell = x => esc(txt(x.en, x.ta));
+  const cell = x => esc(txt(x.en, x.ta, x.ml));
   return REPORT_CHAPTERS.filter(key => pred[key]).map(key => {
     const ch = pred[key];
     const tables = ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');

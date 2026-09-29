@@ -12,7 +12,7 @@ import math
 from datetime import datetime, timedelta, timezone
 
 from .engine import (AYAN, SIGNS, TAMIL, calculate_vargas, dasha, local_to_utc, sidereal_position, swe, utc_to_jd)
-from .readings.common import PLANET_TAMIL, SIGN_LORDS
+from .readings.common import MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGN_LORDS
 from .readings.report import card, chapter, table
 
 EVENTS = {
@@ -25,6 +25,11 @@ EVENTS = {
     'illness': ('Illness, surgery or accident', 'நோய் / அறுவை சிகிச்சை / விபத்து', (6, 8, 12, 1), ('Mars', 'Saturn', 'Rahu')),
     'father': ('Loss of father', 'தந்தை இழப்பு', (10, 3, 9), ('Sun', 'Saturn')),
     'mother': ('Loss of mother', 'தாய் இழப்பு', (5, 11, 4), ('Moon', 'Saturn')),
+}
+EVENTS_ML = {
+    'marriage': 'വിവാഹം', 'child': 'കുഞ്ഞിന്റെ ജനനം', 'career': 'ജോലി / സ്ഥാനക്കയറ്റം / സംരംഭ തുടക്കം',
+    'education': 'ബിരുദം / വിദ്യാഭ്യാസ നേട്ടം', 'relocation': 'താമസംമാറ്റം / വിദേശം', 'property': 'സ്വത്ത് / വാഹനം വാങ്ങൽ',
+    'illness': 'രോഗം / ശസ്ത്രക്രിയ / അപകടം', 'father': 'അച്ഛന്റെ വിയോഗം', 'mother': 'അമ്മയുടെ വിയോഗം',
 }
 SLOW = (('Sun', swe.SUN), ('Mars', swe.MARS), ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER), ('Venus', swe.VENUS),
         ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE))
@@ -125,6 +130,7 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
     from zoneinfo import ZoneInfo
     local = lambda iso: datetime.fromisoformat(iso).astimezone(ZoneInfo(tz_name)).strftime('%H:%M')
     best = ranked[0]
+    M, P = MALAYALAM_SIGNS, lambda g: PLANET_ML.get(g, g)
     first, last = best['members'][0], best['members'][-1]
     cards = [card('🕰️', f"Most consistent: {local(best['best']['utc'])} ({SIGNS[best['lagna']]} Lagna)",
                   f"மிகப் பொருத்தமானது: {local(best['best']['utc'])} ({TAMIL[best['lagna']]} லக்னம்)",
@@ -134,7 +140,11 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
                   f"{local(first['utc'])} முதல் {local(last['utc'])} வரையிலான நேரங்கள் {TAMIL[best['lagna']]} லக்னம், "
                   f"{TAMIL[best['navamsa']]} நவாம்சம் தருகின்றன; நிகழ்வுகளுடன் மிகப் பொருந்துகின்றன (மதிப்பு {best['score']} / {EVENT_MAX * len(parsed)}). "
                   f"அவற்றில் {local(best['best']['utc'])} மிகப் பொருத்தம், கூறப்பட்ட நேரத்திலிருந்து {best['best']['offset']:+d} நிமிடங்கள்.",
-                  verdict='good' if top >= 0.6 else 'mixed')]
+                  verdict='good' if top >= 0.6 else 'mixed',
+                  title_ml=f"ഏറ്റവും യോജിച്ചത്: {local(best['best']['utc'])} ({M[best['lagna']]} ലഗ്നം)",
+                  body_ml=(f"{local(first['utc'])} മുതൽ {local(last['utc'])} വരെയുള്ള സമയങ്ങൾ {M[best['lagna']]} ലഗ്നവും "
+                           f"{M[best['navamsa']]} നവാംശവും നൽകുന്നു; സംഭവങ്ങളുമായി ഏറ്റവും യോജിക്കുന്നു (മൂല്യം {best['score']} / {EVENT_MAX * len(parsed)}). "
+                           f"അവയിൽ {local(best['best']['utc'])} ഏറ്റവും യോജിച്ചത്, പറഞ്ഞ സമയത്തിൽ നിന്ന് {best['best']['offset']:+d} മിനിറ്റ്."))]
     for d in best['best']['events']:
         label, label_ta = EVENTS[d['kind']][:2]
         ok = d['score'] >= 4
@@ -144,9 +154,11 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
                           f"{PLANET_TAMIL.get(d['dasa'], d['dasa'])} தசை, {PLANET_TAMIL.get(d['bhukti'], d['bhukti'])} புக்தி, "
                           f"{PLANET_TAMIL.get(d['pratyantar'], d['pratyantar'])} அந்தரம்"
                           + (', இரட்டைக் கோச்சாரத்துடன்' if d['double_transit'] else '') + f": மதிப்பு {d['score']} / {EVENT_MAX}.",
-                          verdict='good' if ok else 'mixed'))
-    rows = [((f"{local(g['members'][0]['utc'])}–{local(g['members'][-1]['utc'])}",) * 2, (SIGNS[g['lagna']], TAMIL[g['lagna']]),
-             (SIGNS[g['navamsa']], TAMIL[g['navamsa']]), local(g['best']['utc']), g['score']) for g in ranked[:8]]
+                          verdict='good' if ok else 'mixed', title_ml=f"{EVENTS_ML[d['kind']]}, {d['date']}",
+                          body_ml=(f"{P(d['dasa'])} ദശ, {P(d['bhukti'])} ഭുക്തി, {P(d['pratyantar'])} അന്തരം"
+                                   + (', ഇരട്ട ഗോചരത്തോടെ' if d['double_transit'] else '') + f": മൂല്യം {d['score']} / {EVENT_MAX}.")))
+    rows = [(f"{local(g['members'][0]['utc'])}–{local(g['members'][-1]['utc'])}", (SIGNS[g['lagna']], TAMIL[g['lagna']], M[g['lagna']]),
+             (SIGNS[g['navamsa']], TAMIL[g['navamsa']], M[g['navamsa']]), local(g['best']['utc']), g['score']) for g in ranked[:8]]
     return chapter(
         'rectification', 'Birth Time Rectification', 'ஜனன நேரத் திருத்தம்',
         f"Candidate birth times {window_minutes} minutes either side of the stated time, every {step_minutes} minutes, "
@@ -155,7 +167,11 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
         'அவற்றின் தசைகள், இரட்டைக் கோச்சாரம் மூலம் சோதிக்கப்பட்டன. நேரத்தைச் சுருக்க இதைப் பயன்படுத்தி ஜோதிடரிடம் உறுதிப்படுத்தவும்.',
         cards=cards,
         tables=[table('Candidate times', 'சாத்தியமான நேரங்கள்',
-                      [('Time range', 'நேர வரம்பு'), ('Lagna', 'லக்னம்'), ('Navamsa', 'நவாம்சம்'), ('Best time', 'சிறந்த நேரம்'), ('Score', 'மதிப்பு')],
-                      rows)],
+                      [('Time range', 'நேர வரம்பு', 'സമയ പരിധി'), ('Lagna', 'லக்னம்', 'ലഗ്നം'), ('Navamsa', 'நவாம்சம்', 'നവാംശം'),
+                       ('Best time', 'சிறந்த நேரம்', 'മികച്ച സമയം'), ('Score', 'மதிப்பு', 'മൂല്യം')],
+                      rows, title_ml='സാധ്യമായ സമയങ്ങൾ')],
+        title_ml='ജനനസമയ തിരുത്തൽ',
+        intro_ml=(f"പറഞ്ഞ സമയത്തിന് മുമ്പും പിമ്പും {window_minutes} മിനിറ്റ്, ഓരോ {step_minutes} മിനിറ്റിലും, ജീവിതസംഭവങ്ങളുമായി "
+                  'അവയുടെ ദശകളും ഇരട്ട ഗോചരവും വഴി പരിശോധിച്ചു. സമയം ചുരുക്കാൻ ഇത് ഉപയോഗിച്ച് ഒരു ജ്യോതിഷിയുമായി ഉറപ്പാക്കുക.'),
         cards_first=True, best_utc=best['best']['utc'], best_offset=best['best']['offset'], max_score=EVENT_MAX * len(parsed),
-        event_types=[dict(key=k, en=v[0], ta=v[1]) for k, v in EVENTS.items()])
+        event_types=[dict(key=k, en=v[0], ta=v[1], ml=EVENTS_ML[k]) for k, v in EVENTS.items()])
