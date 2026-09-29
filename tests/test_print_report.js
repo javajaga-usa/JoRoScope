@@ -83,6 +83,8 @@ function assertClean(html, label) {
   const birth = { name: 'Print Test', date: '1990-01-01', time: '12:00:00', timezone: 'Asia/Kolkata', city: 'Chennai',
     latitude: 13.0827, longitude: 80.2707, ayanamsa: 'Lahiri' };
   const chart = await post('/api/chart', birth);
+  // The long chapters come separately, as the page fetches them
+  Object.assign(chart.predictions, (await post('/api/chapters', { ...birth, keys: chart.predictions.deferred_chapters })).chapters);
   const match = await post('/api/match', { boy: birth, girl: { ...birth, name: 'Bride', date: '1993-05-20', time: '07:30:00' } });
 
   for (const lang of ['en', 'ta']) {

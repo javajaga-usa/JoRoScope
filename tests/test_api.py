@@ -70,7 +70,7 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertEqual(resp.headers.get("Content-Encoding"), "gzip")
             raw = gzip.decompress(resp.read())
         chart = json.loads(raw)
-        self.assertLess(len(raw), 1_000_000)  # a guard against runaway growth; about 930 KB with the yearly and life-area reports
+        self.assertLess(len(raw), 800_000)  # a guard against runaway growth; about 770 KB, with the long chapters deferred
         periods = chart["predictions"]["timeline_predictions"]["periods"]
         deferred = [p for p in periods if p.get("details_deferred")]
         self.assertGreater(len(deferred), 70)

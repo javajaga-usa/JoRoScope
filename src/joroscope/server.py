@@ -38,6 +38,9 @@ else:
 # Ephemeris keeps global settings (the ayanamsa), so calculations still run one at a time.
 COMPUTE_LOCK = threading.Lock()
 FORWARDING_HEADERS = ('Cf-Connecting-IP', 'X-Forwarded-For', 'Forwarded')
+# The longest report chapters leave the chart response and are fetched from /api/chapters when the page
+# first needs them, so the first screen arrives sooner on a phone
+DEFERRED_CHAPTERS = ('yearly', 'monthly', 'education', 'children', 'health', 'wealth', 'foreign', 'spiritual')
 
 
 def strip_malayalam(value):
@@ -131,7 +134,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt', '/api/chapters'):
             self.send(b'{}', 404)
             return
 
@@ -159,9 +162,17 @@ class Handler(BaseHTTPRequestHandler):
                     timeline = (result.get('predictions') or {}).get('timeline_predictions')
                     if timeline:
                         defer_timeline_details(timeline)
+                    pred = result.get('predictions') or {}
+                    pred['deferred_chapters'] = [k for k in DEFERRED_CHAPTERS if pred.pop(k, None) is not None]
                     if data.get('lang') != 'ml':
                         result = strip_malayalam(result)
                     self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/chapters':
+                    pred = calculate(data).get('predictions') or {}
+                    chapters = {k: pred[k] for k in data.get('keys') or DEFERRED_CHAPTERS if k in DEFERRED_CHAPTERS and k in pred}
+                    if data.get('lang') != 'ml':
+                        chapters = strip_malayalam(chapters)
+                    self.send(json.dumps({'chapters': chapters}, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/timeline':
                     timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
                     details = {'details': timeline_details(timeline)}

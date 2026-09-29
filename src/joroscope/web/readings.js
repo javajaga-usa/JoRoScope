@@ -760,6 +760,32 @@ function renderLifeReadings() {
   REPORT_CHAPTERS.forEach(key => renderReportChapter(key, pred[key]));
   renderParisodhanai(pred.parisodhanai);
   renderAskPanel();
+  // The long chapters follow in the background once the first screen is drawn
+  if (pred.deferred_chapters?.length) setTimeout(loadDeferredChapters, 1200);
+}
+
+// The long report chapters (the yearly forecast, monthly transits, the life areas) arrive separately
+// from the chart; fetched once per chart, then drawn into their tabs
+function loadDeferredChapters() {
+  const chart = currentChart;
+  const keys = chart?.predictions?.deferred_chapters || [];
+  if (!keys.length) return Promise.resolve();
+  if (!chart._chaptersLoad) {
+    chart._chaptersLoad = fetch('/api/chapters', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...currentChartPayload, lang: currentLang, keys })
+    }).then(resp => resp.json().then(data => {
+      if (!resp.ok) throw new Error(data.error || 'The reports could not be loaded.');
+      learnMalayalam(data);
+      Object.assign(chart.predictions, data.chapters);
+      chart.predictions.deferred_chapters = keys.filter(k => !data.chapters[k]);
+      if (chart === currentChart) Object.keys(data.chapters).forEach(k => renderReportChapter(k, data.chapters[k]));
+    })).catch(err => {
+      chart._chaptersLoad = null;
+      notify(errorText(err.message));
+    });
+  }
+  return chart._chaptersLoad;
 }
 
 // Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
@@ -808,6 +834,11 @@ function renderReportChapter(key, ch) {
 
 function renderChapterInto(panel, ch) {
   if (!panel) return;
+  const key = panel.id.replace('ppanel-', '');
+  if (!ch && currentChart?.predictions?.deferred_chapters?.includes(key)) {
+    panel.innerHTML = `<p class="muted">${esc(txt('Loading this report…', 'இந்த அறிக்கை ஏற்றப்படுகிறது…', 'ഈ റിപ്പോർട്ട് ലോഡ് ചെയ്യുന്നു…'))}</p>`;
+    return;
+  }
   if (!ch) {
     panel.innerHTML = `<p class="muted">${txt('Not available for this chart.', 'இந்த ஜாதகத்திற்குக் கிடைக்கவில்லை.')}</p>`;
     return;

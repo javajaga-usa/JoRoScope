@@ -491,6 +491,7 @@ function applyTheme(theme) {
 function switchPredictionTab(ptab) {
   $$('.pred-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === ptab));
   $$('.pred-panel').forEach(p => p.hidden = p.id !== `ppanel-${ptab}`);
+  if (currentChart?.predictions?.deferred_chapters?.includes(ptab)) loadDeferredChapters();
 }
 
 // Language Management

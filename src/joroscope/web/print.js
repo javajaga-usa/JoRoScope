@@ -473,7 +473,7 @@ function openPrintDialog(presetKey = 'jathagam') {
   dialog.showModal();
 }
 
-function submitPrintDialog(event) {
+async function submitPrintDialog(event) {
   event.preventDefault();
   const preset = $('#print-presets input:checked')?.value || 'jathagam';
   const sections = [...$$('#print-section-list input:checked')].map(b => b.value);
@@ -484,6 +484,7 @@ function submitPrintDialog(event) {
     notify(txt('Choose at least one section.', 'குறைந்தது ஒரு பகுதியைத் தேர்ந்தெடுக்கவும்.'));
     return;
   }
+  await loadDeferredChapters();  // the long chapters, if the page has not fetched them yet
   printWithLanguage(lang, () => buildPrintReport(preset, sections, chartStyle));
 }
 
