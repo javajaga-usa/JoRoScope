@@ -116,6 +116,20 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertIn("nakshatra", data)
             self.assertIn("yoga_name", data)
 
+    def test_origin_check(self):
+        """Requests from the server's own host pass over http or https (a tunnel); other sites are refused."""
+        url = f"http://127.0.0.1:{self.port}/api/panchangam"
+        body = json.dumps({"date": "2026-09-12", "timezone": "Asia/Kolkata"}).encode()
+        host = f"127.0.0.1:{self.port}"
+        for origin, status in ((f"http://{host}", 200), (f"https://{host}", 200), ("https://evil.example", 403)):
+            req = urllib.request.Request(url, data=body, headers={"Content-Type": "application/json", "Origin": origin})
+            try:
+                with urllib.request.urlopen(req) as resp:
+                    code = resp.status
+            except urllib.error.HTTPError as err:
+                code = err.code
+            self.assertEqual(code, status, origin)
+
 
 if __name__ == "__main__":
     unittest.main()
