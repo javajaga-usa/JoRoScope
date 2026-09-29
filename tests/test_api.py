@@ -36,7 +36,7 @@ class ApiIntegrationTests(unittest.TestCase):
             self.assertEqual(resp.status, 200)
             data = json.loads(resp.read().decode())
             self.assertEqual(data.get("application"), "joroscope")
-            self.assertEqual(data.get("version"), "2.3.0")
+            self.assertEqual(data.get("version"), "2.4.0")
 
     def test_chart_endpoint(self):
         url = f"http://127.0.0.1:{self.port}/api/chart"

@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.4.0] - 2026-09-29
 
 ### Ask about my chart (AI)
 - A new **Ask about my chart** tab. **Copy for Claude** copies the chart's fact sheet with the question to paste into Claude (claude.ai) with one's own account, with no setup or cost to the app's owner. With an API key, **Ask** answers inside JoRoScope, and writes an overall reading, with Claude (Opus 5.5 by default). JoRoScope still calculates everything; Claude answers only from a fact sheet of the calculated chart (placements, dasas, yogas, doshas, transits, the reports and the person's Chart Verification marks) and cites the basis. English, Tamil and Malayalam.
@@ -17,6 +17,9 @@
 - Every statement shows the classical rule behind it and how strongly the chart supports it; event timing is never marked strong.
 - Mark each statement right or wrong for a match score, kept in the browser for that birth data. Enter the real dates of past events and send them to Birth Time Rectification in one click.
 - English, Tamil and Malayalam; the Complete print report includes the statements with a box to tick.
+
+### Fixes
+- Charts no longer fail when JoRoScope is opened through an https link, such as a shared tunnel or a reverse proxy.
 
 ## [2.3.0] - 2026-09-28
 
