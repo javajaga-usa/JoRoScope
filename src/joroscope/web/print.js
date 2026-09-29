@@ -10,6 +10,7 @@
 
 const chapterSection = key => c => printChapters(c, PRINT_CHAPTER_GROUPS[key]);
 const PRINT_SECTIONS = [
+  { key: 'summary', en: 'Summary', ta: 'சுருக்கம்', ml: 'സംഗ്രഹം', build: printSummary },
   { key: 'birth', en: 'Birth details & Tamil panchangam', ta: 'பிறப்பு விவரங்கள் & பஞ்சாங்கம்', build: printBirth },
   { key: 'charts', en: 'Rasi & Navamsa charts', ta: 'இராசி & நவாம்சச் சக்கரங்கள்', build: printCharts },
   { key: 'planets', en: 'Planetary positions', ta: 'கிரக நிலைகள்', build: printPlanets },
@@ -53,6 +54,14 @@ const PRINT_PRESETS = {
     hint_ta: 'மேலுள்ள அனைத்தும் மற்றும் வாழ்க்கைப் பலன்கள்: பஞ்சாங்க பலன், 12 பாவங்கள், நடப்பு தசை, கோச்சாரம், தொழில், உடல்நலம்.',
     title_en: 'Complete Horoscope Report', title_ta: 'முழுமையான ஜாதக அறிக்கை',
     sections: PRINT_SECTIONS.map(s => s.key)
+  },
+  summary: {
+    en: 'One-page Summary', ta: 'ஒரு பக்கச் சுருக்கம்', ml: 'ഒറ്റപ്പേജ് സംഗ്രഹം',
+    hint_en: 'One page to share: the Rasi chart, star and Lagna, the running dasa and this year\'s outlook. Save as PDF to send on WhatsApp.',
+    hint_ta: 'பகிர ஒரு பக்கம்: இராசிச் சக்கரம், நட்சத்திரம், லக்னம், நடப்பு தசை, இந்த ஆண்டுப் பலன். வாட்ஸ்அப்பில் அனுப்ப PDF-ஆகச் சேமிக்கவும்.',
+    hint_ml: 'പങ്കിടാൻ ഒരു പേജ്: രാശിചക്രം, നക്ഷത്രം, ലഗ്നം, നടപ്പ് ദശ, ഈ വർഷത്തെ ഫലം. വാട്ട്സ്ആപ്പിൽ അയയ്ക്കാൻ PDF ആയി സേവ് ചെയ്യുക.',
+    title_en: 'Horoscope Summary', title_ta: 'ஜாதகச் சுருக்கம்', title_ml: 'ജാതക സംഗ്രഹം',
+    sections: ['summary']
   },
   lifereport: {
     en: 'Life Report', ta: 'வாழ்க்கைப் பலன் அறிக்கை', ml: 'ജീവിതഫല റിപ്പോർട്ട്',
@@ -125,6 +134,53 @@ function printBirth(c) {
       <div><h3>${txt('Jathaga Kurippu', 'ஜாதகக் குறிப்பு')}</h3><div class="pj-grid one">${pjKV(notes.slice(0, 8))}</div></div>
     </div>
     ${notes.length > 8 ? `<div class="pj-grid">${pjKV(notes.slice(8))}</div>` : ''}`;
+}
+
+// One page: the Rasi chart beside the key facts, then this year's outlook
+function printSummary(c) {
+  const p = c.planets;
+  const pred = c.predictions || {};
+  const ad = c.active_dasha || {};
+  const years = (pred.yearly?.years || []).slice(0, 2);  // this year and the next
+  const yearCard = (pred.yearly?.cards || [])[0];
+  const today = new Date().toISOString().slice(0, 10);
+  const mc = c.south_indian?.malayalam_calendar;
+  const tc = c.south_indian?.tamil_calendar;
+  const facts = [
+    [txt('Name', 'பெயர்', 'പേര്'), esc(c.profile.name || '—')],
+    [txt('Born', 'பிறப்பு', 'ജനനം'), esc(`${c.profile.date} · ${c.profile.time}${c.profile.city ? ` · ${c.profile.city}` : ''}`)],
+    [txt('Star', 'நட்சத்திரம்', 'നക്ഷത്രം'), esc(`${starName(p.Moon.nakshatra)} ${txt('pada', 'பாதம்', 'പാദം')} ${p.Moon.pada}`)],
+    [txt('Rasi', 'ராசி', 'രാശി'), esc(signName(p.Moon.sign))],
+    [txt('Lagna', 'லக்னம்', 'ലഗ്നം'), esc(signName(p.Ascendant.sign))],
+    ...(tc ? [[txt('Tamil date', 'தமிழ் தேதி', 'തമിഴ് തീയതി'), esc(txt(`${tc.month} ${tc.day}, ${tc.year}`, `${tc.month_ta} ${tc.day}, ${tc.year_ta}`))]] : []),
+    ...(mc ? [[txt('Kollavarsham', 'கொல்லம் ஆண்டு', 'കൊല്ലവർഷം'), esc(txt(`${mc.month} ${mc.day}, ${mc.year}`, `${mc.month_ta} ${mc.day}, ${mc.year}`, `${mc.month_ml} ${mc.day}, ${mc.year}`))]] : []),
+    ...(ad.dasa ? [[txt('Running period', 'நடப்பு காலம்', 'നടപ്പ് കാലം'),
+      esc(`${grahaName(ad.dasa)} ${txt('Dasa', 'தசை', 'ദശ')} ${txt('to', 'வரை', 'വരെ')} ${(ad.dasa_end || '').slice(0, 10)} · ${grahaName(ad.bhukti)} ${txt('Bhukti', 'புக்தி', 'ഭുക്തി')} ${txt('to', 'வரை', 'വരെ')} ${(ad.bhukti_end || '').slice(0, 10)}`)]] : []),
+  ];
+  const good = (c.yogas || []).filter(y => y.nature === 'good').slice(0, 4).map(y => txt(y.name, y.name_ta, y.name_ml)).join(', ');
+  const doshas = [];
+  const cv = c.south_indian?.chevvai || c.doshas?.chevvai;
+  if (cv?.present) doshas.push(txt(cv.cancelled ? 'Chevvai Dosham (cancelled)' : 'Chevvai Dosham', cv.cancelled ? 'செவ்வாய் தோஷம் (நிவர்த்தி)' : 'செவ்வாய் தோஷம்',
+    cv.cancelled ? 'ചൊവ്വാദോഷം (പരിഹൃതം)' : 'ചൊവ്വാദോഷം'));
+  if (c.doshas?.kaal_sarp?.present) doshas.push(txt(c.doshas.kaal_sarp.type, c.doshas.kaal_sarp.type_ta, c.doshas.kaal_sarp.type_ml));
+  facts.push([txt('Yogas', 'யோகங்கள்', 'യോഗങ്ങൾ'), esc(good || '—')], [txt('Doshas', 'தோஷங்கள்', 'ദോഷങ്ങൾ'), esc(doshas.join(', ') || txt('None', 'இல்லை', 'ഇല്ല'))]);
+  const word = v => `${{ good: '✓', steady: '•', care: '!' }[v]} ${{ good: txt('favourable', 'சாதகம்', 'അനുകൂലം'),
+    steady: txt('steady', 'நிதானம்', 'സ്ഥിരം'), care: txt('needs care', 'கவனம் தேவை', 'ശ്രദ്ധ വേണം') }[v]}`;
+  const areaRows = years.length ? [['career', 'Career', 'தொழில்', 'തൊഴിൽ'], ['money', 'Money', 'பணம்', 'ധനം'], ['family', 'Family', 'குடும்பம்', 'കുടുംബം'],
+    ['health', 'Health', 'உடல்நலம்', 'ആരോഗ്യം'], ['travel', 'Travel', 'பயணம்', 'യാത്ര']].map(([k, ...label]) => [esc(txt(...label)), ...years.map(y => esc(word(y.verdicts[k])))]) : [];
+  const goodMonths = years.flatMap(y => y.good_months).filter(m => m.end >= today).slice(0, 4)
+    .map(m => `${m.start < today ? today.slice(0, 7) : m.start.slice(0, 7)} (${grahaName(m.lord)})`).join(', ');
+  return `
+    <div class="pj-two">
+      <div>${pjChart('D1', txt('Rasi (D1)', 'இராசி (D1)', 'രാശി (D1)'))}</div>
+      <div><div class="pj-grid one">${pjKV(facts)}</div></div>
+    </div>
+    ${years.length ? `<h3>${esc(txt('The years ahead', 'வரும் ஆண்டுகள்', 'വരുന്ന വർഷങ്ങൾ'))}</h3>
+      ${pjTable(['', ...years.map(y => String(y.year))], areaRows, 'compact')}
+      ${goodMonths ? `<p class="pj-note">${esc(txt('Good periods ahead', 'வரும் நல்ல காலங்கள்', 'വരുന്ന നല്ല കാലങ്ങൾ'))}: ${esc(goodMonths)}</p>` : ''}` : ''}
+    ${yearCard ? `<p class="pj-note">${esc(txt('Full readings for every year, life area and remedy are in the Life Report.',
+      'ஒவ்வொரு ஆண்டு, வாழ்க்கைத் துறை, பரிகாரத்துக்கான முழுப் பலன்கள் வாழ்க்கைப் பலன் அறிக்கையில் உள்ளன.',
+      'ഓരോ വർഷത്തിനും ജീവിതമേഖലയ്ക്കും പരിഹാരത്തിനുമുള്ള പൂർണ്ണ ഫലങ്ങൾ ജീവിതഫല റിപ്പോർട്ടിലുണ്ട്.'))}</p>` : ''}`;
 }
 
 function printCharts(c) {

@@ -3948,3 +3948,6 @@ html[lang="ml"] .ml-only { display: block; }
   color: var(--text-secondary);
 }
 .verify-consent input { width: auto; }
+
+/* Header buttons stay on one line */
+.header-actions .tool-btn { white-space: nowrap; }
