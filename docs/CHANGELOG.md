@@ -1,5 +1,31 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+### Faster on phones
+- The long report chapters (the year-by-year forecast, monthly transits and the six life-area reports) now load just after the first screen, from `/api/chapters`, or when their tab or a print needs them. The chart itself drops from about 915 KB to 770 KB (95 KB compressed).
+
+### Hosting
+- JoRoScope can run on a hosting service: `PORT` and `JOROSCOPE_HOST` come from the environment, a Render blueprint (`render.yaml`) deploys it as a free web service, and a `Dockerfile` serves other hosts. See [DEPLOY.md](DEPLOY.md).
+
+### Birth time rectification from siblings
+- Rectification takes the real numbers of elder and younger brothers and sisters and scores each candidate time by whether its 11th and 3rd houses give the same counts, with or without event dates. Enter them on the Tools page, or beside the sibling statements in Chart Verification, which sends them along.
+
+### Accuracy feedback
+- Chart Verification has an opt-in **Share my marks** box. Only what the marks say about the rules is kept (statement type, confidence, right or wrong, whether real event dates fell inside the predicted periods, and predicted against real sibling counts); no name, birth date, time or place. The owner sees hit rates in the **Accuracy report** on the Tools page.
+
+### Calendar
+- The year-by-year forecast exports to a calendar: the coming Bhukti changes, the good and careful periods and Saturn's cycles.
+
+### Malayalam calendar
+- The Kollavarsham (Malayalam) date appears in the birth notes and the daily panchangam, by the Kerala rule for the first day of the month (the sankranti before 3/5 of the daytime) and with the Kollam era year from Chingam.
+
+### One-page summary
+- A new **One-page Summary** print preset: the Rasi chart, star, Rasi and Lagna, Tamil and Malayalam dates, the running dasa, yogas and doshas, and this year and next by area with the good periods ahead. Save it as a PDF to share on WhatsApp.
+
+### Also
+- The header shows the Swiss Ephemeris version in use, 2.10.03; its buttons stay on one line.
+
 ## [2.5.0] - 2026-09-29
 
 ### Year-by-year forecast

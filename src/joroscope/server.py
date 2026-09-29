@@ -4,6 +4,7 @@ Zero external tracking — 100% private and offline capable.
 """
 
 import gzip
+import hmac
 import json
 import mimetypes
 import sys
@@ -17,7 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, unquote
 
 from . import __version__
-from .core import ai
+from .core import ai, feedback
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
 from .core.muhurtham import find_muhurthams
@@ -38,6 +39,9 @@ else:
 # Ephemeris keeps global settings (the ayanamsa), so calculations still run one at a time.
 COMPUTE_LOCK = threading.Lock()
 FORWARDING_HEADERS = ('Cf-Connecting-IP', 'X-Forwarded-For', 'Forwarded')
+# The longest report chapters leave the chart response and are fetched from /api/chapters when the page
+# first needs them, so the first screen arrives sooner on a phone
+DEFERRED_CHAPTERS = ('yearly', 'monthly', 'education', 'children', 'health', 'wealth', 'foreign', 'spiritual')
 
 
 def strip_malayalam(value):
@@ -131,7 +135,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt', '/api/chapters', '/api/feedback', '/api/feedback-report'):
             self.send(b'{}', 404)
             return
 
@@ -153,15 +157,38 @@ class Handler(BaseHTTPRequestHandler):
             if req_path == '/api/ai-prompt':
                 self.chat_prompt(data)
                 return
+            if req_path == '/api/feedback-report':
+                given, expected = str(data.get('passcode') or ''), feedback.owner_passcode()
+                if not (self.is_local() or (expected and hmac.compare_digest(given.encode(), expected.encode()))):
+                    time.sleep(1)  # slows guessing
+                    self.send(json.dumps({'error': 'The accuracy report is for the owner: open it on the computer running '
+                                                   'JoRoScope, or with the owner passcode.'}).encode(), 401)
+                    return
+                self.send(json.dumps(feedback.report()).encode())
+                return
             with COMPUTE_LOCK:
                 if req_path == '/api/chart':
                     result = calculate(data)
                     timeline = (result.get('predictions') or {}).get('timeline_predictions')
                     if timeline:
                         defer_timeline_details(timeline)
+                    pred = result.get('predictions') or {}
+                    pred['deferred_chapters'] = [k for k in DEFERRED_CHAPTERS if pred.pop(k, None) is not None]
                     if data.get('lang') != 'ml':
                         result = strip_malayalam(result)
                     self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/feedback':
+                    if data.get('consent') is not True:
+                        raise ValueError('Sharing needs your consent.')
+                    entry = feedback.entry_from_marks(calculate(data.get('birth') or {}), data.get('marks') or {}, data.get('submission_id'))
+                    feedback.save(entry)
+                    self.send(json.dumps({'saved': True, 'items': len(entry['items']), 'siblings': len(entry['siblings'])}).encode())
+                elif req_path == '/api/chapters':
+                    pred = calculate(data).get('predictions') or {}
+                    chapters = {k: pred[k] for k in data.get('keys') or DEFERRED_CHAPTERS if k in DEFERRED_CHAPTERS and k in pred}
+                    if data.get('lang') != 'ml':
+                        chapters = strip_malayalam(chapters)
+                    self.send(json.dumps({'chapters': chapters}, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/timeline':
                     timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
                     details = {'details': timeline_details(timeline)}
@@ -221,7 +248,8 @@ class Handler(BaseHTTPRequestHandler):
                         arudha=data.get('arudha') or None, ayanamsa=data.get('ayanamsa') or 'Lahiri')
                     self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/rectify':
-                    found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2))
+                    found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2),
+                                    data.get('family'))
                     self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/calendar':
                     cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
@@ -231,13 +259,13 @@ class Handler(BaseHTTPRequestHandler):
             self.send(json.dumps({'error': str(err)}).encode(), 400)
 
 
-def run_server(port=8765, open_browser=True):
-    # Try preferred port, fallback to sequential ports if occupied
+def run_server(port=8765, open_browser=True, host='127.0.0.1'):
+    # Try preferred port, fallback to sequential ports if occupied (a hosting service's port is taken as given)
     server = None
     actual_port = port
-    for p in range(port, port + 10):
+    for p in (range(port, port + 10) if host == '127.0.0.1' else (port,)):
         try:
-            server = ThreadingHTTPServer(('127.0.0.1', p), Handler)
+            server = ThreadingHTTPServer((host, p), Handler)
             server.daemon_threads = True
             actual_port = p
             break
@@ -247,7 +275,7 @@ def run_server(port=8765, open_browser=True):
     if not server:
         raise RuntimeError(f"Could not bind HTTP server to any port from {port} to {port + 9}")
 
-    url = f"http://127.0.0.1:{actual_port}"
+    url = f"http://{'127.0.0.1' if host in ('127.0.0.1', '0.0.0.0') else host}:{actual_port}"
     print("============================================================")
     print(f"  JoRoScope v{__version__} — Modern Precision Vedic Astrology")
     print(f"  Live at: {url}")
@@ -269,15 +297,21 @@ def run_server(port=8765, open_browser=True):
 
 
 def main():
+    """server.py [port] [--no-browser] [--host ADDRESS]. On a hosting service, PORT and JOROSCOPE_HOST
+    (for example 0.0.0.0, to accept connections from outside) come from the environment."""
+    import os
     args = sys.argv[1:]
-    port = 8765
-    open_browser = '--no-browser' not in args
+    port = int(os.environ.get('PORT') or 8765)
+    host = os.environ.get('JOROSCOPE_HOST') or '127.0.0.1'
+    open_browser = '--no-browser' not in args and not os.environ.get('PORT')
 
-    for a in args:
+    for i, a in enumerate(args):
         if a.isdigit():
             port = int(a)
+        elif a == '--host' and i + 1 < len(args):
+            host = args[i + 1]
 
-    run_server(port=port, open_browser=open_browser)
+    run_server(port=port, open_browser=open_browser, host=host)
 
 
 if __name__ == '__main__':

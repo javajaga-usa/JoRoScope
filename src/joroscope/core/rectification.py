@@ -52,9 +52,27 @@ def _influences(transit_sign, target_sign, aspects):
     return (target_sign - transit_sign) % 12 + 1 in aspects
 
 
-def rectify(data, events, window_minutes=60, step_minutes=2):
-    if not events:
-        raise ValueError('Add at least one dated life event.')
+FAMILY_GROUPS = ((11, 'elder_brothers', 'elder_sisters'), (3, 'younger_brothers', 'younger_sisters'))
+SIBLING_MAX = 2  # per group: 2 when the brothers and sisters both match, 1 when only the total does
+
+
+def _family(family):
+    """{house: (brothers, sisters)} for the groups whose counts were both given."""
+    out = {}
+    for house, b_key, s_key in FAMILY_GROUPS:
+        try:
+            b, s = int((family or {}).get(b_key)), int((family or {}).get(s_key))
+        except (TypeError, ValueError):
+            continue
+        if 0 <= b <= 15 and 0 <= s <= 15:
+            out[house] = (b, s)
+    return out
+
+
+def rectify(data, events, window_minutes=60, step_minutes=2, family=None):
+    fam = _family(family)
+    if not events and not fam:
+        raise ValueError('Add at least one dated life event, or the numbers of your brothers and sisters.')
     if len(events) > 12:
         raise ValueError('Use at most 12 events.')
     window_minutes = max(4, min(int(window_minutes), 240))
@@ -85,6 +103,15 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
                            saturn=int(sidereal_position(ejd, swe.SATURN)[0] // 30),
                            jupiter=int(sidereal_position(ejd, swe.JUPITER)[0] // 30)))
 
+    natal = None
+    if fam:
+        # Sibling counts come from the grahas in and aspecting the 3rd and 11th, which move with the Lagna
+        from .engine import calculate
+        from .readings.parisodhanai import sibling_reading
+        natal = calculate(dict(data, name=data.get('name') or 'Rectification'))['planets']
+        swe.set_sid_mode(AYAN[ayanamsa])
+    max_score = EVENT_MAX * len(parsed) + SIBLING_MAX * len(fam)
+
     candidates = []
     for k in range(-window_minutes // step_minutes, window_minutes // step_minutes + 1):
         minutes = k * step_minutes
@@ -109,8 +136,17 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
             score += 2 if (sat and jup) else 0
             total += score
             detail.append(dict(kind=ev['kind'], date=ev['date'], dasa=md, bhukti=ad, pratyantar=pd, score=score, double_transit=sat and jup))
+        siblings = []
+        if fam:
+            planets_c = dict(natal, Ascendant=dict(natal['Ascendant'], sign_index=asc), Moon=dict(natal['Moon'], sign_index=int(moon // 30)))
+            for house, (b, s) in fam.items():
+                r = sibling_reading(planets_c, house)
+                points = SIBLING_MAX if (r['brothers'], r['sisters']) == (b, s) else (1 if r['brothers'] + r['sisters'] == b + s else 0)
+                total += points
+                siblings.append(dict(house=house, predicted=(r['brothers'], r['sisters']), actual=(b, s), points=points,
+                                     en=r['en'], ta=r['ta'], ml=r['ml']))
         candidates.append(dict(offset=minutes, utc=utc.isoformat(timespec='minutes'), lagna=asc, navamsa=calculate_vargas(asc_lon)['D9'],
-                               asc_degree=round(asc_lon % 30, 2), score=total, events=detail))
+                               asc_degree=round(asc_lon % 30, 2), score=total, events=detail, siblings=siblings))
 
     # Group consecutive candidates with the same Lagna and Navamsa
     groups = []
@@ -120,7 +156,7 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
         else:
             groups.append(dict(lagna=c['lagna'], navamsa=c['navamsa'], members=[c]))
     best_score = max(c['score'] for c in candidates)
-    top = best_score / (EVENT_MAX * len(parsed))
+    top = best_score / max_score
     for g in groups:
         g['best'] = max(g['members'], key=lambda c: (c['score'], -abs(c['offset'])))
         g['score'] = g['best']['score']
@@ -135,15 +171,15 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
     cards = [card('🕰️', f"Most consistent: {local(best['best']['utc'])} ({SIGNS[best['lagna']]} Lagna)",
                   f"மிகப் பொருத்தமானது: {local(best['best']['utc'])} ({TAMIL[best['lagna']]} லக்னம்)",
                   f"Times from {local(first['utc'])} to {local(last['utc'])} give a {SIGNS[best['lagna']]} Lagna with a "
-                  f"{SIGNS[best['navamsa']]} Navamsa and fit the events best (score {best['score']} of {EVENT_MAX * len(parsed)}). "
+                  f"{SIGNS[best['navamsa']]} Navamsa and fit the events best (score {best['score']} of {max_score}). "
                   f"Within that range {local(best['best']['utc'])} fits best, {best['best']['offset']:+d} minutes from the stated time.",
                   f"{local(first['utc'])} முதல் {local(last['utc'])} வரையிலான நேரங்கள் {TAMIL[best['lagna']]} லக்னம், "
-                  f"{TAMIL[best['navamsa']]} நவாம்சம் தருகின்றன; நிகழ்வுகளுடன் மிகப் பொருந்துகின்றன (மதிப்பு {best['score']} / {EVENT_MAX * len(parsed)}). "
+                  f"{TAMIL[best['navamsa']]} நவாம்சம் தருகின்றன; நிகழ்வுகளுடன் மிகப் பொருந்துகின்றன (மதிப்பு {best['score']} / {max_score}). "
                   f"அவற்றில் {local(best['best']['utc'])} மிகப் பொருத்தம், கூறப்பட்ட நேரத்திலிருந்து {best['best']['offset']:+d} நிமிடங்கள்.",
                   verdict='good' if top >= 0.6 else 'mixed',
                   title_ml=f"ഏറ്റവും യോജിച്ചത്: {local(best['best']['utc'])} ({M[best['lagna']]} ലഗ്നം)",
                   body_ml=(f"{local(first['utc'])} മുതൽ {local(last['utc'])} വരെയുള്ള സമയങ്ങൾ {M[best['lagna']]} ലഗ്നവും "
-                           f"{M[best['navamsa']]} നവാംശവും നൽകുന്നു; സംഭവങ്ങളുമായി ഏറ്റവും യോജിക്കുന്നു (മൂല്യം {best['score']} / {EVENT_MAX * len(parsed)}). "
+                           f"{M[best['navamsa']]} നവാംശവും നൽകുന്നു; സംഭവങ്ങളുമായി ഏറ്റവും യോജിക്കുന്നു (മൂല്യം {best['score']} / {max_score}). "
                            f"അവയിൽ {local(best['best']['utc'])} ഏറ്റവും യോജിച്ചത്, പറഞ്ഞ സമയത്തിൽ നിന്ന് {best['best']['offset']:+d} മിനിറ്റ്."))]
     for d in best['best']['events']:
         label, label_ta = EVENTS[d['kind']][:2]
@@ -157,6 +193,18 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
                           verdict='good' if ok else 'mixed', title_ml=f"{EVENTS_ML[d['kind']]}, {d['date']}",
                           body_ml=(f"{P(d['dasa'])} ദശ, {P(d['bhukti'])} ഭുക്തി, {P(d['pratyantar'])} അന്തരം"
                                    + (', ഇരട്ട ഗോചരത്തോടെ' if d['double_transit'] else '') + f": മൂല്യം {d['score']} / {EVENT_MAX}.")))
+    for sib in best['best']['siblings']:
+        b, s_ = sib['actual']
+        ok = sib['points'] == SIBLING_MAX
+        group = {11: ('elder', 'மூத்த', 'മൂത്ത'), 3: ('younger', 'இளைய', 'ഇളയ')}[sib['house']]
+        cards.append(card('✅' if ok else '•', f"Siblings: {sib['en']}", f"உடன்பிறப்புகள்: {sib['ta']}",
+                          f"This birth time predicts: {sib['en']} You entered {b} {group[0]} brother(s) and {s_} {group[0]} sister(s): "
+                          f"score {sib['points']} of {SIBLING_MAX}.",
+                          f"இந்த நேரம் காட்டுவது: {sib['ta']} நீங்கள் உள்ளிட்டது: {group[1]} சகோதரர் {b}, {group[1]} சகோதரி {s_}: "
+                          f"மதிப்பு {sib['points']} / {SIBLING_MAX}.",
+                          verdict='good' if ok else 'mixed', title_ml=f"സഹോദരങ്ങൾ: {sib['ml']}",
+                          body_ml=(f"ഈ സമയം കാണിക്കുന്നത്: {sib['ml']} നിങ്ങൾ നൽകിയത്: {group[2]} സഹോദരൻ {b}, {group[2]} സഹോദരി {s_}: "
+                                   f"മൂല്യം {sib['points']} / {SIBLING_MAX}.")))
     rows = [(f"{local(g['members'][0]['utc'])}–{local(g['members'][-1]['utc'])}", (SIGNS[g['lagna']], TAMIL[g['lagna']], M[g['lagna']]),
              (SIGNS[g['navamsa']], TAMIL[g['navamsa']], M[g['navamsa']]), local(g['best']['utc']), g['score']) for g in ranked[:8]]
     return chapter(
@@ -173,5 +221,5 @@ def rectify(data, events, window_minutes=60, step_minutes=2):
         title_ml='ജനനസമയ തിരുത്തൽ',
         intro_ml=(f"പറഞ്ഞ സമയത്തിന് മുമ്പും പിമ്പും {window_minutes} മിനിറ്റ്, ഓരോ {step_minutes} മിനിറ്റിലും, ജീവിതസംഭവങ്ങളുമായി "
                   'അവയുടെ ദശകളും ഇരട്ട ഗോചരവും വഴി പരിശോധിച്ചു. സമയം ചുരുക്കാൻ ഇത് ഉപയോഗിച്ച് ഒരു ജ്യോതിഷിയുമായി ഉറപ്പാക്കുക.'),
-        cards_first=True, best_utc=best['best']['utc'], best_offset=best['best']['offset'], max_score=EVENT_MAX * len(parsed),
+        cards_first=True, best_utc=best['best']['utc'], best_offset=best['best']['offset'], max_score=max_score,
         event_types=[dict(key=k, en=v[0], ta=v[1], ml=EVENTS_ML[k]) for k, v in EVENTS.items()])

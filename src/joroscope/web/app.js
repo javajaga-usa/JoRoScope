@@ -275,7 +275,10 @@ function navigatePage(pageName) {
   // If opening matching or panchangam or profiles, trigger their renders
   if (pageName === 'profiles') renderProfilesList();
   if (pageName === 'matching') populateMatchDropdowns();
-  if (pageName === 'tools') fillPrasnaQuestions();
+  if (pageName === 'tools') {
+    fillPrasnaQuestions();
+    renderAccuracyCard();
+  }
   if (pageName === 'panchangam') {
     loadDailyPanchangam();
     loadMonthCalendar();
@@ -491,6 +494,7 @@ function applyTheme(theme) {
 function switchPredictionTab(ptab) {
   $$('.pred-tab').forEach(b => b.classList.toggle('active', b.dataset.ptab === ptab));
   $$('.pred-panel').forEach(p => p.hidden = p.id !== `ppanel-${ptab}`);
+  if (currentChart?.predictions?.deferred_chapters?.includes(ptab)) loadDeferredChapters();
 }
 
 // Language Management
@@ -525,6 +529,7 @@ function toggleLanguage() {
   fillPrasnaQuestions();
   if (lastPrasna) renderChapterInto($('#prasna-result'), lastPrasna);
   renderRectEvents();
+  renderAccuracyCard();
   if (lastRectification) renderChapterInto($('#rect-result'), lastRectification);
   populateQuickProfileDropdown();
   renderProfilesList();
@@ -882,6 +887,10 @@ function kurippuRows() {
   const rows = [
     [pick('Tamil Year', 'வருடம்'), pick(withTa(tc.year, tc.year_ta), `${tc.year_ta} வருடம்`)],
     [pick('Tamil Month & Date', 'மாதம் & தேதி'), pick(withTa(`${tc.month} ${tc.day}`, tc.month_ta), `${tc.month_ta} ${tc.day}`)],
+    ...(si.malayalam_calendar ? [[txt('Malayalam date (Kollavarsham)', 'மலையாள தேதி (கொல்லம் ஆண்டு)', 'മലയാളം തീയതി (കൊല്ലവർഷം)'),
+      txt(`${si.malayalam_calendar.month} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`,
+        `${si.malayalam_calendar.month_ta} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`,
+        `${si.malayalam_calendar.month_ml} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`)]] : []),
     [pick('Vaaram (Vedic day)', 'கிழமை'), pick(withTa(si.vaaram.en, si.vaaram.ta), si.vaaram.ta)],
     [pick('Sunrise', 'சூரிய உதயம்'), clockTime(si.sunrise_local)],
     [pick('Udayadi Nazhigai', 'உதயாதி நாழிகை'), pick(`${nz.nazhigai} nazhigai ${nz.vinadi} vinadi`, `${nz.nazhigai} நாழிகை ${nz.vinadi} விநாடி`)],

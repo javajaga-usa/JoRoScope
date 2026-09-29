@@ -263,6 +263,40 @@ def tamil_calendar(day, tz, lat, lon):
     )
 
 
+# Malayalam (Kerala) solar months, by the sign the Sun is in (Aries first); the Kollam era year begins in Chingam
+MALAYALAM_MONTHS = ['Medam', 'Edavam', 'Mithunam', 'Karkidakam', 'Chingam', 'Kanni', 'Thulam', 'Vrischikam', 'Dhanu',
+                    'Makaram', 'Kumbham', 'Meenam']
+MALAYALAM_MONTHS_TA = ['மேடம்', 'இடவம்', 'மிதுனம்', 'கர்க்கடகம்', 'சிங்ஙம்', 'கன்னி', 'துலாம்', 'விருச்சிகம்', 'தனு', 'மகரம்',
+                       'கும்பம்', 'மீனம்']
+MALAYALAM_MONTHS_ML = ['മേടം', 'ഇടവം', 'മിഥുനം', 'കർക്കടകം', 'ചിങ്ങം', 'കന്നി', 'തുലാം', 'വൃശ്ചികം', 'ധനു', 'മകരം', 'കുംഭം', 'മീനം']
+KOLLAM_EPOCH = 824  # Kollam era year = the Gregorian year in which its Chingam began, less 824
+
+
+def _kerala_cutoff(day, tz, lat, lon):
+    """The moment 3/5 of the daytime has passed: a sankranti before it starts the month that day."""
+    ev = sun_events(day, tz, lat, lon)
+    return ev['sunrise'] + 0.6 * (ev['sunset'] - ev['sunrise'])
+
+
+def malayalam_calendar(day, tz, lat, lon):
+    """Malayalam (Kollavarsham) solar date: a month begins on the day of the sankranti when the Sun changes
+    sign before 3/5 of the daytime has passed (the end of the madhyahna), otherwise on the next day."""
+    month = int(_sun(_kerala_cutoff(day, tz, lat, lon))[0] // 30)
+    ingress = _solve_crossing(_kerala_cutoff(day, tz, lat, lon), _sun, month * 30.0)
+    ingress_day = jd_to_utc(ingress).astimezone(tz).date()
+    first_day = ingress_day if ingress < _kerala_cutoff(ingress_day, tz, lat, lon) else ingress_day + timedelta(days=1)
+    start_year = day.year if 4 <= month <= 8 and day.month >= 8 else day.year - 1  # Chingam (August) opens the year
+    return dict(
+        year=start_year - KOLLAM_EPOCH,
+        month_index=month,
+        month=MALAYALAM_MONTHS[month],
+        month_ta=MALAYALAM_MONTHS_TA[month],
+        month_ml=MALAYALAM_MONTHS_ML[month],
+        day=(day - first_day).days + 1,
+        month_start=first_day.isoformat(),
+    )
+
+
 def udayadi_nazhigai(moment_jd, events):
     """Time elapsed since sunrise in nazhigai (24 min) and vinadi (24 s)."""
     ghati = (moment_jd - events['sunrise']) * 60
@@ -633,6 +667,7 @@ def build_south_indian_details(planets, utc, tz_name, lat, lon, now=None):
         vedic_date=day.isoformat(),
         vaaram=dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1]),
         tamil_calendar=birth_calendar,
+        malayalam_calendar=malayalam_calendar(day, tz, lat, lon),
         sunrise_local=_local_iso(events['sunrise'], tz),
         sunset_local=_local_iso(events['sunset'], tz),
         nazhigai=udayadi_nazhigai(jd, events),
@@ -814,6 +849,7 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
     panch['horas'] = hora_table(civil_events, weekday, tz, jd)
     panch['gowri'] = gowri_panchangam(civil_events, weekday, tz, jd)
     panch['tamil_calendar'] = tamil_calendar(civil, tz, lat, lon)
+    panch['malayalam_calendar'] = malayalam_calendar(civil, tz, lat, lon)
     panch['vaaram'] = dict(index=weekday, en=VAARAM[weekday][0], ta=VAARAM[weekday][1])
     # The Tamil yogam changes with the nakshatra (and the weekday at sunrise)
     star_end = _next_boundary(jd, _moon, NAK_SPAN)

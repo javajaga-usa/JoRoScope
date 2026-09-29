@@ -66,3 +66,22 @@ class ExtensiveReportTests(unittest.TestCase):
                         self.assertTrue(w['start'] <= m['start'] <= m['end'] <= w['end'])
                         narrowed += 1
         self.assertGreater(narrowed, 0)
+
+
+class SiblingRectificationTests(unittest.TestCase):
+    def test_sibling_counts_score_candidate_times(self):
+        from joroscope.core.rectification import SIBLING_MAX, rectify
+        birth = dict(BIRTHS[0], ayanamsa='Lahiri')
+        # The stated time (Pisces Lagna) reads 3 elder sisters and 1 younger brother
+        result = rectify(birth, [], 30, 2, family=dict(elder_brothers=0, elder_sisters=3, younger_brothers=1, younger_sisters=0))
+        self.assertEqual(result['max_score'], 2 * SIBLING_MAX)
+        best = next(c for c in result['cards'] if c['title']['en'].startswith('Most consistent'))
+        self.assertIn('Pisces Lagna', best['title']['en'])
+        self.assertEqual(sum(1 for c in result['cards'] if c['title']['en'].startswith('Siblings')), 2)
+
+    def test_counts_are_optional_and_checked(self):
+        from joroscope.core.rectification import _family, rectify
+        self.assertEqual(_family({'elder_brothers': '1', 'elder_sisters': ''}), {})
+        self.assertEqual(_family({'younger_brothers': 2, 'younger_sisters': 0}), {3: (2, 0)})
+        with self.assertRaises(ValueError):
+            rectify(dict(BIRTHS[0], ayanamsa='Lahiri'), [], 30, 2, family={})
