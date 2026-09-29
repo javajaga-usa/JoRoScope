@@ -3913,3 +3913,7 @@ html[lang="ml"] .ml-only { display: block; }
   color: var(--text-secondary);
 }
 .ask-example:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
+
+/* Report cards keep their line breaks (the yearly forecast writes one line per part) */
+.report-panel .reading-body,
+.pj-reading p { white-space: pre-line; }

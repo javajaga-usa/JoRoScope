@@ -236,8 +236,15 @@ def past_event_windows(chart, now=None, per_event=2):
                 dt = double_transit(mid, main, main_lord_sign)
                 score = 2 + (2 if md['lord'] in sig else 0) + (2 if dt else 0)
                 if score >= 4:
+                    # Narrow the Bhukti to its Pratyantaras whose lords also signify the event (at least 10 days long)
+                    months = []
+                    for p in b.get('pratyantars') or []:
+                        ps, pe = max(datetime.fromisoformat(p['start']), start), min(datetime.fromisoformat(p['end']), end)
+                        if p['lord'] in sig and (pe - ps).days >= 10:
+                            months.append(dict(lord=p['lord'], start=ps.date().isoformat(), end=pe.date().isoformat()))
                     found.append(dict(dasa=md['lord'], bhukti=b['lord'], start=start.date().isoformat(), end=end.date().isoformat(),
-                                      age_from=round(age(start), 1), age_to=round(age(end), 1), score=score, double_transit=dt))
+                                      age_from=round(age(start), 1), age_to=round(age(end), 1), score=score, double_transit=dt,
+                                      months=months[:2]))
         best = sorted(found, key=lambda w: (-w['score'], w['start']))[:per_event]
         out[kind] = dict(significators=sorted(sig), windows=sorted(best, key=lambda w: w['start']))
     return out
@@ -246,6 +253,17 @@ def past_event_windows(chart, now=None, per_event=2):
 def _ages(w):
     a, b = round(w['age_from']), round(w['age_to'])
     return f"{a}" if a == b else f"{a}–{b}"
+
+
+def _narrow(w, lang):
+    """The Pratyantara months inside a window, the narrowest classical timing."""
+    months = w.get('months') or []
+    if not months:
+        return ''
+    name = {'en': lambda g: g, 'ta': lambda g: PLANET_TAMIL[g], 'ml': lambda g: PLANET_ML[g]}[lang]
+    span = lambda m: m['start'][:7] if m['start'][:7] == m['end'][:7] else f"{m['start'][:7]}–{m['end'][:7]}"
+    parts = ', '.join(f"{span(m)} ({name(m['lord'])})" for m in months)
+    return {'en': f", most of all in {parts}", 'ta': f", குறிப்பாக {parts}", 'ml': f", പ്രത്യേകിച്ച് {parts}"}[lang]
 
 
 def calculate_parisodhanai(chart, now=None):
@@ -260,11 +278,11 @@ def calculate_parisodhanai(chart, now=None):
             continue
         en_label, ta_label, _, _ = EVENTS[kind]
         ml_label = EVENTS_ML[kind]
-        en_w = '; or '.join(f"{w['start'][:7]} to {w['end'][:7]} ({w['dasa']}–{w['bhukti']}, age {_ages(w)})" for w in windows)
+        en_w = '; or '.join(f"{w['start'][:7]} to {w['end'][:7]} ({w['dasa']}–{w['bhukti']}, age {_ages(w)}){_narrow(w, 'en')}" for w in windows)
         ta_w = '; அல்லது '.join(f"{w['start'][:7]} முதல் {w['end'][:7]} வரை ({PLANET_TAMIL[w['dasa']]}–{PLANET_TAMIL[w['bhukti']]}, "
-                                 f"வயது {_ages(w)})" for w in windows)
+                                 f"வயது {_ages(w)}){_narrow(w, 'ta')}" for w in windows)
         ml_w = '; അല്ലെങ്കിൽ '.join(f"{w['start'][:7]} മുതൽ {w['end'][:7]} വരെ ({PLANET_ML[w['dasa']]}–{PLANET_ML[w['bhukti']]}, "
-                                    f"പ്രായം {_ages(w)})" for w in windows)
+                                    f"പ്രായം {_ages(w)}){_narrow(w, 'ml')}" for w in windows)
         best_score = max(w['score'] for w in windows)
         # Dasa timing is a window, not a date: at best moderate, and weak without both lords or the double transit
         confidence = 'moderate' if best_score >= 6 else 'weak'

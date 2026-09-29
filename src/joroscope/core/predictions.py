@@ -26,6 +26,8 @@ from .readings.natal_ml import NAKSHATRA_ML, LAGNA_ML
 from .readings.remedies import calculate_remedies
 from .readings.life_reports import calculate_marriage_report, calculate_career_report
 from .readings.parisodhanai import calculate_parisodhanai
+from .readings.life_areas import LIFE_AREA_KEYS, calculate_life_area
+from .readings.yearly import calculate_yearly_forecast
 from .readings.classical import (
     calculate_bhrigu_nandi_nadi, calculate_planetary_avasthas, calculate_nakshatra_pada_reading, calculate_sahams,
     generate_panchanga_phala, calculate_sudarshana_chakra, lajjitadi_avasthas, _bnn_link, _saham
@@ -132,5 +134,7 @@ def generate_comprehensive_predictions(chart):
         'marriage': calculate_marriage_report(chart, jaimini_karakas, double_transit),
         'career_report': calculate_career_report(chart, jaimini_karakas, career_d10, double_transit),
         'chakras': calculate_chakras(chart),
-        'parisodhanai': calculate_parisodhanai(chart)
+        'parisodhanai': calculate_parisodhanai(chart),
+        'yearly': calculate_yearly_forecast(chart),
+        **{key: calculate_life_area(key, chart, jaimini_karakas, double_transit, ayur_jyotish) for key in LIFE_AREA_KEYS}
     }

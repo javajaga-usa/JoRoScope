@@ -4,6 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+// The running JoRoScope server to test against: JOROSCOPE_TEST_PORT, or the default 8765
+const TEST_PORT = Number(process.env.JOROSCOPE_TEST_PORT) || 8765;
 
 const htmlPath = path.join(__dirname, '..', 'src', 'joroscope', 'web', 'index.html');
 const html = fs.readFileSync(htmlPath, 'utf8');
@@ -51,7 +53,7 @@ if (!allFound) {
   process.exit(1);
 }
 
-console.log('\n--- Verifying API Endpoint on http://127.0.0.1:8765/api/chart ---');
+console.log(`\n--- Verifying API Endpoint on http://127.0.0.1:${TEST_PORT}/api/chart ---`);
 const postData = JSON.stringify({
   name: 'Sri Raman',
   date: '1990-01-01',
@@ -62,7 +64,7 @@ const postData = JSON.stringify({
   ayanamsa: 'Lahiri'
 });
 
-const req = http.request('http://127.0.0.1:8765/api/chart', {
+const req = http.request(`http://127.0.0.1:${TEST_PORT}/api/chart`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
