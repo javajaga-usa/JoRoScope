@@ -1,8 +1,13 @@
 # Ask about my chart (AI answers)
 
-The **💬 Ask about my chart** tab on Life Predictions answers questions about a chart, and can write
-an overall reading, using Claude from Anthropic. It is optional: without it the rest of JoRoScope
-works exactly as before.
+The **💬 Ask about my chart** tab on Life Predictions gets answers about a chart, or an overall
+reading, from Claude by Anthropic, in two ways:
+
+- **📋 Copy for Claude** (always available, no setup): copies the chart's fact sheet, the rules and
+  the question. Paste it into a new chat at [claude.ai](https://claude.ai) with your own account,
+  free or paid, and ask follow-up questions there. JoRoScope itself sends nothing anywhere.
+- **Ask** (optional, needs an API key): answers inside JoRoScope. The rest of this page is about
+  setting it up. A claude.ai Pro or Max subscription does not include API use and cannot power it.
 
 ## How it stays accurate
 

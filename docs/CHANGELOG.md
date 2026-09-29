@@ -3,9 +3,10 @@
 ## [Unreleased]
 
 ### Ask about my chart (AI)
-- A new **Ask about my chart** tab answers questions about the chart, and writes an overall reading, with Claude (Opus 5.5 by default). JoRoScope still calculates everything; Claude answers only from a fact sheet of the calculated chart (placements, dasas, yogas, doshas, transits, the reports and the person's Chart Verification marks) and cites the basis. English, Tamil and Malayalam.
-- Optional: needs `pip install -r requirements-ai.txt` and an Anthropic API key, set as an environment variable or in the private file `~/.config/joroscope/ai.env`. See [AI.md](AI.md).
+- A new **Ask about my chart** tab. **Copy for Claude** copies the chart's fact sheet with the question to paste into Claude (claude.ai) with one's own account, with no setup or cost to the app's owner. With an API key, **Ask** answers inside JoRoScope, and writes an overall reading, with Claude (Opus 5.5 by default). JoRoScope still calculates everything; Claude answers only from a fact sheet of the calculated chart (placements, dasas, yogas, doshas, transits, the reports and the person's Chart Verification marks) and cites the basis. English, Tamil and Malayalam.
+- Answering inside JoRoScope is optional: it needs `pip install -r requirements-ai.txt` and an Anthropic API key, set as an environment variable or in the private file `~/.config/joroscope/ai.env`. See [AI.md](AI.md).
 - Questions from other computers (such as a shared tunnel link) need the passcode set in `JOROSCOPE_AI_PASSCODE`; without one, only the computer running JoRoScope can ask.
+- Text-style buttons and text boxes now follow the app's theme instead of the browser's default look.
 - The server now answers requests in parallel, so a long AI answer does not hold up charts for others; calculations still run one at a time.
 
 ### Parisodhanai (chart verification)

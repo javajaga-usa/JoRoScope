@@ -84,6 +84,18 @@ class AskEndpointTests(unittest.TestCase):
         (status, _), fake = self.ask_with({'ANTHROPIC_API_KEY': 'test', 'JOROSCOPE_AI_PASSCODE': 'lotus-42'}, tunnel, 'lotus-42')
         self.assertEqual(status, 200)
 
+    def test_copy_prompt_needs_no_key_or_passcode(self):
+        req = urllib.request.Request(f'{self.url}/api/ai-prompt', headers={'Content-Type': 'application/json', 'Cf-Connecting-IP': '203.0.113.9'},
+                                     data=json.dumps({'birth': BIRTH, 'question': 'When will I marry?', 'lang': 'ta'}).encode())
+        with mock.patch.object(ai, 'credentials_present', return_value=False), mock.patch.object(ai, 'ask') as fake:
+            with urllib.request.urlopen(req) as resp:
+                prompt = json.loads(resp.read())['prompt']
+            fake.assert_not_called()
+        self.assertTrue(prompt.startswith('I use JoRoScope'))
+        self.assertIn('Answer in Tamil', prompt)
+        self.assertIn('"running_period"', prompt)
+        self.assertTrue(prompt.endswith('My question: When will I marry?'))
+
     def test_status_without_a_key(self):
         env = {k: v for k, v in os.environ.items() if k not in ('ANTHROPIC_API_KEY', 'ANTHROPIC_AUTH_TOKEN')}
         with mock.patch.dict(os.environ, env, clear=True), mock.patch.object(ai, 'credentials_present', return_value=False):

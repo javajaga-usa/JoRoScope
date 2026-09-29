@@ -568,7 +568,7 @@ label {
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 11px 14px;
   background: var(--bg-input);
@@ -580,7 +580,7 @@ input, select {
   outline: none;
   transition: var(--transition-smooth);
 }
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
   border-color: var(--gold);
   box-shadow: 0 0 10px var(--gold-glow);
 }
@@ -3865,3 +3865,51 @@ html[lang="ml"] .ml-only { display: block; }
   min-width: 0;
   resize: vertical;
 }
+.ask-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ask-reading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.ask-copied {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md, 10px);
+  background: var(--bg-subtle);
+}
+.ask-copied p { margin: 0; }
+.ask-copied details { width: 100%; }
+.ask-copied textarea {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* Text-style buttons (example questions, copy links, removing a row) */
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 4px 2px;
+}
+.link-btn:hover { text-decoration: underline; }
+.ask-example {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  color: var(--text-secondary);
+}
+.ask-example:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }

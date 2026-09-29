@@ -1009,53 +1009,132 @@ async function renderAskPanel() {
   const key = verifyKey();
   if (askChat.key !== key) askChat = { key, turns: [] };
   const status = aiStatus || await loadAiStatus();
-  const intro = `
+  const canAsk = !!(status?.enabled && !status.remote_blocked);  // answers inside JoRoScope need the owner's API key
+  panel.innerHTML = `
     <div class="cosmic-card report-intro">
       <h2>${esc(txt('Ask about my chart', 'ஜாதகம் பற்றிக் கேளுங்கள்', 'ജാതകത്തെക്കുറിച്ച് ചോദിക്കുക'))}</h2>
-      <p class="muted">${esc(txt('Answers come from Claude, an AI, reading the chart JoRoScope has calculated; it cites the dasas and placements it used. They are classical indications, not certainties.',
-        'பதில்கள் Claude என்ற AI, JoRoScope கணித்த ஜாதகத்தைப் படித்துத் தருகிறது; பயன்படுத்திய தசைகளையும் கிரக நிலைகளையும் குறிப்பிடும். இவை பாரம்பரியக் குறிப்புகள், உறுதியானவை அல்ல.',
-        'ഉത്തരങ്ങൾ Claude എന്ന AI, JoRoScope കണക്കാക്കിയ ജാതകം വായിച്ച് നൽകുന്നു; ഉപയോഗിച്ച ദശകളും ഗ്രഹസ്ഥിതികളും സൂചിപ്പിക്കും. ഇവ പരമ്പരാഗത സൂചനകളാണ്, ഉറപ്പല്ല.'))}</p>
-      <p class="ask-privacy">🔒 ${esc(txt('Asking sends this birth date, time and place and the chart to Anthropic, the maker of Claude, to prepare the answer.',
-        'கேள்வி கேட்கும்போது இந்தப் பிறந்த தேதி, நேரம், இடம், ஜாதகம் ஆகியவை பதிலுக்காக Claude-ஐ உருவாக்கிய Anthropic நிறுவனத்துக்கு அனுப்பப்படும்.',
-        'ചോദിക്കുമ്പോൾ ഈ ജനനതീയതി, സമയം, സ്ഥലം, ജാതകം എന്നിവ ഉത്തരം തയ്യാറാക്കാൻ Claude നിർമ്മിച്ച Anthropic-ലേക്ക് അയയ്ക്കുന്നു.'))}</p>
-    </div>`;
-  if (!status?.enabled) {
-    panel.innerHTML = intro + `<div class="cosmic-card"><p class="muted">${esc(txt('AI answers are not set up on this server yet.',
-      'இந்த சர்வரில் AI பதில்கள் இன்னும் அமைக்கப்படவில்லை.', 'ഈ സെർവറിൽ AI ഉത്തരങ്ങൾ ഇതുവരെ സജ്ജമാക്കിയിട്ടില്ല.'))}</p></div>`;
-    return;
-  }
-  if (status.remote_blocked) {
-    panel.innerHTML = intro + `<div class="cosmic-card"><p class="muted">${esc(txt('Questions are available only on the computer running JoRoScope until its owner sets a passcode.',
-      'உரிமையாளர் கடவுக்குறியை அமைக்கும் வரை JoRoScope இயங்கும் கணினியில் மட்டுமே கேள்விகள் கேட்கலாம்.',
-      'ഉടമ പാസ്‌കോഡ് സജ്ജമാക്കുന്നതുവരെ JoRoScope പ്രവർത്തിക്കുന്ന കമ്പ്യൂട്ടറിൽ മാത്രമേ ചോദ്യങ്ങൾ ചോദിക്കാനാകൂ.'))}</p></div>`;
-    return;
-  }
-  panel.innerHTML = intro + `
+      <p class="muted">${esc(txt('Claude, an AI, answers from the chart JoRoScope has calculated and cites the dasas and placements it used. The answers are classical indications, not certainties.',
+        'Claude என்ற AI, JoRoScope கணித்த ஜாதகத்திலிருந்து பதிலளித்து, பயன்படுத்திய தசைகளையும் கிரக நிலைகளையும் குறிப்பிடும். பதில்கள் பாரம்பரியக் குறிப்புகள், உறுதியானவை அல்ல.',
+        'Claude എന്ന AI, JoRoScope കണക്കാക്കിയ ജാതകത്തിൽ നിന്ന് ഉത്തരം നൽകുകയും ഉപയോഗിച്ച ദശകളും ഗ്രഹസ്ഥിതികളും സൂചിപ്പിക്കുകയും ചെയ്യും. ഉത്തരങ്ങൾ പരമ്പരാഗത സൂചനകളാണ്, ഉറപ്പല്ല.'))}</p>
+      <p class="ask-privacy">📋 ${esc(txt('Copy for Claude: copies your chart and question to paste into Claude (claude.ai) with your own account. JoRoScope sends nothing itself.',
+        'Claude-க்கு நகலெடு: உங்கள் ஜாதகத்தையும் கேள்வியையும் நகலெடுக்கும்; அதை உங்கள் சொந்தக் கணக்கில் Claude (claude.ai)-இல் ஒட்டவும். JoRoScope தானாக எதையும் அனுப்பாது.',
+        'Claude-നായി പകർത്തുക: നിങ്ങളുടെ ജാതകവും ചോദ്യവും പകർത്തുന്നു; അത് സ്വന്തം അക്കൗണ്ടിൽ Claude (claude.ai)-ൽ ഒട്ടിക്കുക. JoRoScope സ്വയം ഒന്നും അയയ്ക്കുന്നില്ല.'))}</p>
+      ${canAsk ? `<p class="ask-privacy">🔒 ${esc(txt('Ask: answers here, sending this birth date, time and place and the chart to Anthropic, the maker of Claude.',
+        'கேள்: இங்கேயே பதில்; இதற்காக இந்தப் பிறந்த தேதி, நேரம், இடம், ஜாதகம் Claude-ஐ உருவாக்கிய Anthropic-க்கு அனுப்பப்படும்.',
+        'ചോദിക്കുക: ഇവിടെത്തന്നെ ഉത്തരം; ഇതിനായി ഈ ജനനതീയതി, സമയം, സ്ഥലം, ജാതകം Claude നിർമ്മിച്ച Anthropic-ലേക്ക് അയയ്ക്കുന്നു.'))}</p>` : ''}
+    </div>
     <div class="cosmic-card ask-card">
-      ${status.passcode_required ? `<label class="ask-passcode">${esc(txt('Passcode', 'கடவுக்குறி', 'പാസ്‌കോഡ്'))}
+      ${canAsk && status.passcode_required ? `<label class="ask-passcode">${esc(txt('Passcode', 'கடவுக்குறி', 'പാസ്‌കോഡ്'))}
         <input type="password" id="ask-passcode" autocomplete="off" value="${esc(askPasscode())}"></label>` : ''}
       <div class="ask-log" id="ask-log" aria-live="polite"></div>
       <div class="ask-examples">
-        <button type="button" class="action-btn" id="ask-reading">✨ ${esc(txt('Write my overall reading', 'எனது முழுப் பலனை எழுது', 'എന്റെ സമഗ്ര ഫലം എഴുതുക'))}</button>
         ${ASK_EXAMPLES.map((q, i) => `<button type="button" class="link-btn ask-example" data-example="${i}">${esc(txt(...q))}</button>`).join('')}
       </div>
       <form class="ask-form" id="ask-form">
         <textarea id="ask-question" rows="2" maxlength="1000" placeholder="${esc(txt('Ask a question about this chart…', 'இந்த ஜாதகம் பற்றி ஒரு கேள்வி கேளுங்கள்…', 'ഈ ജാതകത്തെക്കുറിച്ച് ഒരു ചോദ്യം ചോദിക്കുക…'))}"></textarea>
-        <button type="submit" class="action-btn" id="ask-send">${esc(txt('Ask', 'கேள்', 'ചോദിക്കുക'))}</button>
+        <div class="ask-actions">
+          ${canAsk ? `<button type="submit" class="action-btn" id="ask-send">${esc(txt('Ask', 'கேள்', 'ചോദിക്കുക'))}</button>` : ''}
+          <button type="button" class="action-btn" id="ask-copy">📋 ${esc(txt('Copy for Claude', 'Claude-க்கு நகலெடு', 'Claude-നായി പകർത്തുക'))}</button>
+        </div>
       </form>
+      <div class="ask-reading">
+        <span class="muted">${esc(txt('Overall reading of this chart:', 'இந்த ஜாதகத்தின் முழுப் பலன்:', 'ഈ ജാതകത്തിന്റെ സമഗ്ര ഫലം:'))}</span>
+        ${canAsk ? `<button type="button" class="link-btn" id="ask-reading">✨ ${esc(txt('Write it here', 'இங்கே எழுது', 'ഇവിടെ എഴുതുക'))}</button>` : ''}
+        <button type="button" class="link-btn" id="copy-reading">📋 ${esc(txt('Copy for Claude', 'Claude-க்கு நகலெடு', 'Claude-നായി പകർത്തുക'))}</button>
+      </div>
+      <div id="ask-copied" hidden></div>
     </div>`;
   drawAskLog();
   $('#ask-passcode')?.addEventListener('change', e => askPasscode(e.target.value));
+  const question = () => $('#ask-question').value.trim();
   $('#ask-form').addEventListener('submit', e => {
     e.preventDefault();
-    const q = $('#ask-question').value.trim();
-    if (q) sendAsk(q, 'question');
+    if (!canAsk) return copyForClaude(question(), 'question');
+    if (question()) sendAsk(question(), 'question');
   });
   $('#ask-question').addEventListener('keydown', e => {
-    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#ask-form').requestSubmit(); }
+    if (e.key === 'Enter' && !e.shiftKey && canAsk) { e.preventDefault(); $('#ask-form').requestSubmit(); }
   });
-  $('#ask-reading').addEventListener('click', () => sendAsk(txt('Write my overall reading', 'எனது முழுப் பலனை எழுது', 'എന്റെ സമഗ്ര ഫലം എഴുതുക'), 'reading'));
-  panel.querySelectorAll('.ask-example').forEach(b => b.addEventListener('click', () => sendAsk(txt(...ASK_EXAMPLES[b.dataset.example]), 'question')));
+  $('#ask-copy').addEventListener('click', () => copyForClaude(question(), 'question'));
+  $('#copy-reading').addEventListener('click', () => copyForClaude('', 'reading'));
+  $('#ask-reading')?.addEventListener('click', () => sendAsk(txt('Write my overall reading', 'எனது முழுப் பலனை எழுது', 'എന്റെ സമഗ്ര ഫലം എഴുതുക'), 'reading'));
+  panel.querySelectorAll('.ask-example').forEach(b => b.addEventListener('click', () => {
+    $('#ask-question').value = txt(...ASK_EXAMPLES[b.dataset.example]);
+    $('#ask-question').focus();
+  }));
+}
+
+// Copy the prompt the server builds (rules, fact sheet, question) and point to Claude
+async function copyForClaude(question, mode) {
+  const box = $('#ask-copied');
+  if (mode === 'question' && !question) {
+    notify(txt('Type a question first.', 'முதலில் கேள்வியை உள்ளிடவும்.', 'ആദ്യം ചോദ്യം നൽകുക.'));
+    return;
+  }
+  const marks = Object.fromEntries(Object.entries(loadVerify()).filter(([, m]) => m && (m.mark || m.date)));
+  const promptPromise = fetch('/api/ai-prompt', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ birth: currentChartPayload, question, lang: currentLang, mode, marks })
+  }).then(async resp => {
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Could not prepare the question.');
+    return data.prompt;
+  });
+  // Start the clipboard write inside the click itself, with the text to follow: Safari refuses a
+  // write that begins only after the page has waited for the server
+  let clipboardWrite = null;
+  try {
+    if (window.ClipboardItem && navigator.clipboard?.write) {
+      clipboardWrite = navigator.clipboard.write([new ClipboardItem({
+        'text/plain': promptPromise.then(text => new Blob([text], { type: 'text/plain' }))
+      })]);
+    }
+  } catch (e) {
+    clipboardWrite = null;
+  }
+  clipboardWrite?.catch(() => {});  // a failure is handled below; this only silences an unawaited rejection
+  try {
+    const data = { prompt: await promptPromise };
+    let copied = false;
+    try {
+      if (!clipboardWrite) throw new Error('no clipboard item');
+      await clipboardWrite;
+      copied = true;
+    } catch (e) {
+      try {
+        await navigator.clipboard.writeText(data.prompt);
+        copied = true;
+      } catch (e2) {}
+    }
+    box.hidden = false;
+    box.className = 'ask-copied';
+    box.innerHTML = `
+      <p>${esc(copied
+        ? txt('Copied. Open Claude, paste it into a new chat (⌘V or Ctrl+V) and send. You can ask follow-up questions there.',
+          'நகலெடுக்கப்பட்டது. Claude-ஐத் திறந்து புதிய உரையாடலில் ஒட்டி (⌘V அல்லது Ctrl+V) அனுப்பவும். தொடர் கேள்விகளை அங்கேயே கேட்கலாம்.',
+          'പകർത്തി. Claude തുറന്ന് പുതിയ ചാറ്റിൽ ഒട്ടിച്ച് (⌘V അല്ലെങ്കിൽ Ctrl+V) അയയ്ക്കുക. തുടർചോദ്യങ്ങൾ അവിടെത്തന്നെ ചോദിക്കാം.')
+        : txt('Your browser did not allow copying. Select the text below, copy it, and paste it into a new Claude chat.',
+          'உங்கள் உலாவி நகலெடுக்க அனுமதிக்கவில்லை. கீழுள்ள உரையைத் தேர்ந்தெடுத்து நகலெடுத்து புதிய Claude உரையாடலில் ஒட்டவும்.',
+          'നിങ്ങളുടെ ബ്രൗസർ പകർത്താൻ അനുവദിച്ചില്ല. താഴെയുള്ള വാചകം തിരഞ്ഞെടുത്ത് പകർത്തി പുതിയ Claude ചാറ്റിൽ ഒട്ടിക്കുക.'))}</p>
+      <a class="action-btn" href="https://claude.ai/new" target="_blank" rel="noopener">${esc(txt('Open Claude ↗', 'Claude-ஐத் திற ↗', 'Claude തുറക്കുക ↗'))}</a>
+      <details${copied ? '' : ' open'}><summary>${esc(txt('Show the text', 'உரையைக் காட்டு', 'വാചകം കാണിക്കുക'))}</summary>
+        <textarea readonly rows="8">${esc(data.prompt)}</textarea></details>`;
+    if (!copied) {
+      const area = box.querySelector('textarea');
+      area.select();
+      try {
+        copied = document.execCommand('copy');  // the older copy command, where the clipboard API is refused
+      } catch (e) {}
+      if (copied) {
+        box.querySelector('p').textContent = txt('Copied. Open Claude, paste it into a new chat (⌘V or Ctrl+V) and send. You can ask follow-up questions there.',
+          'நகலெடுக்கப்பட்டது. Claude-ஐத் திறந்து புதிய உரையாடலில் ஒட்டி (⌘V அல்லது Ctrl+V) அனுப்பவும். தொடர் கேள்விகளை அங்கேயே கேட்கலாம்.',
+          'പകർത്തി. Claude തുറന്ന് പുതിയ ചാറ്റിൽ ഒട്ടിച്ച് (⌘V അല്ലെങ്കിൽ Ctrl+V) അയയ്ക്കുക. തുടർചോദ്യങ്ങൾ അവിടെത്തന്നെ ചോദിക്കാം.');
+        box.querySelector('details').open = false;
+      }
+    }
+  } catch (err) {
+    notify(errorText(err.message));
+  }
 }
 
 function drawAskLog() {
@@ -1075,8 +1154,8 @@ async function sendAsk(question, mode) {
   const history = chat.turns.filter(t => !t.error).map(t => ({ role: t.role, content: t.content }));
   chat.turns.push({ role: 'user', content: question });
   askBusy = true;
-  $('#ask-question') && ($('#ask-question').value = '');
-  $('#ask-send') && ($('#ask-send').disabled = true);
+  if ($('#ask-question')) $('#ask-question').value = '';
+  if ($('#ask-send')) $('#ask-send').disabled = true;
   drawAskLog();
   try {
     const marks = Object.fromEntries(Object.entries(loadVerify()).filter(([, m]) => m && (m.mark || m.date)));
@@ -1092,7 +1171,7 @@ async function sendAsk(question, mode) {
     chat.turns.push({ role: 'assistant', content: errorText(err.message), error: true });
   } finally {
     askBusy = false;
-    $('#ask-send') && ($('#ask-send').disabled = false);
+    if ($('#ask-send')) $('#ask-send').disabled = false;
     if (askChat === chat) drawAskLog();
   }
 }

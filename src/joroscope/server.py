@@ -117,9 +117,21 @@ class Handler(BaseHTTPRequestHandler):
             return
         self.send(json.dumps(result, ensure_ascii=False).encode())
 
+    def chat_prompt(self, data):
+        """The prompt to paste into Claude: no AI call and no cost, so no passcode."""
+        with COMPUTE_LOCK:
+            chart = calculate(data.get('birth') or {})
+            sheet = ai.fact_sheet(chart, data.get('marks') or {})
+        try:
+            prompt = ai.chat_prompt(sheet, data.get('question'), data.get('lang') or 'en', data.get('mode') or 'question')
+        except ai.AiError as err:
+            self.send(json.dumps({'error': str(err)}).encode(), 400)
+            return
+        self.send(json.dumps({'prompt': prompt}, ensure_ascii=False).encode())
+
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask', '/api/ai-prompt'):
             self.send(b'{}', 404)
             return
 
@@ -137,6 +149,9 @@ class Handler(BaseHTTPRequestHandler):
 
             if req_path == '/api/ask':
                 self.ask(data)
+                return
+            if req_path == '/api/ai-prompt':
+                self.chat_prompt(data)
                 return
             with COMPUTE_LOCK:
                 if req_path == '/api/chart':
