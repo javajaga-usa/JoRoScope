@@ -829,7 +829,56 @@ function reportGridHtml(grid) {
 }
 
 function renderReportChapter(key, ch) {
-  renderChapterInto(document.getElementById(`ppanel-${key}`), ch);
+  const panel = document.getElementById(`ppanel-${key}`);
+  renderChapterInto(panel, ch);
+  if (key === 'yearly' && ch && panel) {
+    const intro = panel.querySelector('.report-intro');
+    intro?.insertAdjacentHTML('beforeend', `<button type="button" class="action-btn ics-btn" id="yearly-ics-btn">📅 ${esc(txt(
+      'Add dasa changes and good/careful periods to my calendar', 'தசா மாற்றங்கள், நல்ல/கவனமான காலங்களை நாட்காட்டியில் சேர்',
+      'ദശാമാറ്റങ്ങളും നല്ല/ശ്രദ്ധിക്കേണ്ട കാലങ്ങളും കലണ്ടറിൽ ചേർക്കുക'))}</button>`);
+    $('#yearly-ics-btn')?.addEventListener('click', exportYearlyIcs);
+  }
+}
+
+// The year-by-year forecast as calendar events: each Bhukti's start, the good and careful Pratyantara
+// periods, and Saturn's cycles from the Moon, from today on
+function exportYearlyIcs() {
+  const ch = currentChart?.predictions?.yearly;
+  if (!ch) return;
+  const name = currentChart.profile?.name || 'JoRoScope';
+  const tag = name.replace(/\W+/g, '');
+  const today = new Date().toISOString().slice(0, 10);
+  const dayBefore = ymd => { const d = new Date(`${ymd}T00:00:00Z`); d.setUTCDate(d.getUTCDate() - 1); return d.toISOString().slice(0, 10); };
+  const lastDay = (start, end) => (end > start ? dayBefore(end) : start);  // periods end on the day the next begins
+  const events = [];
+  const seen = new Set();
+  ch.years.forEach(y => {
+    y.bhuktis.forEach(b => {
+      const key = `${b.dasa}-${b.bhukti}`;
+      if (b.start < today || seen.has(key) || b.start.endsWith('-01-01')) return;  // a Bhukti running on 1 January began earlier
+      seen.add(key);
+      events.push({ uid: `bhukti-${tag}-${b.start}`, start: b.start,
+        title: txt(`${grahaName(b.dasa)} Dasa, ${grahaName(b.bhukti)} Bhukti begins (${name})`, `${grahaName(b.dasa)} தசை, ${grahaName(b.bhukti)} புக்தி தொடக்கம் (${name})`,
+          `${grahaName(b.dasa)} ദശ, ${grahaName(b.bhukti)} ഭുക്തി ആരംഭം (${name})`) });
+    });
+    [['good', y.good_months], ['care', y.care_months]].forEach(([kind, list]) => list.forEach(m => {
+      if (lastDay(m.start, m.end) < today) return;
+      events.push({ uid: `${kind}-${tag}-${m.start}`, start: m.start < today ? today : m.start, end: lastDay(m.start, m.end),
+        title: kind === 'good'
+          ? txt(`Good period: ${grahaName(m.lord)} Pratyantara (${name})`, `நல்ல காலம்: ${grahaName(m.lord)} பிரத்யந்தரம் (${name})`, `നല്ല കാലം: ${grahaName(m.lord)} പ്രത്യന്തരം (${name})`)
+          : txt(`Careful period: ${grahaName(m.lord)} Pratyantara (${name})`, `கவனமான காலம்: ${grahaName(m.lord)} பிரத்யந்தரம் (${name})`, `ശ്രദ്ധിക്കേണ്ട കാലം: ${grahaName(m.lord)} പ്രത്യന്തരം (${name})`) });
+    }));
+  });
+  const cycleNames = { sade_sati: ['Sade Sati', 'ஏழரைச் சனி', 'ഏഴരശ്ശനി'], ashtama: ['Ashtama Sani', 'அஷ்டம சனி', 'അഷ്ടമശ്ശനി'],
+    kandaka: ['Kandaka Sani', 'கண்டக சனி', 'കണ്ടകശ്ശനി'], ardhashtama: ['Ardhashtama Sani', 'அர்த்தாஷ்டம சனி', 'അർദ്ധാഷ്ടമശ്ശനി'] };
+  (currentChart.gochara?.saturn_cycles || []).forEach(c => {
+    const words = cycleNames[c.kind];
+    if (!words || c.end.slice(0, 10) < today) return;
+    events.push({ uid: `saturn-${c.kind}-${tag}-${c.start.slice(0, 10)}`, start: c.start.slice(0, 10) < today ? today : c.start.slice(0, 10),
+      end: c.end.slice(0, 10), title: `${txt(...words)} (${name})` });
+  });
+  if (!events.length) return;
+  downloadText(`JoRoScope-Forecast-${name.replace(/\W+/g, '-')}.ics`, buildIcs(events, txt('JoRoScope forecast', 'JoRoScope பலன்', 'JoRoScope ഫലം')), 'text/calendar');
 }
 
 function renderChapterInto(panel, ch) {
