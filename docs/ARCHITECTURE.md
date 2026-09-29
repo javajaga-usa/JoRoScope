@@ -32,7 +32,7 @@ JoRoScope is a modern, high-precision Vedic astrology suite calculated using the
 │            Core Astronomical & Vedic Engine            │
 │               (joroscope.core.engine)                  │
 │                                                        │
-│  - Swiss Ephemeris C-Bridge (pyswisseph 2.10)          │
+│  - Swiss Ephemeris C-Bridge (pyswisseph 2.10.03)       │
 │  - IANA Timezone Conversion & DST Clock Folds          │
 │  - 14 Divisional Vargas (D1, D2, D3, D4, D7, D9...)   │
 │  - 3-Tier Vimshottari Dasa-Bhukti-Antardasa            │
@@ -86,7 +86,7 @@ JoRoScope is a modern, high-precision Vedic astrology suite calculated using the
 ## 3. Astrological Calculations & Methodologies
 
 ### Ephemeris Precision
-- Swiss Ephemeris version 2.10 provides sub-arcsecond accuracy across 1800 CE – 2200 CE.
+- Swiss Ephemeris version 2.10.03 provides sub-arcsecond accuracy across 1800 CE – 2200 CE.
 - Topocentric and geocentric calculations with Lahiri (Chitra Paksha), Raman, Krishnamurti (KP), and Fagan-Bradley Ayanamsas.
 
 ### 14 Parashara Divisional Vargas

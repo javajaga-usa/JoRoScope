@@ -13,7 +13,7 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 ## Key Features
 
 ### 🌌 Astronomical & Vedic Precision
-- **Swiss Ephemeris 2.10 Engine**: Sub-arcsecond planetary accuracy for dates between 1800 CE and 2200 CE.
+- **Swiss Ephemeris 2.10.03 Engine**: Sub-arcsecond planetary accuracy for dates between 1800 CE and 2200 CE.
 - **Multiple Ayanamsas**: Lahiri (Chitra Paksha standard), B.V. Raman, Krishnamurti (KP), and Fagan-Bradley.
 - **16 Parashara Divisional Vargas (Shodasavarga)**: D1 (Rasi), D2 (Hora), D3 (Drekkana), D4 (Chaturthamsa), D7 (Saptamsa), D9 (Navamsa), D10 (Dasamsa), D12 (Dvadasamsa), D16 (Shodasamsa), D20 (Vimsamsa), D24 (Chaturvimsamsa), D27 (Saptavimsamsa), D30 (Trimsamsa), D40 (Khavedamsa), D45 (Akshavedamsa) and D60 (Shashtiamsa).
 - **Chart Styles**: South Indian (ஜாதகக் கட்டம்), North Indian Diamond, and East Indian formats.
