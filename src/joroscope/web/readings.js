@@ -759,6 +759,7 @@ function renderLifeReadings() {
   // Chapters in the shared report shape (numerology and the newer reports)
   REPORT_CHAPTERS.forEach(key => renderReportChapter(key, pred[key]));
   renderParisodhanai(pred.parisodhanai);
+  renderAskPanel();
 }
 
 // Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
@@ -953,4 +954,145 @@ function renderParisodhanai(ch) {
     renderRectEvents();
     $('#rect-events')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
+}
+
+// Ask about my chart: questions answered by Claude from the chart the server calculates. The
+// conversation lives in this page, per chart; the passcode is kept for the browser session only.
+const ASK_EXAMPLES = [
+  ['When is a good time for a job change?', 'வேலை மாற்றத்திற்கு நல்ல காலம் எப்போது?', 'ജോലി മാറ്റത്തിന് നല്ല സമയം എപ്പോൾ?'],
+  ['What does my current dasa mean for me?', 'தற்போதைய தசை எனக்கு என்ன பலன் தரும்?', 'ഇപ്പോഴത്തെ ദശ എനിക്ക് എന്ത് ഫലം നൽകും?'],
+  ['Is next year good for buying a house?', 'அடுத்த ஆண்டு வீடு வாங்க நல்லதா?', 'അടുത്ത വർഷം വീട് വാങ്ങാൻ നല്ലതാണോ?'],
+  ['Which remedy should I start with?', 'எந்தப் பரிகாரத்தை முதலில் செய்ய வேண்டும்?', 'ഏത് പരിഹാരം ആദ്യം ചെയ്യണം?'],
+];
+let aiStatus = null;
+let askChat = { key: null, turns: [] };
+let askBusy = false;
+
+async function loadAiStatus() {
+  try {
+    const resp = await fetch('/api/ai-status');
+    aiStatus = resp.ok ? await resp.json() : null;
+  } catch (e) {
+    aiStatus = null;
+  }
+  return aiStatus;
+}
+
+function askPasscode(value) {
+  try {
+    if (value !== undefined) sessionStorage.setItem('joroscope_ai_passcode', value);
+    return sessionStorage.getItem('joroscope_ai_passcode') || '';
+  } catch (e) {
+    return value || '';
+  }
+}
+
+// Answers come as light Markdown: headings, bullets and bold, drawn safely from escaped text
+function askAnswerHtml(text) {
+  const inline = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  let html = '', list = false;
+  text.split('\n').forEach(line => {
+    const t = line.trim();
+    const bullet = /^[-*•]\s+/.test(t);
+    if (list && !bullet) { html += '</ul>'; list = false; }
+    if (!t) return;
+    if (/^#{1,4}\s/.test(t)) html += `<h4>${inline(t.replace(/^#+\s*/, ''))}</h4>`;
+    else if (bullet) { if (!list) { html += '<ul>'; list = true; } html += `<li>${inline(t.replace(/^[-*•]\s+/, ''))}</li>`; }
+    else html += `<p>${inline(t)}</p>`;
+  });
+  return html + (list ? '</ul>' : '');
+}
+
+async function renderAskPanel() {
+  const panel = document.getElementById('ppanel-ask');
+  if (!panel || !currentChart) return;
+  const key = verifyKey();
+  if (askChat.key !== key) askChat = { key, turns: [] };
+  const status = aiStatus || await loadAiStatus();
+  const intro = `
+    <div class="cosmic-card report-intro">
+      <h2>${esc(txt('Ask about my chart', 'ஜாதகம் பற்றிக் கேளுங்கள்', 'ജാതകത്തെക്കുറിച്ച് ചോദിക്കുക'))}</h2>
+      <p class="muted">${esc(txt('Answers come from Claude, an AI, reading the chart JoRoScope has calculated; it cites the dasas and placements it used. They are classical indications, not certainties.',
+        'பதில்கள் Claude என்ற AI, JoRoScope கணித்த ஜாதகத்தைப் படித்துத் தருகிறது; பயன்படுத்திய தசைகளையும் கிரக நிலைகளையும் குறிப்பிடும். இவை பாரம்பரியக் குறிப்புகள், உறுதியானவை அல்ல.',
+        'ഉത്തരങ്ങൾ Claude എന്ന AI, JoRoScope കണക്കാക്കിയ ജാതകം വായിച്ച് നൽകുന്നു; ഉപയോഗിച്ച ദശകളും ഗ്രഹസ്ഥിതികളും സൂചിപ്പിക്കും. ഇവ പരമ്പരാഗത സൂചനകളാണ്, ഉറപ്പല്ല.'))}</p>
+      <p class="ask-privacy">🔒 ${esc(txt('Asking sends this birth date, time and place and the chart to Anthropic, the maker of Claude, to prepare the answer.',
+        'கேள்வி கேட்கும்போது இந்தப் பிறந்த தேதி, நேரம், இடம், ஜாதகம் ஆகியவை பதிலுக்காக Claude-ஐ உருவாக்கிய Anthropic நிறுவனத்துக்கு அனுப்பப்படும்.',
+        'ചോദിക്കുമ്പോൾ ഈ ജനനതീയതി, സമയം, സ്ഥലം, ജാതകം എന്നിവ ഉത്തരം തയ്യാറാക്കാൻ Claude നിർമ്മിച്ച Anthropic-ലേക്ക് അയയ്ക്കുന്നു.'))}</p>
+    </div>`;
+  if (!status?.enabled) {
+    panel.innerHTML = intro + `<div class="cosmic-card"><p class="muted">${esc(txt('AI answers are not set up on this server yet.',
+      'இந்த சர்வரில் AI பதில்கள் இன்னும் அமைக்கப்படவில்லை.', 'ഈ സെർവറിൽ AI ഉത്തരങ്ങൾ ഇതുവരെ സജ്ജമാക്കിയിട്ടില്ല.'))}</p></div>`;
+    return;
+  }
+  if (status.remote_blocked) {
+    panel.innerHTML = intro + `<div class="cosmic-card"><p class="muted">${esc(txt('Questions are available only on the computer running JoRoScope until its owner sets a passcode.',
+      'உரிமையாளர் கடவுக்குறியை அமைக்கும் வரை JoRoScope இயங்கும் கணினியில் மட்டுமே கேள்விகள் கேட்கலாம்.',
+      'ഉടമ പാസ്‌കോഡ് സജ്ജമാക്കുന്നതുവരെ JoRoScope പ്രവർത്തിക്കുന്ന കമ്പ്യൂട്ടറിൽ മാത്രമേ ചോദ്യങ്ങൾ ചോദിക്കാനാകൂ.'))}</p></div>`;
+    return;
+  }
+  panel.innerHTML = intro + `
+    <div class="cosmic-card ask-card">
+      ${status.passcode_required ? `<label class="ask-passcode">${esc(txt('Passcode', 'கடவுக்குறி', 'പാസ്‌കോഡ്'))}
+        <input type="password" id="ask-passcode" autocomplete="off" value="${esc(askPasscode())}"></label>` : ''}
+      <div class="ask-log" id="ask-log" aria-live="polite"></div>
+      <div class="ask-examples">
+        <button type="button" class="action-btn" id="ask-reading">✨ ${esc(txt('Write my overall reading', 'எனது முழுப் பலனை எழுது', 'എന്റെ സമഗ്ര ഫലം എഴുതുക'))}</button>
+        ${ASK_EXAMPLES.map((q, i) => `<button type="button" class="link-btn ask-example" data-example="${i}">${esc(txt(...q))}</button>`).join('')}
+      </div>
+      <form class="ask-form" id="ask-form">
+        <textarea id="ask-question" rows="2" maxlength="1000" placeholder="${esc(txt('Ask a question about this chart…', 'இந்த ஜாதகம் பற்றி ஒரு கேள்வி கேளுங்கள்…', 'ഈ ജാതകത്തെക്കുറിച്ച് ഒരു ചോദ്യം ചോദിക്കുക…'))}"></textarea>
+        <button type="submit" class="action-btn" id="ask-send">${esc(txt('Ask', 'கேள்', 'ചോദിക്കുക'))}</button>
+      </form>
+    </div>`;
+  drawAskLog();
+  $('#ask-passcode')?.addEventListener('change', e => askPasscode(e.target.value));
+  $('#ask-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const q = $('#ask-question').value.trim();
+    if (q) sendAsk(q, 'question');
+  });
+  $('#ask-question').addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#ask-form').requestSubmit(); }
+  });
+  $('#ask-reading').addEventListener('click', () => sendAsk(txt('Write my overall reading', 'எனது முழுப் பலனை எழுது', 'എന്റെ സമഗ്ര ഫലം എഴുതുക'), 'reading'));
+  panel.querySelectorAll('.ask-example').forEach(b => b.addEventListener('click', () => sendAsk(txt(...ASK_EXAMPLES[b.dataset.example]), 'question')));
+}
+
+function drawAskLog() {
+  const log = $('#ask-log');
+  if (!log) return;
+  log.innerHTML = askChat.turns.map(t => t.role === 'user'
+    ? `<div class="ask-turn user"><p>${esc(t.content)}</p></div>`
+    : `<div class="ask-turn assistant${t.error ? ' error' : ''}">${t.error ? `<p>${esc(t.content)}</p>` : askAnswerHtml(t.content)}</div>`).join('')
+    + (askBusy ? `<div class="ask-turn assistant thinking"><p>${esc(txt('Reading your chart…', 'உங்கள் ஜாதகத்தைப் படிக்கிறது…', 'നിങ്ങളുടെ ജാതകം വായിക്കുന്നു…'))}</p></div>` : '');
+  log.hidden = !askChat.turns.length && !askBusy;
+  log.scrollTop = log.scrollHeight;
+}
+
+async function sendAsk(question, mode) {
+  if (askBusy || !currentChartPayload) return;
+  const chat = askChat;
+  const history = chat.turns.filter(t => !t.error).map(t => ({ role: t.role, content: t.content }));
+  chat.turns.push({ role: 'user', content: question });
+  askBusy = true;
+  $('#ask-question') && ($('#ask-question').value = '');
+  $('#ask-send') && ($('#ask-send').disabled = true);
+  drawAskLog();
+  try {
+    const marks = Object.fromEntries(Object.entries(loadVerify()).filter(([, m]) => m && (m.mark || m.date)));
+    const resp = await fetch('/api/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ birth: currentChartPayload, question, history, lang: currentLang, mode, marks,
+        passcode: $('#ask-passcode')?.value || askPasscode() })
+    });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'The question could not be answered.');
+    chat.turns.push({ role: 'assistant', content: data.answer });
+  } catch (err) {
+    chat.turns.push({ role: 'assistant', content: errorText(err.message), error: true });
+  } finally {
+    askBusy = false;
+    $('#ask-send') && ($('#ask-send').disabled = false);
+    if (askChat === chat) drawAskLog();
+  }
 }

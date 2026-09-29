@@ -164,6 +164,7 @@ When running locally, JoRoScope provides secure JSON API endpoints:
 - `POST /api/muhurtham`: Auspicious windows for an event over the coming days.
 - `POST /api/prasna`: A Prasna (horary) judgement for a question asked now or at a given time.
 - `POST /api/rectify`: Candidate birth times ranked against dated life events.
+- `GET /api/ai-status`, `POST /api/ask`: Optional AI answers about a chart (see [docs/AI.md](docs/AI.md)).
 
 Responses are gzip-compressed when the client accepts it.
 
@@ -172,6 +173,7 @@ Responses are gzip-compressed when the client accepts it.
 ## Privacy & Security
 
 - **100% Private & Offline**: All planetary positions and life readings are computed locally on your computer.
+- **Optional AI, off by default**: The Ask about my chart tab sends a chart to Anthropic only when someone asks a question, and only after its owner sets it up with an API key (see [docs/AI.md](docs/AI.md)).
 - **No Cloud Tracking**: Birth details and profile records are stored exclusively in your local browser vault.
 - **Strict Origin Checks**: Local API rejects unauthorized external cross-origin requests.
 

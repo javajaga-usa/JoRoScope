@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+### Ask about my chart (AI)
+- A new **Ask about my chart** tab answers questions about the chart, and writes an overall reading, with Claude (Opus 5.5 by default). JoRoScope still calculates everything; Claude answers only from a fact sheet of the calculated chart (placements, dasas, yogas, doshas, transits, the reports and the person's Chart Verification marks) and cites the basis. English, Tamil and Malayalam.
+- Optional: needs `pip install -r requirements-ai.txt` and an Anthropic API key, set as an environment variable or in the private file `~/.config/joroscope/ai.env`. See [AI.md](AI.md).
+- Questions from other computers (such as a shared tunnel link) need the passcode set in `JOROSCOPE_AI_PASSCODE`; without one, only the computer running JoRoScope can ask.
+- The server now answers requests in parallel, so a long AI answer does not hold up charts for others; calculations still run one at a time.
+
 ### Parisodhanai (chart verification)
 - A new **Chart Verification** tab states facts about the past for the person to check, as South Indian astrologers do before predicting:
   - **Siblings:** elder (11th house) and younger (3rd house) brothers and sisters, from the grahas in and aspecting each house, with the karaka and malefic notes.

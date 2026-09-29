@@ -7,14 +7,17 @@ import gzip
 import json
 import mimetypes
 import sys
+import threading
+import time
 import webbrowser
 from pathlib import Path
 from datetime import datetime
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, unquote
 
 from . import __version__
+from .core import ai
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
 from .core.muhurtham import find_muhurthams
@@ -30,6 +33,11 @@ elif (MODULE_DIR.parent.parent / 'web').is_dir():
     WEB_DIR = MODULE_DIR.parent.parent / 'web'
 else:
     WEB_DIR = MODULE_DIR / 'web'
+
+# Requests are served in parallel so a slow AI answer does not hold up everyone else, but the Swiss
+# Ephemeris keeps global settings (the ayanamsa), so calculations still run one at a time.
+COMPUTE_LOCK = threading.Lock()
+FORWARDING_HEADERS = ('Cf-Connecting-IP', 'X-Forwarded-For', 'Forwarded')
 
 
 def strip_malayalam(value):
@@ -65,6 +73,9 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         name = unquote(urlsplit(self.path).path)
+        if name == '/api/ai-status':
+            self.send(json.dumps(ai.status(self.is_local())).encode())
+            return
         if name == '/api/health':
             self.send(json.dumps({'application': 'joroscope', 'version': __version__, 'status': 'healthy'}).encode())
             return
@@ -79,9 +90,36 @@ class Handler(BaseHTTPRequestHandler):
         content_type = mimetypes.guess_type(str(file_path))[0] or 'application/octet-stream'
         self.send(file_path.read_bytes(), kind=content_type)
 
+    def is_local(self):
+        """A request made on this computer itself, not relayed through a tunnel or proxy."""
+        host = (self.headers.get('Host') or '').rsplit(':', 1)[0].strip('[]')
+        return (self.client_address[0] in ('127.0.0.1', '::1') and host in ('localhost', '127.0.0.1', '::1')
+                and not any(self.headers.get(h) for h in FORWARDING_HEADERS))
+
+    def ask(self, data):
+        local = self.is_local()
+        if not ai.status(local)['enabled']:
+            self.send(json.dumps({'error': 'AI answers are not set up on this server.'}).encode(), 503)
+            return
+        if not ai.authorised(data.get('passcode'), local):
+            time.sleep(1)  # slows guessing
+            message = ('Wrong passcode.' if ai.passcode() else
+                       'Questions are available only on the computer running JoRoScope until a passcode is set.')
+            self.send(json.dumps({'error': message}).encode(), 401)
+            return
+        with COMPUTE_LOCK:
+            chart = calculate(data.get('birth') or {})
+            sheet = ai.fact_sheet(chart, data.get('marks') or {})
+        try:
+            result = ai.ask(sheet, data.get('question'), data.get('history'), data.get('lang') or 'en', data.get('mode') or 'question')
+        except ai.AiError as err:
+            self.send(json.dumps({'error': str(err)}).encode(), 502)
+            return
+        self.send(json.dumps(result, ensure_ascii=False).encode())
+
     def do_POST(self):
         req_path = urlsplit(self.path).path
-        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify'):
+        if req_path not in ('/api/chart', '/api/timeline', '/api/match', '/api/panchangam', '/api/calendar', '/api/muhurtham', '/api/prasna', '/api/rectify', '/api/ask'):
             self.send(b'{}', 404)
             return
 
@@ -93,83 +131,87 @@ class Handler(BaseHTTPRequestHandler):
 
         try:
             length = int(self.headers.get('Content-Length', '0'))
-            if not 0 < length <= 65536:
+            if not 0 < length <= (262144 if req_path == '/api/ask' else 65536):  # questions carry the conversation so far
                 raise ValueError('Invalid request size.')
             data = json.loads(self.rfile.read(length))
 
-            if req_path == '/api/chart':
-                result = calculate(data)
-                timeline = (result.get('predictions') or {}).get('timeline_predictions')
-                if timeline:
-                    defer_timeline_details(timeline)
-                if data.get('lang') != 'ml':
-                    result = strip_malayalam(result)
-                self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/timeline':
-                timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
-                details = {'details': timeline_details(timeline)}
-                if data.get('lang') != 'ml':
-                    details = strip_malayalam(details)
-                self.send(json.dumps(details, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/match':
-                boy = data.get('boy')
-                girl = data.get('girl')
-                if not boy or not girl:
-                    raise ValueError('Both boy and girl data are required for matchmaking.')
-                boy_chart = calculate(boy) if 'date' in boy else boy
-                girl_chart = calculate(girl) if 'date' in girl else girl
-                match_result = calculate_match(boy_chart, girl_chart)
-                self.send(json.dumps(match_result, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/panchangam':
-                tz_str = data.get('timezone', 'Asia/Kolkata')
-                try:
-                    now_local = datetime.now(ZoneInfo(tz_str))
-                except ZoneInfoNotFoundError:
-                    raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
-                natal_star = data.get('natal_nakshatra_index')
-                natal_sign = data.get('natal_sign_index')
-                # No date: right now. A date without a time: at that day's sunrise.
-                if data.get('date'):
-                    date_str, time_str = data['date'], data.get('time')
-                else:
-                    date_str, time_str = now_local.strftime('%Y-%m-%d'), now_local.strftime('%H:%M:%S')
-                panch = daily_panchangam(
-                    date_str,
-                    time_str,
-                    tz_str,
-                    float(data.get('latitude', 13.0827)),
-                    float(data.get('longitude', 80.2707)),
-                    natal_star=None if natal_star in (None, '') else int(natal_star),
-                    natal_sign=None if natal_sign in (None, '') else int(natal_sign)
-                )
-                self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/muhurtham':
-                tz_str = data.get('timezone', 'Asia/Kolkata')
-                try:
-                    today = datetime.now(ZoneInfo(tz_str)).strftime('%Y-%m-%d')
-                except ZoneInfoNotFoundError:
-                    raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
-                natal_star = data.get('natal_nakshatra_index')
-                natal_sign = data.get('natal_sign_index')
-                found = find_muhurthams(
-                    data.get('event', 'marriage'), data.get('start_date') or today, int(data.get('days', 60)), tz_str,
-                    float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
-                    natal_star=None if natal_star in (None, '') else int(natal_star),
-                    natal_sign=None if natal_sign in (None, '') else int(natal_sign))
-                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/prasna':
-                found = calculate_prasna(
-                    data.get('question', 'general'), data.get('date') or '', data.get('time') or '',
-                    data.get('timezone', 'Asia/Kolkata'), float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
-                    arudha=data.get('arudha') or None, ayanamsa=data.get('ayanamsa') or 'Lahiri')
-                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/rectify':
-                found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2))
-                self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
-            elif req_path == '/api/calendar':
-                cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
-                                     float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)))
-                self.send(json.dumps(cal, ensure_ascii=False, allow_nan=False).encode())
+            if req_path == '/api/ask':
+                self.ask(data)
+                return
+            with COMPUTE_LOCK:
+                if req_path == '/api/chart':
+                    result = calculate(data)
+                    timeline = (result.get('predictions') or {}).get('timeline_predictions')
+                    if timeline:
+                        defer_timeline_details(timeline)
+                    if data.get('lang') != 'ml':
+                        result = strip_malayalam(result)
+                    self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/timeline':
+                    timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
+                    details = {'details': timeline_details(timeline)}
+                    if data.get('lang') != 'ml':
+                        details = strip_malayalam(details)
+                    self.send(json.dumps(details, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/match':
+                    boy = data.get('boy')
+                    girl = data.get('girl')
+                    if not boy or not girl:
+                        raise ValueError('Both boy and girl data are required for matchmaking.')
+                    boy_chart = calculate(boy) if 'date' in boy else boy
+                    girl_chart = calculate(girl) if 'date' in girl else girl
+                    match_result = calculate_match(boy_chart, girl_chart)
+                    self.send(json.dumps(match_result, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/panchangam':
+                    tz_str = data.get('timezone', 'Asia/Kolkata')
+                    try:
+                        now_local = datetime.now(ZoneInfo(tz_str))
+                    except ZoneInfoNotFoundError:
+                        raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+                    natal_star = data.get('natal_nakshatra_index')
+                    natal_sign = data.get('natal_sign_index')
+                    # No date: right now. A date without a time: at that day's sunrise.
+                    if data.get('date'):
+                        date_str, time_str = data['date'], data.get('time')
+                    else:
+                        date_str, time_str = now_local.strftime('%Y-%m-%d'), now_local.strftime('%H:%M:%S')
+                    panch = daily_panchangam(
+                        date_str,
+                        time_str,
+                        tz_str,
+                        float(data.get('latitude', 13.0827)),
+                        float(data.get('longitude', 80.2707)),
+                        natal_star=None if natal_star in (None, '') else int(natal_star),
+                        natal_sign=None if natal_sign in (None, '') else int(natal_sign)
+                    )
+                    self.send(json.dumps(panch, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/muhurtham':
+                    tz_str = data.get('timezone', 'Asia/Kolkata')
+                    try:
+                        today = datetime.now(ZoneInfo(tz_str)).strftime('%Y-%m-%d')
+                    except ZoneInfoNotFoundError:
+                        raise ValueError('Enter a valid IANA timezone, such as Asia/Kolkata.')
+                    natal_star = data.get('natal_nakshatra_index')
+                    natal_sign = data.get('natal_sign_index')
+                    found = find_muhurthams(
+                        data.get('event', 'marriage'), data.get('start_date') or today, int(data.get('days', 60)), tz_str,
+                        float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
+                        natal_star=None if natal_star in (None, '') else int(natal_star),
+                        natal_sign=None if natal_sign in (None, '') else int(natal_sign))
+                    self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/prasna':
+                    found = calculate_prasna(
+                        data.get('question', 'general'), data.get('date') or '', data.get('time') or '',
+                        data.get('timezone', 'Asia/Kolkata'), float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)),
+                        arudha=data.get('arudha') or None, ayanamsa=data.get('ayanamsa') or 'Lahiri')
+                    self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/rectify':
+                    found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2))
+                    self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
+                elif req_path == '/api/calendar':
+                    cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),
+                                         float(data.get('latitude', 13.0827)), float(data.get('longitude', 80.2707)))
+                    self.send(json.dumps(cal, ensure_ascii=False, allow_nan=False).encode())
         except Exception as err:
             self.send(json.dumps({'error': str(err)}).encode(), 400)
 
@@ -180,7 +222,8 @@ def run_server(port=8765, open_browser=True):
     actual_port = port
     for p in range(port, port + 10):
         try:
-            server = HTTPServer(('127.0.0.1', p), Handler)
+            server = ThreadingHTTPServer(('127.0.0.1', p), Handler)
+            server.daemon_threads = True
             actual_port = p
             break
         except OSError:
