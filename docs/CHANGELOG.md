@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.3.0] - 2026-09-28
 
 ### Malayalam readings
 - Every reading now has Malayalam: natal, the twelve bhavas, planets in houses, the Dasa-Bhukti forecast and all 81 periods of the timeline, transits, lucky factors, yogas and their cancellations, Bhrigu Nandi Nadi, avasthas, nakshatra pada, sahams, Panchanga Phala, Sudarshana Chakra, Shadbala and Vimsopaka, the KP cusps, Jaimini karakas and arudhas, D-10 career, Ayur-Jyotish, double transit, kakshya transits, the doshas, and every report chapter (Parihara, monthly transits, Varshaphal, marriage, career, Sarvatobhadra and Kota, numerology).
