@@ -8,6 +8,7 @@
  * PDF" in the print window makes the PDF.
  */
 
+const chapterSection = key => c => printChapters(c, PRINT_CHAPTER_GROUPS[key]);
 const PRINT_SECTIONS = [
   { key: 'birth', en: 'Birth details & Tamil panchangam', ta: 'பிறப்பு விவரங்கள் & பஞ்சாங்கம்', build: printBirth },
   { key: 'charts', en: 'Rasi & Navamsa charts', ta: 'இராசி & நவாம்சச் சக்கரங்கள்', build: printCharts },
@@ -21,8 +22,14 @@ const PRINT_SECTIONS = [
   { key: 'strength', en: 'Shadbala, Bhava Bala & Vimsopaka', ta: 'ஷட்பலம், பாவ பலம் & விம்சோபகம்', build: printStrength, newPage: true },
   { key: 'ashtakavarga', en: 'Ashtakavarga & Sodhya Pinda', ta: 'அஷ்டகவர்க்கம் & சோத்ய பிண்டம்', build: printAshtakavarga, newPage: true },
   { key: 'kp', en: 'KP cusps & significators', ta: 'கே.பி. பாவ ஆரம்பங்கள் & காரகத்துவம்', build: printKP, newPage: true },
+  { key: 'verification', en: 'Chart verification (Parisodhanai)', ta: 'ஜாதகப் பரிசோதனை', ml: 'ജാതക പരിശോധന',
+    build: chapterSection('verification'), newPage: true },
   { key: 'predictions', en: 'Life predictions', ta: 'வாழ்க்கைப் பலன்கள்', build: printPredictions, newPage: true },
-  { key: 'reports', en: 'Special reports', ta: 'சிறப்பு அறிக்கைகள்', build: printReportChapters, newPage: true }
+  { key: 'lifeareas', en: 'Life-area reports', ta: 'வாழ்க்கைத் துறை அறிக்கைகள்', ml: 'ജീവിതമേഖലാ റിപ്പോർട്ടുകൾ',
+    build: chapterSection('lifeareas'), newPage: true },
+  { key: 'yearly', en: 'Year-by-year forecast', ta: 'ஆண்டுவாரி பலன்', ml: 'വർഷംതോറുമുള്ള ഫലം', build: chapterSection('yearly'), newPage: true },
+  { key: 'remedies', en: 'Remedies (Parihara)', ta: 'பரிகாரங்கள்', ml: 'പരിഹാരങ്ങൾ', build: chapterSection('remedies'), newPage: true },
+  { key: 'reports', en: 'Special reports', ta: 'சிறப்பு அறிக்கைகள்', build: chapterSection('reports'), newPage: true }
 ];
 
 const PRINT_PRESETS = {
@@ -46,6 +53,14 @@ const PRINT_PRESETS = {
     hint_ta: 'மேலுள்ள அனைத்தும் மற்றும் வாழ்க்கைப் பலன்கள்: பஞ்சாங்க பலன், 12 பாவங்கள், நடப்பு தசை, கோச்சாரம், தொழில், உடல்நலம்.',
     title_en: 'Complete Horoscope Report', title_ta: 'முழுமையான ஜாதக அறிக்கை',
     sections: PRINT_SECTIONS.map(s => s.key)
+  },
+  lifereport: {
+    en: 'Life Report', ta: 'வாழ்க்கைப் பலன் அறிக்கை', ml: 'ജീവിതഫല റിപ്പോർട്ട്',
+    hint_en: 'A long reading in the order a family reads it: the chart, its verification, life predictions, every life area, the next twelve years year by year, the dasas and remedies.',
+    hint_ta: 'குடும்பம் படிக்கும் வரிசையில் நீண்ட பலன்: ஜாதகம், அதன் பரிசோதனை, வாழ்க்கைப் பலன்கள், ஒவ்வொரு வாழ்க்கைத் துறை, அடுத்த 12 ஆண்டுகள் ஆண்டுவாரியாக, தசைகள், பரிகாரங்கள்.',
+    hint_ml: 'കുടുംബം വായിക്കുന്ന ക്രമത്തിൽ വിശദമായ ഫലം: ജാതകം, അതിന്റെ പരിശോധന, ജീവിതഫലങ്ങൾ, ഓരോ ജീവിതമേഖലയും, അടുത്ത 12 വർഷം വർഷംതോറും, ദശകൾ, പരിഹാരങ്ങൾ.',
+    title_en: 'Life Report', title_ta: 'வாழ்க்கைப் பலன் அறிக்கை', title_ml: 'ജീവിതഫല റിപ്പോർട്ട്',
+    sections: ['birth', 'charts', 'planets', 'doshas', 'verification', 'predictions', 'lifeareas', 'yearly', 'dasa', 'remedies']
   }
 };
 
@@ -218,10 +233,19 @@ function printOtherDasas(c) {
 }
 
 // The chapters in the shared report shape (numerology and the newer reports), one after another
-function printReportChapters(c) {
+// Chapters in the shared report shape, grouped by print section
+const PRINT_CHAPTER_GROUPS = {
+  verification: ['parisodhanai'],
+  lifeareas: ['marriage', 'career_report', 'education', 'children', 'health', 'wealth', 'foreign', 'spiritual'],
+  yearly: ['yearly'],
+  remedies: ['parihara'],
+  reports: ['monthly', 'varshaphal', 'chakras', 'numerology'],
+};
+
+function printChapters(c, keys) {
   const pred = c.predictions || {};
   const cell = x => esc(txt(x.en, x.ta, x.ml));
-  return [...REPORT_CHAPTERS, 'parisodhanai'].filter(key => pred[key]).map(key => {
+  return keys.filter(key => pred[key]).map(key => {
     const ch = pred[key];
     const statements = ch.statements ? h => pjTable(
       [txt('Statement', 'கூற்று', 'പ്രസ്താവന'), txt('Confidence', 'நம்பகத்தன்மை', 'ഉറപ്പ്'), txt('Right?', 'சரியா?', 'ശരിയോ?')].map(esc),
@@ -359,9 +383,9 @@ function buildPrintReport(presetKey, sectionKeys, chartStyle = 'south') {
     const html = s.build(c);
     if (!html) return '';
     return `<section class="pj-section${s.newPage && i > 0 ? ' pj-page' : ''}" data-section="${s.key}">
-      <h2><span class="pj-num">${i + 1}</span>${esc(txt(s.en, s.ta))}</h2>${html}</section>`;
+      <h2><span class="pj-num">${i + 1}</span>${esc(txt(s.en, s.ta, s.ml))}</h2>${html}</section>`;
   }).join('');
-  const title = txt(preset.title_en, preset.title_ta);
+  const title = txt(preset.title_en, preset.title_ta, preset.title_ml);
   $('#print-jathagam').dataset.lang = currentLang;
   $('#print-jathagam').innerHTML = `
     <header class="pj-header">
@@ -369,7 +393,7 @@ function buildPrintReport(presetKey, sectionKeys, chartStyle = 'south') {
       <h1>${esc(title)}</h1>
       <p class="pj-name">${esc(prof.name || '')}</p>
       <p class="pj-sub">${esc(prof.date)} · ${esc(prof.time)}${prof.city ? ` · ${esc(prof.city)}` : ''}</p>
-      ${chosen.length > 5 ? `<p class="pj-contents">${chosen.map((s, i) => `${i + 1}. ${esc(txt(s.en, s.ta))}`).join(' &nbsp;·&nbsp; ')}</p>` : ''}
+      ${chosen.length > 5 ? `<p class="pj-contents">${chosen.map((s, i) => `${i + 1}. ${esc(txt(s.en, s.ta, s.ml))}`).join(' &nbsp;·&nbsp; ')}</p>` : ''}
     </header>
     ${body}
     <footer class="pj-footer">${esc(txt(
@@ -427,7 +451,7 @@ function openPrintDialog(presetKey = 'jathagam') {
   $('#print-presets').innerHTML = `<legend>${txt('Report', 'அறிக்கை')}</legend>` + Object.entries(PRINT_PRESETS).map(([key, p]) => `
     <label class="print-preset">
       <input type="radio" name="print-preset" value="${key}" ${key === presetKey ? 'checked' : ''}>
-      <span><strong>${esc(txt(p.en, p.ta))}</strong><small>${esc(txt(p.hint_en, p.hint_ta))}</small></span>
+      <span><strong>${esc(txt(p.en, p.ta, p.ml))}</strong><small>${esc(txt(p.hint_en, p.hint_ta, p.hint_ml))}</small></span>
     </label>`).join('');
   const list = $('#print-section-list');
   const tick = key => {
@@ -435,7 +459,7 @@ function openPrintDialog(presetKey = 'jathagam') {
     list.querySelectorAll('input').forEach(box => { box.checked = wanted.includes(box.value); });
   };
   list.innerHTML = PRINT_SECTIONS.map(s => `
-    <label><input type="checkbox" value="${s.key}"> ${esc(txt(s.en, s.ta))}</label>`).join('');
+    <label><input type="checkbox" value="${s.key}"> ${esc(txt(s.en, s.ta, s.ml))}</label>`).join('');
   tick(presetKey);
   $$('#print-presets input').forEach(radio => radio.addEventListener('change', () => tick(radio.value)));
   $('#print-language').value = currentLang;

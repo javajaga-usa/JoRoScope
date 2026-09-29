@@ -7,6 +7,8 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const vm = require('vm');
+// The running JoRoScope server to test against: JOROSCOPE_TEST_PORT, or the default 8765
+const TEST_PORT = Number(process.env.JOROSCOPE_TEST_PORT) || 8765;
 
 const web = path.join(__dirname, '..', 'src', 'joroscope', 'web');
 const html = fs.readFileSync(path.join(web, 'index.html'), 'utf8');
@@ -25,7 +27,7 @@ console.log('PASS: print dialog markup and script order');
 function post(route, body) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
-    const req = http.request({ host: '127.0.0.1', port: 8765, path: route, method: 'POST',
+    const req = http.request({ host: '127.0.0.1', port: TEST_PORT, path: route, method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) } }, res => {
       let out = '';
       res.on('data', c => { out += c; });
@@ -94,9 +96,15 @@ function assertClean(html, label) {
       if (count !== preset.sections.length) fail(`${lang}/${key}: ${count} sections, expected ${preset.sections.length}`);
       if (!pageStyle().includes('counter(page)')) fail(`${lang}/${key}: no page numbering style`);
     }
+    api.buildPrintReport('complete', api.PRINT_PRESETS.complete.sections);
     const complete = sheet();
     ['Navamsa', 'D60', 'Sodhya', 'Vimsopaka', 'Bhava'].forEach(word => {
       if (lang === 'en' && !complete.includes(word)) fail(`complete report lacks ${word}`);
+    });
+    api.buildPrintReport('lifereport', api.PRINT_PRESETS.lifereport.sections);
+    const life = sheet();
+    ['Year-by-Year Forecast', 'Education Report', 'Spiritual Life Report', 'Chart Verification', 'Parihara'].forEach(word => {
+      if (lang === 'en' && !life.includes(word)) fail(`life report lacks ${word}`);
     });
     // Every chart style draws each chart once, into SVG for the non-grid styles
     for (const style of ['north', 'east', 'srilanka', 'south']) {

@@ -2,6 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 const http = require('http');
+// The running JoRoScope server to test against: JOROSCOPE_TEST_PORT, or the default 8765
+const TEST_PORT = Number(process.env.JOROSCOPE_TEST_PORT) || 8765;
 
 console.log('Testing Expand/Collapse & Timeline Predictions Details...');
 
@@ -41,7 +43,7 @@ const postData = JSON.stringify({
 
 function post(route) {
     return new Promise((resolve, reject) => {
-        const req = http.request('http://127.0.0.1:8765' + route, {
+        const req = http.request(`http://127.0.0.1:${TEST_PORT}` + route, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(postData) }
         }, res => {

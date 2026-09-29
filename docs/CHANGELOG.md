@@ -1,5 +1,27 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+### Year-by-year forecast
+- A new **Year-by-Year Forecast** tab covers the next twelve years. Each year lists its Dasa-Bhukti periods (dated), the sign changes of Saturn, Jupiter and Rahu (with retrograde returns marked) and any Sade Sati, Ashtama or Kandaka Sani, then reads career, money, family and marriage, health and travel.
+- The areas are scored from the Dasa and Bhukti lords (the houses they rule or occupy, their functional nature and dignity, weighted by how much of the year each Bhukti covers) and from Jupiter's and Saturn's transits. Each area's years are ranked against each other, so the forecast separates the better years from the harder ones.
+- Good and careful months come from the Pratyantara periods in the year. A table gives the twelve years at a glance.
+
+### Life-area reports
+- Six new reports beside Marriage and Career: **Education**, **Children**, **Health**, **Wealth & Property**, **Foreign Travel & Settlement** and **Spiritual Life**.
+- Each reads its house, the house lord's placement and dignity, the grahas in and aspecting it and the karakas; then the classical combinations for that area (for example Saraswati Yoga and Mercury for education, Jupiter and the 5th sign for children, Dhana and Lakshmi yogas for wealth, the 12th and 9th lords and Rahu for life abroad, Ketu in the 12th for moksha); then the coming Dasa-Bhukti periods that bring it, with double-transit windows for children and property. The health report lists the periods that need care.
+
+### Chart Verification
+- Each past-event window is narrowed to the Pratyantara months whose lords also signify the event, for example "most of all in 2016-01–2016-06 (Venus)".
+
+### Life Report
+- A new **Life Report** print preset assembles a long reading in the order a family reads it: birth details and charts, doshas, Chart Verification, life predictions, all eight life-area reports, the year-by-year forecast, the Dasa-Bhukti periods and remedies. The Complete Report includes the new chapters too, in their own sections.
+
+### Also
+- Report cards keep their line breaks, so the yearly forecast reads as a short list.
+- The JS tests take the server's port from `JOROSCOPE_TEST_PORT` (default 8765).
+- The chart's size guard in the tests rises to 1 MB for the new chapters.
+
 ## [2.4.0] - 2026-09-29
 
 ### Ask about my chart (AI)
