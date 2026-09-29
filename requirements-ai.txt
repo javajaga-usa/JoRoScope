@@ -1,0 +1,3 @@
+# Optional: "Ask about my chart" answers from Claude (see docs/AI.md)
+-r requirements.txt
+anthropic>=1.9

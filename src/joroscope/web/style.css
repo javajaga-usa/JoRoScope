@@ -568,7 +568,7 @@ label {
   color: var(--text-secondary);
   margin-bottom: 6px;
 }
-input, select {
+input, select, textarea {
   width: 100%;
   padding: 11px 14px;
   background: var(--bg-input);
@@ -580,7 +580,7 @@ input, select {
   outline: none;
   transition: var(--transition-smooth);
 }
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
   border-color: var(--gold);
   box-shadow: 0 0 10px var(--gold-glow);
 }
@@ -3802,3 +3802,114 @@ html[lang="ml"] .ml-only { display: block; }
 @media (max-width: 640px) {
   .verify-item { flex-direction: column; }
 }
+
+/* Ask about my chart */
+.ask-privacy {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+}
+.ask-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.ask-passcode {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+.ask-log {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+.ask-turn {
+  padding: 10px 14px;
+  border-radius: var(--radius-md, 10px);
+  line-height: 1.55;
+}
+.ask-turn p { margin: 0 0 8px; }
+.ask-turn p:last-child { margin-bottom: 0; }
+.ask-turn h4 { margin: 10px 0 4px; color: var(--gold); }
+.ask-turn ul { margin: 4px 0 8px 18px; }
+.ask-turn.user {
+  align-self: flex-end;
+  max-width: 85%;
+  background: var(--bg-subtle-hover);
+  color: var(--text-primary);
+}
+.ask-turn.assistant {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-card);
+}
+.ask-turn.assistant.error { border-color: var(--ruby); color: var(--ruby); }
+.ask-turn.thinking { color: var(--text-muted); font-style: italic; }
+.ask-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.ask-form {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.ask-form textarea {
+  flex: 1;
+  min-width: 0;
+  resize: vertical;
+}
+.ask-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ask-reading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.ask-copied {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md, 10px);
+  background: var(--bg-subtle);
+}
+.ask-copied p { margin: 0; }
+.ask-copied details { width: 100%; }
+.ask-copied textarea {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+/* Text-style buttons (example questions, copy links, removing a row) */
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--gold);
+  cursor: pointer;
+  font: inherit;
+  font-size: 12.5px;
+  padding: 4px 2px;
+}
+.link-btn:hover { text-decoration: underline; }
+.ask-example {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  color: var(--text-secondary);
+}
+.ask-example:hover { border-color: var(--gold); color: var(--gold); text-decoration: none; }
