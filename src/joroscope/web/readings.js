@@ -863,6 +863,10 @@ const VERIFY_GROUPS = [
   ['events', 'Past events', 'கடந்த நிகழ்வுகள்', 'കഴിഞ്ഞ സംഭവങ്ങൾ'],
 ];
 const CONFIDENCE_PILLS = { strong: 'success', moderate: 'neutral', weak: 'danger' };
+const FAMILY_LABELS = {
+  elder_brothers: ['Elder brothers', 'அண்ணன்', 'ജ്യേഷ്ഠന്മാർ'], elder_sisters: ['Elder sisters', 'அக்கா', 'ജ്യേഷ്ഠത്തിമാർ'],
+  younger_brothers: ['Younger brothers', 'தம்பி', 'അനുജന്മാർ'], younger_sisters: ['Younger sisters', 'தங்கை', 'അനുജത്തിമാർ'],
+};
 
 function verifyKey() {
   const prof = currentChart?.profile || {};
@@ -944,14 +948,21 @@ function renderParisodhanai(ch) {
     </div>
     ${VERIFY_GROUPS.map(([topic, en, ta, ml]) => {
       const list = ch.statements.filter(s => s.topic === topic);
-      return list.length ? `<div class="cosmic-card verify-group"><h3>${esc(txt(en, ta, ml))}</h3>${list.map(item).join('')}</div>` : '';
+      const family = topic === 'siblings' ? `
+      <div class="verify-family">
+        <span class="muted">${esc(txt('Your real numbers (they help Birth Time Rectification):', 'உங்கள் உண்மையான எண்ணிக்கை (ஜனன நேரத் திருத்தத்துக்கு உதவும்):',
+          'നിങ്ങളുടെ യഥാർത്ഥ എണ്ണം (ജനനസമയ തിരുത്തലിന് സഹായിക്കും):'))}</span>
+        ${RECT_FAMILY.map(k => `<label>${esc(txt(...FAMILY_LABELS[k]))}
+          <input type="number" min="0" max="15" inputmode="numeric" data-family="${k}" value="${esc(marks.family?.[k] ?? '')}"></label>`).join('')}
+      </div>` : '';
+    return list.length ? `<div class="cosmic-card verify-group"><h3>${esc(txt(en, ta, ml))}</h3>${list.map(item).join('')}${family}</div>` : '';
     }).join('')}
     <div class="cosmic-card verify-actions">
-      <p class="muted">${esc(txt('Entered dates of past events can test the birth time on the Tools page.',
-        'உள்ளிட்ட கடந்த நிகழ்வுத் தேதிகளைக் கொண்டு கருவிகள் பக்கத்தில் பிறந்த நேரத்தைச் சோதிக்கலாம்.',
-        'നൽകിയ കഴിഞ്ഞ സംഭവ തീയതികൾ ഉപയോഗിച്ച് ടൂൾസ് പേജിൽ ജനനസമയം പരിശോധിക്കാം.'))}</p>
-      <button type="button" class="action-btn" id="verify-to-rect">${esc(txt('Send dates to Birth Time Rectification',
-        'தேதிகளை ஜனன நேரத் திருத்தத்திற்கு அனுப்பு', 'തീയതികൾ ജനനസമയ തിരുത്തലിലേക്ക് അയയ്ക്കുക'))}</button>
+      <p class="muted">${esc(txt('The dates of past events and your real sibling numbers can test the birth time on the Tools page.',
+        'கடந்த நிகழ்வுத் தேதிகளும் உண்மையான உடன்பிறப்பு எண்ணிக்கையும் கருவிகள் பக்கத்தில் பிறந்த நேரத்தைச் சோதிக்க உதவும்.',
+        'കഴിഞ്ഞ സംഭവങ്ങളുടെ തീയതികളും സഹോദരങ്ങളുടെ യഥാർത്ഥ എണ്ണവും ടൂൾസ് പേജിൽ ജനനസമയം പരിശോധിക്കാൻ സഹായിക്കും.'))}</p>
+      <button type="button" class="action-btn" id="verify-to-rect">${esc(txt('Send to Birth Time Rectification',
+        'ஜனன நேரத் திருத்தத்திற்கு அனுப்பு', 'ജനനസമയ തിരുത്തലിലേക്ക് അയയ്ക്കുക'))}</button>
     </div>`;
 
   const refresh = () => { $('#verify-score').textContent = verifyScoreText(ch.statements, marks); };
@@ -974,16 +985,22 @@ function renderParisodhanai(ch) {
       saveVerify(marks);
     });
   });
+  panel.querySelectorAll('[data-family]').forEach(input => input.addEventListener('change', () => {
+    marks.family = { ...(marks.family || {}), [input.dataset.family]: input.value };
+    saveVerify(marks);
+  }));
   $('#verify-to-rect').addEventListener('click', () => {
     const events = ch.statements.filter(s => s.event && marks[s.key]?.date).map(s => ({ date: marks[s.key].date, type: s.event }));
-    if (!events.length) {
-      notify(txt('Enter the date of at least one past event first.', 'முதலில் குறைந்தது ஒரு கடந்த நிகழ்வின் தேதியை உள்ளிடவும்.',
-        'ആദ്യം കുറഞ്ഞത് ഒരു കഴിഞ്ഞ സംഭവത്തിന്റെ തീയതി നൽകുക.'));
+    const family = Object.entries(marks.family || {}).filter(([, v]) => v !== '' && v != null);
+    if (!events.length && !family.length) {
+      notify(txt('Enter a past event date or your sibling numbers first.', 'முதலில் ஒரு கடந்த நிகழ்வுத் தேதி அல்லது உடன்பிறப்பு எண்ணிக்கையை உள்ளிடவும்.',
+        'ആദ്യം ഒരു കഴിഞ്ഞ സംഭവ തീയതിയോ സഹോദരങ്ങളുടെ എണ്ണമോ നൽകുക.'));
       return;
     }
-    rectEvents.splice(0, rectEvents.length, ...events.slice(0, 12));
+    if (events.length) rectEvents.splice(0, rectEvents.length, ...events.slice(0, 12));
     navigatePage('tools');
     renderRectEvents();
+    family.forEach(([k, v]) => { const el = $(`#rect-${k.replace('_', '-')}`); if (el) el.value = v; });
     $('#rect-events')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
 }

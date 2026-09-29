@@ -232,7 +232,8 @@ class Handler(BaseHTTPRequestHandler):
                         arudha=data.get('arudha') or None, ayanamsa=data.get('ayanamsa') or 'Lahiri')
                     self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/rectify':
-                    found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2))
+                    found = rectify(data.get('birth') or {}, data.get('events') or [], data.get('window', 60), data.get('step', 2),
+                                    data.get('family'))
                     self.send(json.dumps(found, ensure_ascii=False, allow_nan=False).encode())
                 elif req_path == '/api/calendar':
                     cal = month_calendar(int(data['year']), int(data['month']), data.get('timezone', 'Asia/Kolkata'),

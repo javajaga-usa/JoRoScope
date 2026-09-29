@@ -1988,6 +1988,13 @@
             <span class="card-badge">🕰️</span>
           </div>
           <div id="rect-events" class="rect-events"></div>
+          <fieldset class="rect-family">
+            <legend data-i18n="rect_family">Brothers and sisters (optional): the counts move with the Lagna, so they help pick the time</legend>
+              <label><span data-i18n="rect_elder_brothers">Elder brothers</span><input type="number" min="0" max="15" id="rect-elder-brothers" inputmode="numeric"></label>
+              <label><span data-i18n="rect_elder_sisters">Elder sisters</span><input type="number" min="0" max="15" id="rect-elder-sisters" inputmode="numeric"></label>
+              <label><span data-i18n="rect_younger_brothers">Younger brothers</span><input type="number" min="0" max="15" id="rect-younger-brothers" inputmode="numeric"></label>
+              <label><span data-i18n="rect_younger_sisters">Younger sisters</span><input type="number" min="0" max="15" id="rect-younger-sisters" inputmode="numeric"></label>
+          </fieldset>
           <div class="muhurtham-controls">
             <button class="action-btn" id="rect-add" type="button" data-i18n="rect_add">➕ Add event</button>
             <select id="rect-window" aria-label="Window">
