@@ -242,13 +242,13 @@ class Handler(BaseHTTPRequestHandler):
             self.send(json.dumps({'error': str(err)}).encode(), 400)
 
 
-def run_server(port=8765, open_browser=True):
-    # Try preferred port, fallback to sequential ports if occupied
+def run_server(port=8765, open_browser=True, host='127.0.0.1'):
+    # Try preferred port, fallback to sequential ports if occupied (a hosting service's port is taken as given)
     server = None
     actual_port = port
-    for p in range(port, port + 10):
+    for p in (range(port, port + 10) if host == '127.0.0.1' else (port,)):
         try:
-            server = ThreadingHTTPServer(('127.0.0.1', p), Handler)
+            server = ThreadingHTTPServer((host, p), Handler)
             server.daemon_threads = True
             actual_port = p
             break
@@ -258,7 +258,7 @@ def run_server(port=8765, open_browser=True):
     if not server:
         raise RuntimeError(f"Could not bind HTTP server to any port from {port} to {port + 9}")
 
-    url = f"http://127.0.0.1:{actual_port}"
+    url = f"http://{'127.0.0.1' if host in ('127.0.0.1', '0.0.0.0') else host}:{actual_port}"
     print("============================================================")
     print(f"  JoRoScope v{__version__} — Modern Precision Vedic Astrology")
     print(f"  Live at: {url}")
@@ -280,15 +280,21 @@ def run_server(port=8765, open_browser=True):
 
 
 def main():
+    """server.py [port] [--no-browser] [--host ADDRESS]. On a hosting service, PORT and JOROSCOPE_HOST
+    (for example 0.0.0.0, to accept connections from outside) come from the environment."""
+    import os
     args = sys.argv[1:]
-    port = 8765
-    open_browser = '--no-browser' not in args
+    port = int(os.environ.get('PORT') or 8765)
+    host = os.environ.get('JOROSCOPE_HOST') or '127.0.0.1'
+    open_browser = '--no-browser' not in args and not os.environ.get('PORT')
 
-    for a in args:
+    for i, a in enumerate(args):
         if a.isdigit():
             port = int(a)
+        elif a == '--host' and i + 1 < len(args):
+            host = args[i + 1]
 
-    run_server(port=port, open_browser=open_browser)
+    run_server(port=port, open_browser=open_browser, host=host)
 
 
 if __name__ == '__main__':

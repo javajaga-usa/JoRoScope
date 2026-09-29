@@ -1,0 +1,20 @@
+# Render blueprint: one free web service built from this repository.
+# In Render: New > Blueprint, pick this repository, then Apply. See docs/DEPLOY.md.
+services:
+  - type: web
+    name: joroscope
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py --no-browser
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: JOROSCOPE_HOST
+        value: "0.0.0.0"
+      # Optional, for answers inside the Ask tab (docs/AI.md); set their values in the Render dashboard
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: JOROSCOPE_AI_PASSCODE
+        sync: false
