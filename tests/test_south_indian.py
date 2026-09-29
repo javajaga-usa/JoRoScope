@@ -468,3 +468,25 @@ class GowriBhavaSandhiTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class MalayalamCalendarTests(unittest.TestCase):
+    """Kollavarsham dates against Kerala calendars (Thiruvananthapuram)."""
+
+    def test_month_starts_and_kollam_year(self):
+        from datetime import date
+        from zoneinfo import ZoneInfo
+        from joroscope.core.engine import AYAN, swe
+        from joroscope.core.south_indian import malayalam_calendar
+        swe.set_sid_mode(AYAN['Lahiri'])
+        tz, lat, lon = ZoneInfo('Asia/Kolkata'), 8.5241, 76.9366
+        cases = {
+            date(2024, 8, 17): (1200, 'Chingam', 1),    # Chingam 1, 1200 (the new year)
+            date(2024, 8, 16): (1199, 'Karkidakam', 32),
+            date(2025, 1, 14): (1200, 'Makaram', 1),    # Makara Sankranti in the morning
+            date(2025, 4, 14): (1200, 'Medam', 1),      # Vishu
+            date(2025, 10, 18): (1201, 'Thulam', 1),    # sankranti at 13:46, after 3/5 of the day: the next day
+        }
+        for day, (year, month, n) in cases.items():
+            c = malayalam_calendar(day, tz, lat, lon)
+            self.assertEqual((c['year'], c['month'], c['day']), (year, month, n), day)

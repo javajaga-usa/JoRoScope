@@ -180,13 +180,22 @@ function populatePanchangamView(panch) {
   const day = panch.local_date;
   const tc = panch.tamil_calendar;
 
-  if (tc) {
+  const mc = panch.malayalam_calendar;
+  if (mc && currentLang === 'ml') {
+    // Kerala readers get the Malayalam (Kollavarsham) date in place of the Tamil one
+    $('#panch-tamil-date').textContent = `${mc.month_ml} ${mc.day}, ${mlTerm(panch.vaaram.en)}`;
+    $('#panch-tamil-year').textContent = `കൊല്ലവർഷം ${mc.year} · ${day}`;
+  } else if (tc) {
     $('#panch-tamil-date').textContent = isTa
       ? `${tc.month_ta} ${tc.day}, ${panch.vaaram.ta}`
       : `${tc.month} ${tc.day} (${tc.month_ta} ${tc.day}), ${panch.vaaram.en}`;
     $('#panch-tamil-year').textContent = isTa
       ? `${tc.year_ta} வருடம் · ${day}`
       : `${tc.year} year (${tc.year_ta}), #${tc.year_number} of the 60-year cycle · ${day}`;
+    if (mc) {
+      $('#panch-tamil-year').textContent += isTa ? ` · கொல்லம் ஆண்டு ${mc.year}, ${mc.month_ta} ${mc.day}`
+        : ` · Kollam era ${mc.year}, ${mc.month} ${mc.day}`;
+    }
   }
   if (panch.tamil_yogam) {
     const ty = panch.tamil_yogam;

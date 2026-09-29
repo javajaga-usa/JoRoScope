@@ -887,6 +887,10 @@ function kurippuRows() {
   const rows = [
     [pick('Tamil Year', 'வருடம்'), pick(withTa(tc.year, tc.year_ta), `${tc.year_ta} வருடம்`)],
     [pick('Tamil Month & Date', 'மாதம் & தேதி'), pick(withTa(`${tc.month} ${tc.day}`, tc.month_ta), `${tc.month_ta} ${tc.day}`)],
+    ...(si.malayalam_calendar ? [[txt('Malayalam date (Kollavarsham)', 'மலையாள தேதி (கொல்லம் ஆண்டு)', 'മലയാളം തീയതി (കൊല്ലവർഷം)'),
+      txt(`${si.malayalam_calendar.month} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`,
+        `${si.malayalam_calendar.month_ta} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`,
+        `${si.malayalam_calendar.month_ml} ${si.malayalam_calendar.day}, ${si.malayalam_calendar.year}`)]] : []),
     [pick('Vaaram (Vedic day)', 'கிழமை'), pick(withTa(si.vaaram.en, si.vaaram.ta), si.vaaram.ta)],
     [pick('Sunrise', 'சூரிய உதயம்'), clockTime(si.sunrise_local)],
     [pick('Udayadi Nazhigai', 'உதயாதி நாழிகை'), pick(`${nz.nazhigai} nazhigai ${nz.vinadi} vinadi`, `${nz.nazhigai} நாழிகை ${nz.vinadi} விநாடி`)],
