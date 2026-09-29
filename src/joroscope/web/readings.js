@@ -758,6 +758,7 @@ function renderLifeReadings() {
 
   // Chapters in the shared report shape (numerology and the newer reports)
   REPORT_CHAPTERS.forEach(key => renderReportChapter(key, pred[key]));
+  renderParisodhanai(pred.parisodhanai);
 }
 
 // Chapters that use the shared report shape: a tab and panel each, drawn by renderReportChapter
@@ -818,4 +819,138 @@ function renderChapterInto(panel, ch) {
     ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}
     <div class="readings-grid">${ch.cards.map(reportCardHtml).join('')}</div>
     ${ch.cards_first ? ch.tables.map(reportTableHtml).join('') : ''}`;
+}
+
+// Parisodhanai (chart verification): the person marks each statement about their past right or
+// wrong, enters the real dates of past events, and can send those dates to rectification. The
+// marks are kept in this browser, per birth data.
+const VERIFY_GROUPS = [
+  ['siblings', 'Siblings', 'உடன்பிறப்புகள்', 'സഹോദരങ്ങൾ'],
+  ['parents', 'Parents', 'பெற்றோர்', 'മാതാപിതാക്കൾ'],
+  ['events', 'Past events', 'கடந்த நிகழ்வுகள்', 'കഴിഞ്ഞ സംഭവങ്ങൾ'],
+];
+const CONFIDENCE_PILLS = { strong: 'success', moderate: 'neutral', weak: 'danger' };
+
+function verifyKey() {
+  const prof = currentChart?.profile || {};
+  return `joroscope_verify_${prof.date}_${prof.time}_${prof.latitude}_${prof.longitude}`;
+}
+
+function loadVerify() {
+  try {
+    return JSON.parse(localStorage.getItem(verifyKey()) || '{}');
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveVerify(marks) {
+  try {
+    localStorage.setItem(verifyKey(), JSON.stringify(marks));
+  } catch (e) {}
+}
+
+function verifyScoreText(statements, marks) {
+  const right = statements.filter(s => marks[s.key]?.mark === 'right').length;
+  const wrong = statements.filter(s => marks[s.key]?.mark === 'wrong').length;
+  const checked = right + wrong;
+  if (!checked) {
+    return txt('Mark each statement ✔ right or ✘ wrong to see how well the chart matches your life.',
+      'ஒவ்வொரு கூற்றையும் ✔ சரி அல்லது ✘ தவறு எனக் குறித்தால் ஜாதகம் உங்கள் வாழ்க்கையுடன் எவ்வளவு பொருந்துகிறது எனத் தெரியும்.',
+      'ഓരോ പ്രസ്താവനയും ✔ ശരി അല്ലെങ്കിൽ ✘ തെറ്റ് എന്ന് അടയാളപ്പെടുത്തിയാൽ ജാതകം നിങ്ങളുടെ ജീവിതവുമായി എത്രത്തോളം യോജിക്കുന്നു എന്ന് കാണാം.');
+  }
+  const pct = Math.round(right / checked * 100);
+  const verdict = pct >= 70
+    ? txt('The chart matches your life well; its predictions can be relied on.', 'ஜாதகம் உங்கள் வாழ்க்கையுடன் நன்கு பொருந்துகிறது; அதன் பலன்களை நம்பலாம்.',
+      'ജാതകം നിങ്ങളുടെ ജീവിതവുമായി നന്നായി യോജിക്കുന്നു; ഇതിന്റെ ഫലങ്ങൾ വിശ്വസിക്കാം.')
+    : pct >= 50
+      ? txt('A partial match; entering the real dates of past events and rectifying the birth time may improve it.',
+        'பகுதியளவு பொருத்தம்; கடந்த நிகழ்வுகளின் உண்மையான தேதிகளை உள்ளிட்டு பிறந்த நேரத்தைத் திருத்தினால் மேம்படலாம்.',
+        'ഭാഗികമായ യോജിപ്പ്; കഴിഞ്ഞ സംഭവങ്ങളുടെ യഥാർത്ഥ തീയതികൾ നൽകി ജനനസമയം തിരുത്തിയാൽ മെച്ചപ്പെടാം.')
+      : txt('A poor match: the birth time is probably off. Enter the real dates of past events and run Birth Time Rectification.',
+        'பொருத்தம் குறைவு: பிறந்த நேரம் மாறியிருக்கலாம். கடந்த நிகழ்வுகளின் உண்மையான தேதிகளை உள்ளிட்டு ஜனன நேரத் திருத்தம் செய்யவும்.',
+        'യോജിപ്പ് കുറവ്: ജനനസമയം മാറിയിരിക്കാം. കഴിഞ്ഞ സംഭവങ്ങളുടെ യഥാർത്ഥ തീയതികൾ നൽകി ജനനസമയ തിരുത്തൽ ചെയ്യുക.');
+  return txt(`${right} of ${checked} checked statements are right (${pct}%). `, `சரிபார்த்த ${checked} கூற்றுகளில் ${right} சரி (${pct}%). `,
+    `പരിശോധിച്ച ${checked} പ്രസ്താവനകളിൽ ${right} ശരി (${pct}%). `) + verdict;
+}
+
+function renderParisodhanai(ch) {
+  const panel = document.getElementById('ppanel-parisodhanai');
+  if (!panel) return;
+  if (!ch) {
+    panel.innerHTML = `<p class="muted">${txt('Not available for this chart.', 'இந்த ஜாதகத்திற்குக் கிடைக்கவில்லை.')}</p>`;
+    return;
+  }
+  const marks = loadVerify();
+  const item = s => {
+    const m = marks[s.key] || {};
+    const dateField = s.topic === 'events' ? `
+      <label class="verify-date">${esc(txt('When did it happen?', 'எப்போது நடந்தது?', 'എപ്പോൾ സംഭവിച്ചു?'))}
+        <input type="date" data-verify-date="${esc(s.key)}" value="${esc(m.date || '')}"></label>` : '';
+    return `
+      <div class="verify-item${m.mark ? ` marked-${m.mark}` : ''}" data-key="${esc(s.key)}">
+        <div class="verify-text">
+          <p><strong>${esc(txt(s.en, s.ta, s.ml))}</strong>
+            <span class="status-pill ${CONFIDENCE_PILLS[s.confidence]}">${esc(txt(s.confidence_en, s.confidence_ta, s.confidence_ml))}</span></p>
+          <small class="muted">${esc(txt(s.basis_en, s.basis_ta, s.basis_ml))}</small>
+          ${dateField}
+        </div>
+        <div class="verify-buttons">
+          <button type="button" class="verify-btn right${m.mark === 'right' ? ' active' : ''}" data-mark="right"
+            aria-pressed="${m.mark === 'right'}">✔ ${esc(txt('Right', 'சரி', 'ശരി'))}</button>
+          <button type="button" class="verify-btn wrong${m.mark === 'wrong' ? ' active' : ''}" data-mark="wrong"
+            aria-pressed="${m.mark === 'wrong'}">✘ ${esc(txt('Wrong', 'தவறு', 'തെറ്റ്'))}</button>
+        </div>
+      </div>`;
+  };
+  panel.innerHTML = `
+    <div class="cosmic-card report-intro">
+      <h2>${esc(txt(ch.title.en, ch.title.ta, ch.title.ml))}</h2>
+      <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta, ch.intro.ml))}</p>
+      <p class="verify-score" id="verify-score">${esc(verifyScoreText(ch.statements, marks))}</p>
+    </div>
+    ${VERIFY_GROUPS.map(([topic, en, ta, ml]) => {
+      const list = ch.statements.filter(s => s.topic === topic);
+      return list.length ? `<div class="cosmic-card verify-group"><h3>${esc(txt(en, ta, ml))}</h3>${list.map(item).join('')}</div>` : '';
+    }).join('')}
+    <div class="cosmic-card verify-actions">
+      <p class="muted">${esc(txt('Entered dates of past events can test the birth time on the Tools page.',
+        'உள்ளிட்ட கடந்த நிகழ்வுத் தேதிகளைக் கொண்டு கருவிகள் பக்கத்தில் பிறந்த நேரத்தைச் சோதிக்கலாம்.',
+        'നൽകിയ കഴിഞ്ഞ സംഭവ തീയതികൾ ഉപയോഗിച്ച് ടൂൾസ് പേജിൽ ജനനസമയം പരിശോധിക്കാം.'))}</p>
+      <button type="button" class="action-btn" id="verify-to-rect">${esc(txt('Send dates to Birth Time Rectification',
+        'தேதிகளை ஜனன நேரத் திருத்தத்திற்கு அனுப்பு', 'തീയതികൾ ജനനസമയ തിരുത്തലിലേക്ക് അയയ്ക്കുക'))}</button>
+    </div>`;
+
+  const refresh = () => { $('#verify-score').textContent = verifyScoreText(ch.statements, marks); };
+  panel.querySelectorAll('.verify-item').forEach(row => {
+    const key = row.dataset.key;
+    row.querySelectorAll('.verify-btn').forEach(btn => btn.addEventListener('click', () => {
+      const mark = marks[key]?.mark === btn.dataset.mark ? null : btn.dataset.mark;  // a second click clears it
+      marks[key] = { ...(marks[key] || {}), mark };
+      row.classList.remove('marked-right', 'marked-wrong');
+      if (mark) row.classList.add(`marked-${mark}`);
+      row.querySelectorAll('.verify-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.mark === mark);
+        b.setAttribute('aria-pressed', String(b.dataset.mark === mark));
+      });
+      saveVerify(marks);
+      refresh();
+    }));
+    row.querySelector('[data-verify-date]')?.addEventListener('change', e => {
+      marks[key] = { ...(marks[key] || {}), date: e.target.value };
+      saveVerify(marks);
+    });
+  });
+  $('#verify-to-rect').addEventListener('click', () => {
+    const events = ch.statements.filter(s => s.event && marks[s.key]?.date).map(s => ({ date: marks[s.key].date, type: s.event }));
+    if (!events.length) {
+      notify(txt('Enter the date of at least one past event first.', 'முதலில் குறைந்தது ஒரு கடந்த நிகழ்வின் தேதியை உள்ளிடவும்.',
+        'ആദ്യം കുറഞ്ഞത് ഒരു കഴിഞ്ഞ സംഭവത്തിന്റെ തീയതി നൽകുക.'));
+      return;
+    }
+    rectEvents.splice(0, rectEvents.length, ...events.slice(0, 12));
+    navigatePage('tools');
+    renderRectEvents();
+    $('#rect-events')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
 }

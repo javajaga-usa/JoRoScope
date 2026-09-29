@@ -1,5 +1,16 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+### Parisodhanai (chart verification)
+- A new **Chart Verification** tab states facts about the past for the person to check, as South Indian astrologers do before predicting:
+  - **Siblings:** elder (11th house) and younger (3rd house) brothers and sisters, from the grahas in and aspecting each house, with the karaka and malefic notes.
+  - **Parents:** the father (Sun, 9th house) and mother (Moon, 4th house): a supportive, mixed or testing bond.
+  - **Past events:** the Dasa-Bhukti windows between birth and today for education, work, marriage, children, property, moving, illness and the parents' difficult periods, within the usual ages and ranked by Dasa-Bhukti significators and Saturn-Jupiter double transit.
+- Every statement shows the classical rule behind it and how strongly the chart supports it; event timing is never marked strong.
+- Mark each statement right or wrong for a match score, kept in the browser for that birth data. Enter the real dates of past events and send them to Birth Time Rectification in one click.
+- English, Tamil and Malayalam; the Complete print report includes the statements with a box to tick.
+
 ## [2.3.0] - 2026-09-28
 
 ### Malayalam readings

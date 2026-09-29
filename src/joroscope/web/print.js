@@ -221,9 +221,12 @@ function printOtherDasas(c) {
 function printReportChapters(c) {
   const pred = c.predictions || {};
   const cell = x => esc(txt(x.en, x.ta, x.ml));
-  return REPORT_CHAPTERS.filter(key => pred[key]).map(key => {
+  return [...REPORT_CHAPTERS, 'parisodhanai'].filter(key => pred[key]).map(key => {
     const ch = pred[key];
-    const tables = ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
+    const statements = ch.statements ? h => pjTable(
+      [txt('Statement', 'கூற்று', 'പ്രസ്താവന'), txt('Confidence', 'நம்பகத்தன்மை', 'ഉറപ്പ്'), txt('Right?', 'சரியா?', 'ശരിയോ?')].map(esc),
+      ch.statements.map(s => [cell(s), esc(txt(s.confidence_en, s.confidence_ta, s.confidence_ml)), '☐']), 'compact') : null;
+    const tables = (statements ? statements() : '') + ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
     const grid = ch.grid ? `<div class="pj-chakra">${ch.grid.flat().map(g => `<div class="${esc(g.cls || '')}">${cell(g)}</div>`).join('')}</div>` : '';
     const cards = ch.cards.map(k => `<div class="pj-reading"><h4>${cell(k.title)}</h4><p>${cell(k.body)}</p></div>`).join('');
     return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${grid}${tables}${cards}`;
