@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.6.0] - 2026-09-29
 
 ### Faster on phones
 - The long report chapters (the year-by-year forecast, monthly transits and the six life-area reports) now load just after the first screen, from `/api/chapters`, or when their tab or a print needs them. The chart itself drops from about 915 KB to 770 KB (95 KB compressed).
