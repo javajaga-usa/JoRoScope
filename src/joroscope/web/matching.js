@@ -21,10 +21,11 @@ function populateMatchDropdowns() {
     });
   }
   [gStar, bStar].forEach(sel => [...(sel?.options || [])].forEach((o, i) => {
-    o.textContent = txt(`${i + 1}. ${STARS_EN[i]} (${STARS_TA[i]})`, `${i + 1}. ${STARS_TA[i]} (${STARS_EN[i]})`);
+    o.textContent = txt(`${i + 1}. ${STARS_EN[i]} (${STARS_TA[i]})`, `${i + 1}. ${STARS_TA[i]} (${STARS_EN[i]})`,
+      `${i + 1}. ${mlTerm(STARS_EN[i])}`);
   }));
   [gSign, bSign].forEach(sel => [...(sel?.options || [])].forEach((o, i) => {
-    o.textContent = txt(`${SIGNS_EN[i]} (${SIGNS_TA[i]})`, `${SIGNS_TA[i]} (${SIGNS_EN[i]})`);
+    o.textContent = txt(`${SIGNS_EN[i]} (${SIGNS_TA[i]})`, `${SIGNS_TA[i]} (${SIGNS_EN[i]})`, mlTerm(SIGNS_EN[i]));
   }));
 
   // Populate profiles
@@ -96,6 +97,7 @@ async function runHoroscopeMatch() {
     const match = await resp.json();
     if (!resp.ok) throw new Error(match.error);
     lastMatch = match;
+    learnMalayalam(match);
     syncProfilesFromMatch(match);
     renderMatchResult(match);
     notify(txt('Horoscope compatibility calculated', 'திருமணப் பொருத்தம் கணிக்கப்பட்டது'));
@@ -154,8 +156,9 @@ function renderMatchResult(match) {
   const notes = (match.verdict_notes || []).map(n => txt(n.en, n.ta)).join('; ');
   $('#match-verdict-desc').textContent = txt(
     `${match.passed_count} of 10 Poruthams passed. Guna score: ${g.total_score} of 36.`,
-    `10-ல் ${match.passed_count} பொருத்தங்கள் உள்ளன. குண மதிப்பெண்: 36-ல் ${g.total_score}.`) +
-    (notes ? txt(` Verdict lowered: ${notes}.`, ` முடிவு குறைக்கப்பட்டது: ${notes}.`) : '');
+    `10-ல் ${match.passed_count} பொருத்தங்கள் உள்ளன. குண மதிப்பெண்: 36-ல் ${g.total_score}.`,
+    `10-ൽ ${match.passed_count} പൊരുത്തങ്ങൾ ഉണ്ട്. ഗുണ സ്കോർ: 36-ൽ ${g.total_score}.`) +
+    (notes ? txt(` Verdict lowered: ${notes}.`, ` முடிவு குறைக்கப்பட்டது: ${notes}.`, ` ഫലം കുറച്ചു: ${notes}.`) : '');
 
   const rajjuBadge = $('#match-rajju-badge');
   rajjuBadge.textContent = match.rajju_agreement

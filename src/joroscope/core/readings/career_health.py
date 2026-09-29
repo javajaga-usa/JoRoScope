@@ -1,7 +1,7 @@
 """Career from the Karmajeeva and the D-10, and Ayur-Jyotish (tridosha) health readings.
 """
 
-from .common import DIGNITY_SCORE, PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS, _ordinal
+from .common import DIGNITY_SCORE, MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS, _ordinal
 
 
 # 10. D-10 Dasamsa & Career Vocation Aptitude Engine
@@ -27,6 +27,25 @@ KARMAJEEVA = {
 KARMA_SOURCE = {'Sun': ('father', 'தந்தை'), 'Moon': ('mother', 'தாய்'), 'Mars': ('rivals and competition', 'போட்டியாளர்கள்'),
                 'Mercury': ('friends', 'நண்பர்கள்'), 'Jupiter': ('siblings', 'உடன்பிறந்தோர்'),
                 'Venus': ('spouse and women', 'வாழ்க்கைத் துணை மற்றும் பெண்கள்'), 'Saturn': ('servants and workers', 'பணியாளர்கள்')}
+KARMAJEEVA_ML = {
+    'Sun': 'സർക്കാരും ഭരണവും, വൈദ്യവും ഔഷധങ്ങളും, സ്വർണ്ണം, തുണിത്തരങ്ങൾ, അധികാര സ്ഥാപനങ്ങൾക്കു കീഴിലുള്ള ജോലി',
+    'Moon': 'കൃഷി, ജല-സമുദ്ര ഉൽപ്പന്നങ്ങൾ, ക്ഷീരവ്യവസായം, ആതിഥ്യം, നഴ്സിംഗ്, ജനസമ്പർക്ക ജോലികൾ',
+    'Mars': 'എഞ്ചിനീയറിംഗ്, ലോഹങ്ങളും ധാതുക്കളും, അഗ്നിയും ഊർജ്ജവും, സൈന്യവും പോലീസും, ശസ്ത്രക്രിയ, ഭൂമി-വീട്',
+    'Mercury': 'എഴുത്ത്, അക്കൗണ്ടിംഗ്, വാണിജ്യം, ആശയവിനിമയവും വിവരസാങ്കേതികവിദ്യയും, കരകൗശല തൊഴിലുകൾ',
+    'Jupiter': 'അധ്യാപനം, നിയമം, ബാങ്കിംഗും ധനകാര്യവും, ആത്മീയത, ഉപദേശക ജോലികൾ',
+    'Venus': 'കലയും വിനോദവും, ഫാഷൻ, ആഭരണങ്ങളും രത്നങ്ങളും, ആഡംബര വസ്തുക്കൾ, ആതിഥ്യം',
+    'Saturn': 'വ്യവസായവും നിർമ്മാണവും, ഖനനവും എണ്ണയും, അധ്വാനാധിഷ്ഠിത സ്ഥാപനങ്ങൾ, പൊതുമരാമത്ത്, സേവന സ്ഥാപനങ്ങൾ',
+}
+KARMA_SOURCE_ML = {'Sun': 'അച്ഛൻ', 'Moon': 'അമ്മ', 'Mars': 'എതിരാളികൾ', 'Mercury': 'സുഹൃത്തുക്കൾ', 'Jupiter': 'സഹോദരങ്ങൾ',
+                   'Venus': 'ജീവിതപങ്കാളിയും സ്ത്രീകളും', 'Saturn': 'ജോലിക്കാർ'}
+ARCHETYPES_ML = {
+    'executive': ('സർക്കാർ, പൊതുമേഖല & ഉന്നത ഭരണം', 'സർക്കാർ ജോലികൾ, ഐ.എ.എസ് / ഐ.പി.എസ്, ഉന്നത ഉദ്യോഗസ്ഥൻ, പ്രതിരോധം, നീതിന്യായം'),
+    'technology': ('എഞ്ചിനീയറിംഗ്, സോഫ്റ്റ്‌വെയർ & ആധുനിക സാങ്കേതികവിദ്യ', 'സോഫ്റ്റ്‌വെയർ, നിർമ്മിത ബുദ്ധി, സിവിൽ എഞ്ചിനീയറിംഗ്, ബഹിരാകാശം, ഇലക്ട്രോണിക്സ്'),
+    'commerce': ('വാണിജ്യം, ബാങ്കിംഗ്, നിക്ഷേപം & ധനകാര്യം', 'ബാങ്കിംഗ്, ധനകാര്യ മാനേജ്‌മെന്റ്, ഓഹരി വിപണി, കയറ്റുമതി-ഇറക്കുമതി, വൻകിട വ്യാപാരം'),
+    'medicine': ('വൈദ്യം, ശസ്ത്രക്രിയ & ജനക്ഷേമം', 'ഡോക്ടർ, ശസ്ത്രക്രിയ, ഫാർമസി, ബയോടെക്നോളജി, പ്രകൃതിചികിത്സ, നഴ്സിംഗ്'),
+    'creative': ('നിയമം, നീതി, വിദ്യാഭ്യാസം, കല & മാധ്യമം', 'നിയമോപദേഷ്ടാവ്, പ്രൊഫസർ, സിനിമ, പത്രപ്രവർത്തനം, വാസ്തുവിദ്യ, സർഗ്ഗാത്മക കലകൾ'),
+}
+SUITABILITY_ML = ('പ്രധാന തൊഴിൽ യോഗം', 'മികച്ച പൊരുത്തം', 'മിതമായ സാധ്യത')
 
 def calculate_career_vocation_d10(chart):
     planets = chart['planets']
@@ -85,6 +104,7 @@ def calculate_career_vocation_d10(chart):
     # them show through whom wealth comes.
     shadbala = chart.get('shadbala', {})
     strength = lambda p: shadbala.get(p, {}).get('ratio', 0)
+    ref_ml_names = {'Lagna': 'ലഗ്നം', 'Moon': 'ചന്ദ്രൻ', 'Sun': 'സൂര്യൻ'}
     references = [('Lagna', 'லக்னம்', asc_sign, strength(SIGN_LORDS[asc_sign])),
                   ('Moon', 'சந்திரன்', planets['Moon']['sign_index'], strength('Moon')),
                   ('Sun', 'சூரியன்', planets['Sun']['sign_index'], strength('Sun'))]
@@ -101,12 +121,12 @@ def calculate_career_vocation_d10(chart):
     def d10_standing(p_name):
         sign = planets[p_name]['vargas']['D10']
         if p_name in EXALTATION_SIGN and sign == EXALTATION_SIGN[p_name]:
-            return 2, 'exalted', 'உச்சம்'
+            return 2, 'exalted', 'உச்சம்', 'ഉച്ചം'
         if SIGN_LORDS[sign] == p_name:
-            return 2, 'own sign', 'ஆட்சி'
+            return 2, 'own sign', 'ஆட்சி', 'സ്വക്ഷേത്രം'
         if p_name in EXALTATION_SIGN and sign == (EXALTATION_SIGN[p_name] + 6) % 12:
-            return -1, 'debilitated', 'நீசம்'
-        return 0, None, None
+            return -1, 'debilitated', 'நீசம்', 'നീചം'
+        return 0, None, None, None
 
     def contribution(p_name):
         """How well a graha is placed for career work, roughly -10 to +20."""
@@ -137,7 +157,10 @@ def calculate_career_vocation_d10(chart):
             'suitability': 'Prime Calling (Highest Fit)' if score >= 80 else ('Strong Alignment' if score >= 70 else 'Moderate Potential'),
             'suitability_ta': 'முதன்மைத் தொழில் யோகம்' if score >= 80 else ('சிறந்த பொருத்தம்' if score >= 70 else 'மிதமான வாய்ப்பு'),
             'key_sectors_en': arch['sectors_en'],
-            'key_sectors_ta': arch['sectors_ta']
+            'key_sectors_ta': arch['sectors_ta'],
+            'title_ml': ARCHETYPES_ML[arch['id']][0],
+            'key_sectors_ml': ARCHETYPES_ML[arch['id']][1],
+            'suitability_ml': SUITABILITY_ML[0 if score >= 80 else (1 if score >= 70 else 2)]
         })
 
     scored.sort(key=lambda x: x['score'], reverse=True)
@@ -146,7 +169,7 @@ def calculate_career_vocation_d10(chart):
     kj_en, kj_ta = KARMAJEEVA[karmajeeva]
     sources_en = ', '.join(f"{p} ({KARMA_SOURCE[p][0]})" for p in tenth_occupants)
     sources_ta = ', '.join(f"{PLANET_TAMIL[p]} ({KARMA_SOURCE[p][1]})" for p in tenth_occupants)
-    lord_d10_score, lord_d10_en, lord_d10_ta = d10_standing(h10_lord)
+    lord_d10_score, lord_d10_en, lord_d10_ta, lord_d10_ml = d10_standing(h10_lord)
     d10_house = (planets[h10_lord]['vargas']['D10'] - d10_asc) % 12 + 1
     narrative_en = (
         f"Karmajeeva: the {ref_en} is the strongest of Lagna, Moon and Sun; the 10th from it is {SIGNS[karma_sign]}, whose lord "
@@ -167,6 +190,18 @@ def calculate_career_vocation_d10(chart):
         + f"மிகப் பொருத்தமான துறை: {top_arch['title_ta']} ({top_arch['score']}%), உதாரணமாக {top_arch['key_sectors_ta']}."
     )
 
+    kj_ml = KARMAJEEVA_ML[karmajeeva]
+    sources_ml = ', '.join(f"{PLANET_ML[p]} ({KARMA_SOURCE_ML[p]})" for p in tenth_occupants)
+    narrative_ml = (
+        f"കർമ്മജീവ നിയമം: ലഗ്നം, ചന്ദ്രൻ, സൂര്യൻ എന്നിവയിൽ {ref_ml_names[ref_en]} ഏറ്റവും ബലമുള്ളത്; അതിൽ നിന്ന് 10-ാം രാശി "
+        f"{MALAYALAM_SIGNS[karma_sign]}, അതിന്റെ അധിപൻ {PLANET_ML[karma_lord]} {MALAYALAM_SIGNS[karma_navamsa]} നവാംശത്തിൽ; "
+        f"ആ നവാംശാധിപൻ {PLANET_ML[karmajeeva]}. അതിനാൽ {kj_ml} എന്നിവയിലൂടെ ഉപജീവനം ഉണ്ടാകും. "
+        + (f"ലഗ്നം, ചന്ദ്രൻ അല്ലെങ്കിൽ സൂര്യനിൽ നിന്ന് 10-ൽ ഉള്ള ഗ്രഹങ്ങളാൽ {sources_ml} വഴി വരുമാനത്തിന് സഹായം ലഭിക്കും. " if tenth_occupants else '')
+        + f"ദശാംശത്തിൽ (D-10) നിങ്ങളുടെ 10-ാം അധിപൻ {PLANET_ML[h10_lord]} {d10_house}-ാം ഭാവത്തിൽ"
+        + (f" {lord_d10_ml} നേടി" if lord_d10_ml else '') + " നിൽക്കുന്നു. "
+        + f"ഏറ്റവും അനുയോജ്യമായ മേഖല: {top_arch['title_ml']} ({top_arch['score']}%), ഉദാഹരണത്തിന് {top_arch['key_sectors_ml']}."
+    )
+
     return {
         'top_archetype': top_arch,
         'all_archetypes': scored,
@@ -178,12 +213,14 @@ def calculate_career_vocation_d10(chart):
             'tenth_sign': SIGNS[karma_sign], 'tenth_sign_ta': TAMIL_SIGNS[karma_sign],
             'tenth_lord': karma_lord, 'navamsa_sign': SIGNS[karma_navamsa], 'navamsa_sign_ta': TAMIL_SIGNS[karma_navamsa],
             'planet': karmajeeva, 'planet_ta': PLANET_TAMIL[karmajeeva],
-            'livelihood_en': kj_en, 'livelihood_ta': kj_ta,
+            'livelihood_en': kj_en, 'livelihood_ta': kj_ta, 'livelihood_ml': kj_ml,
             'tenth_occupants': tenth_occupants
         },
         'd10': {'lagna': SIGNS[d10_asc], 'lagna_ta': TAMIL_SIGNS[d10_asc], 'tenth_lord_house': d10_house,
-                'tenth_lord_dignity': lord_d10_en, 'tenth_lord_dignity_ta': lord_d10_ta},
+                'tenth_lord_dignity': lord_d10_en, 'tenth_lord_dignity_ta': lord_d10_ta,
+                'tenth_lord_dignity_ml': lord_d10_ml},
         'narrative_en': narrative_en,
+        'narrative_ml': narrative_ml,
         'narrative_ta': narrative_ta
     }
 
@@ -194,6 +231,15 @@ GRAHA_DOSHA = {'Sun': (0, 1, 0), 'Moon': (0.5, 0, 0.5), 'Mars': (0, 1, 0), 'Merc
                'Jupiter': (0, 0, 1), 'Venus': (0.5, 0, 0.5), 'Saturn': (1, 0, 0), 'Rahu': (1, 0, 0), 'Ketu': (0, 1, 0)}
 SIGN_DOSHA = [((0, 1, 0), (0.5, 0, 0.5), (1, 0, 0), (0, 0, 1))[i % 4] for i in range(12)]
 DOSHA_NAMES = (('Vata', 'வாதம்'), ('Pitta', 'பித்தம்'), ('Kapha', 'கபம்'))
+DOSHA_ML = ('വാതം', 'പിത്തം', 'കഫം')
+BODY_MAP_ML = {
+    'Aries': 'തല, തലച്ചോറ്, കണ്ണ്, നാഡീവ്യൂഹം', 'Taurus': 'തൊണ്ട, തൈറോയ്ഡ് ഗ്രന്ഥി, കഴുത്ത്',
+    'Gemini': 'ശ്വാസനാളം, ശ്വാസകോശം, തോളുകൾ, കൈകൾ', 'Cancer': 'നെഞ്ച്, ആമാശയം, ദഹനം, ശ്വാസകോശം',
+    'Leo': 'ഹൃദയം, രക്തചംക്രമണം, നട്ടെല്ല്, ആത്മബലം', 'Virgo': 'കുടൽ, ദഹനവ്യൂഹം, ഉദര നാഡികൾ',
+    'Libra': 'വൃക്കകൾ, അരക്കെട്ട്, ജലസന്തുലനം', 'Scorpio': 'ഗുഹ്യാവയവങ്ങൾ, വിസർജ്ജന വ്യൂഹം, ഇടുപ്പെല്ല്',
+    'Sagittarius': 'ഇടുപ്പ്, തുടകൾ, കരൾ, ധമനീ രക്തചംക്രമണം', 'Capricorn': 'കാൽമുട്ടുകൾ, എല്ലുകളുടെ ബലം, ത്വക്ക്',
+    'Aquarius': 'കണങ്കാൽ, കാലുകൾ, രക്തചംക്രമണ നാഡികൾ', 'Pisces': 'പാദങ്ങൾ, ലസികാവ്യൂഹം, പ്രതിരോധശേഷി, ഉറക്കം',
+}
 
 
 def _dosha_label(shares):
@@ -201,8 +247,9 @@ def _dosha_label(shares):
     top = max(shares)
     leading = [i for i in range(3) if shares[i] == top]
     if len(leading) == 3:
-        return 'Tridosha', 'திரிதோஷம்'
-    return '-'.join(DOSHA_NAMES[i][0] for i in leading), '-'.join(DOSHA_NAMES[i][1] for i in leading)
+        return 'Tridosha', 'திரிதோஷம்', 'ത്രിദോഷം'
+    return ('-'.join(DOSHA_NAMES[i][0] for i in leading), '-'.join(DOSHA_NAMES[i][1] for i in leading),
+            '-'.join(DOSHA_ML[i] for i in leading))
 
 def calculate_ayur_jyotish(chart):
     planets = chart['planets']
@@ -218,21 +265,28 @@ def calculate_ayur_jyotish(chart):
     waxing = (planets['Moon']['longitude'] - planets['Sun']['longitude']) % 360 < 180
     graha_dosha = dict(GRAHA_DOSHA, Moon=(0.3, 0, 0.7) if waxing else (0.7, 0, 0.3))
     lagna_lord = SIGN_LORDS[asc_sign]
-    contributions = [(3, SIGN_DOSHA[asc_sign], f"Lagna in {SIGNS[asc_sign]}", f"லக்னம் {TAMIL_SIGNS[asc_sign]}"),
-                     (3, graha_dosha[lagna_lord], f"Lagna lord {lagna_lord}", f"லக்னாதிபதி {PLANET_TAMIL[lagna_lord]}"),
-                     (2, SIGN_DOSHA[moon_sign], f"Moon in {SIGNS[moon_sign]}", f"சந்திரன் {TAMIL_SIGNS[moon_sign]} ராசியில்"),
-                     (1, graha_dosha['Moon'], f"{'Waxing' if waxing else 'Waning'} Moon", 'வளர்பிறைச் சந்திரன்' if waxing else 'தேய்பிறைச் சந்திரன்'),
-                     (1, SIGN_DOSHA[sun_sign], f"Sun in {SIGNS[sun_sign]}", f"சூரியன் {TAMIL_SIGNS[sun_sign]} ராசியில்")]
+    M = MALAYALAM_SIGNS
+    contributions = [(3, SIGN_DOSHA[asc_sign], f"Lagna in {SIGNS[asc_sign]}", f"லக்னம் {TAMIL_SIGNS[asc_sign]}", f"ലഗ്നം {M[asc_sign]}"),
+                     (3, graha_dosha[lagna_lord], f"Lagna lord {lagna_lord}", f"லக்னாதிபதி {PLANET_TAMIL[lagna_lord]}",
+                      f"ലഗ്നാധിപൻ {PLANET_ML[lagna_lord]}"),
+                     (2, SIGN_DOSHA[moon_sign], f"Moon in {SIGNS[moon_sign]}", f"சந்திரன் {TAMIL_SIGNS[moon_sign]} ராசியில்",
+                      f"ചന്ദ്രൻ {M[moon_sign]} രാശിയിൽ"),
+                     (1, graha_dosha['Moon'], f"{'Waxing' if waxing else 'Waning'} Moon", 'வளர்பிறைச் சந்திரன்' if waxing else 'தேய்பிறைச் சந்திரன்',
+                      'വൃദ്ധിചന്ദ്രൻ' if waxing else 'ക്ഷയചന്ദ്രൻ'),
+                     (1, SIGN_DOSHA[sun_sign], f"Sun in {SIGNS[sun_sign]}", f"சூரியன் {TAMIL_SIGNS[sun_sign]} ராசியில்",
+                      f"സൂര്യൻ {M[sun_sign]} രാശിയിൽ")]
     for name in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
         if planets[name]['house'] == 1:
-            contributions.append((2, graha_dosha[name], f"{name} in the Lagna", f"லக்னத்தில் {PLANET_TAMIL[name]}"))
+            contributions.append((2, graha_dosha[name], f"{name} in the Lagna", f"லக்னத்தில் {PLANET_TAMIL[name]}",
+                                  f"ലഗ്നത്തിൽ {PLANET_ML[name]}"))
         elif 1 in planets[name].get('aspects_cast', []):
-            contributions.append((1, graha_dosha[name], f"{name} aspecting the Lagna", f"லக்னத்தைப் பார்க்கும் {PLANET_TAMIL[name]}"))
-    vata_pts = sum(w * d[0] for w, d, _, _ in contributions)
-    pitta_pts = sum(w * d[1] for w, d, _, _ in contributions)
-    kapha_pts = sum(w * d[2] for w, d, _, _ in contributions)
-    factors = [dict(en=f"{en}: {_dosha_label(d)[0]}", ta=f"{ta}: {_dosha_label(d)[1]}", weight=w)
-               for w, d, en, ta in contributions]
+            contributions.append((1, graha_dosha[name], f"{name} aspecting the Lagna", f"லக்னத்தைப் பார்க்கும் {PLANET_TAMIL[name]}",
+                                  f"ലഗ്നത്തെ നോക്കുന്ന {PLANET_ML[name]}"))
+    vata_pts = sum(c[0] * c[1][0] for c in contributions)
+    pitta_pts = sum(c[0] * c[1][1] for c in contributions)
+    kapha_pts = sum(c[0] * c[1][2] for c in contributions)
+    factors = [dict(en=f"{en}: {_dosha_label(d)[0]}", ta=f"{ta}: {_dosha_label(d)[1]}", ml=f"{ml}: {_dosha_label(d)[2]}", weight=w)
+               for w, d, en, ta, ml in contributions]
 
     total = vata_pts + pitta_pts + kapha_pts
     v_pct = int(round(vata_pts / total * 100))
@@ -243,6 +297,9 @@ def calculate_ayur_jyotish(chart):
     dom1, dom2 = scores[0], scores[1]
     prakriti_en = f"{dom1[0]}-{dom2[0]} Dominant" if abs(dom1[1] - dom2[1]) <= 12 else f"{dom1[0]} Dominant"
     prakriti_ta = f"{dom1[2]}-{dom2[2]} பிரகிருதி" if abs(dom1[1] - dom2[1]) <= 12 else f"{dom1[2]} பிரதான பிரகிருதி"
+    ml_name = {'Vata': 'വാത', 'Pitta': 'പിത്ത', 'Kapha': 'കഫ'}
+    prakriti_ml = (f"{ml_name[dom1[0]]}-{ml_name[dom2[0]]} പ്രകൃതി" if abs(dom1[1] - dom2[1]) <= 12
+                   else f"{ml_name[dom1[0]]} പ്രധാന പ്രകൃതി")
 
     body_map = {
         'Aries': ('Head, cranium, facial nerves, and ocular vitality', 'தலை, மூளை, கண் மற்றும் நரம்பு மண்டலம்'),
@@ -265,12 +322,14 @@ def calculate_ayur_jyotish(chart):
     for name in ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'):
         house = planets[name]['house']
         if house in (6, 8):
-            label_en, label_ta = _dosha_label(GRAHA_DOSHA[name])
+            label_en, label_ta, label_ml = _dosha_label(GRAHA_DOSHA[name])
             health_watch.append(dict(
+                ml=f"{house}-ാം ഭാവത്തിൽ {PLANET_ML[name]}: {label_ml} സന്തുലനത്തിലും {BODY_MAP_ML[SIGNS[planets[name]['sign_index']]]} എന്നിവയിലും ശ്രദ്ധ വേണം.",
                 en=f"{name} in the {_ordinal(house)} house: watch {label_en} imbalance and {body_map[SIGNS[planets[name]['sign_index']]][0].lower()}.",
                 ta=f"{house}-ஆம் பாவத்தில் {PLANET_TAMIL[name]}: {label_ta} சமநிலையிலும் {body_map[SIGNS[planets[name]['sign_index']]][1]} பகுதியிலும் கவனம் தேவை."))
     h6_lord_house = planets[h6_lord]['house']
     health_watch.append(dict(
+        ml=f"6-ാം അധിപൻ {PLANET_ML[h6_lord]} {h6_lord_house}-ാം ഭാവത്തിൽ, {MALAYALAM_SIGNS[planets[h6_lord]['sign_index']]} രാശിയിൽ നിൽക്കുന്നു.",
         en=f"The 6th lord {h6_lord} sits in the {_ordinal(h6_lord_house)} house, in {planets[h6_lord]['sign']}.",
         ta=f"6-ஆம் அதிபதி {PLANET_TAMIL[h6_lord]} {h6_lord_house}-ஆம் பாவத்தில், {planets[h6_lord]['tamil']} ராசியில் உள்ளார்."))
 
@@ -288,7 +347,17 @@ def calculate_ayur_jyotish(chart):
         f"{'எளிதில் செரிக்கும் உணவுகள், மிளகு/இஞ்சி சேர்த்த சுக்குநீர் மற்றும் சுறுசுறுப்பான உடற்பயிற்சி ஆரோக்கியம் காக்கும்.' if 'Kapha' in prakriti_en else ''}"
     )
 
+    lifestyle_ml = (
+        f"നിങ്ങളുടെ ശരീരപ്രകൃതി {prakriti_ml} സ്വഭാവമുള്ളതാണ് (വാതം: {v_pct}%, പിത്തം: {p_pct}%, കഫം: {k_pct}%). "
+        f"{'ചെറുചൂടുള്ള പോഷകാഹാരം, ക്രമമായ ഉറക്കസമയം, നല്ലെണ്ണ തേച്ചുകുളി എന്നിവ നല്ലത്. ' if 'Vata' in prakriti_en else ''}"
+        f"{'തണുപ്പും ജലാംശവുമുള്ള ഭക്ഷണം, അധിക എരിവ് ഒഴിവാക്കൽ, മനസ്സമാധാനം നൽകുന്ന ധ്യാനം എന്നിവ നല്ലത്. ' if 'Pitta' in prakriti_en else ''}"
+        f"{'എളുപ്പം ദഹിക്കുന്ന ഭക്ഷണം, കുരുമുളക്/ഇഞ്ചി ചേർത്ത ചുക്കുവെള്ളം, ഉന്മേഷമുള്ള വ്യായാമം എന്നിവ ആരോഗ്യം കാക്കും.' if 'Kapha' in prakriti_en else ''}"
+    ).strip()
+
     return {
+        'prakriti_ml': prakriti_ml,
+        'anatomical_vulnerabilities_ml': BODY_MAP_ML.get(SIGNS[h6_sign], 'ശരീരാരോഗ്യവും ക്രമമായ പ്രവർത്തനവും'),
+        'lifestyle_guidance_ml': lifestyle_ml,
         'prakriti_en': prakriti_en,
         'prakriti_ta': prakriti_ta,
         'vata_percentage': v_pct,

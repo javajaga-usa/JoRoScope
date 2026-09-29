@@ -9,7 +9,10 @@ windows when the report has them.
 """
 from datetime import datetime, timezone
 
-from .common import DIGNITY_SCORE, HOUSE_THEMES, PLANET_TAMIL, SIGN_LORDS, SIGNS, TAMIL_SIGNS
+from .common import (
+    DIGNITY_PHRASE_ML, DIGNITY_SCORE, HOUSE_THEMES, HOUSE_THEMES_ML, MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGN_LORDS,
+    SIGNS, TAMIL_SIGNS
+)
 from .report import card, chapter, table
 
 GRAHA_ASPECTS = {'Mars': (4, 7, 8), 'Jupiter': (5, 7, 9), 'Saturn': (3, 7, 10)}
@@ -26,6 +29,23 @@ SPOUSE_BY_GRAHA = {
     'Rahu': ('unconventional or from a different culture or place', 'மரபுக்கு மாறானவர் அல்லது வேறு பண்பாடு, இடத்தைச் சேர்ந்தவர்'),
     'Ketu': ('spiritual, reserved and detached', 'ஆன்மீக நாட்டமும் அமைதியும் பற்றின்மையும் உடையவர்'),
 }
+SPOUSE_BY_GRAHA_ML = {
+    'Sun': 'മാന്യതയും ആദർശനിഷ്ഠയും ഉള്ളയാൾ, ആദരണീയ കുടുംബത്തിൽ നിന്ന്',
+    'Moon': 'സൗമ്യതയും സ്നേഹവും വൈകാരികതയും ഉള്ളയാൾ, കുടുംബസ്നേഹി',
+    'Mars': 'ഉന്മേഷവും തുറന്ന മനസ്സും ധൈര്യവും ഉള്ളയാൾ, അല്പം മുൻകോപം',
+    'Mercury': 'യൗവനരൂപവും നർമ്മബോധവും വിദ്യയും ഉള്ളയാൾ, സംസാരത്തിലും വ്യാപാരത്തിലും സമർത്ഥൻ',
+    'Jupiter': 'ജ്ഞാനവും ഭക്തിയും ഉദാരമനസ്സും ഉള്ളയാൾ, നല്ല ഉപദേശകൻ',
+    'Venus': 'സൗന്ദര്യവും കലാബോധവും സ്നേഹവും ഉള്ളയാൾ, സുഖങ്ങളിൽ താൽപ്പര്യം',
+    'Saturn': 'പക്വതയും അധ്വാനശീലവും ഗൗരവവും ഉള്ളയാൾ, പ്രായത്തിൽ മുതിർന്നയാളോ വ്യത്യസ്ത പശ്ചാത്തലമുള്ളയാളോ',
+    'Rahu': 'പാരമ്പര്യത്തിന് വിരുദ്ധമായ സ്വഭാവമുള്ളയാൾ, അല്ലെങ്കിൽ മറ്റൊരു സംസ്കാരത്തിൽ നിന്നോ സ്ഥലത്തു നിന്നോ',
+    'Ketu': 'ആത്മീയതാൽപ്പര്യവും ശാന്തതയും നിസ്സംഗതയും ഉള്ളയാൾ',
+}
+DIGNITY_ML = {'Exalted': 'ഉച്ചം', 'Own Sign': 'സ്വക്ഷേത്രം', 'Moolatrikona': 'മൂലത്രികോണം', 'Great Friend': 'അതിമിത്രം',
+              'Friend': 'മിത്രം', 'Neutral': 'സമം', 'Enemy': 'ശത്രു', 'Great Enemy': 'അതിശത്രു', 'Debilitated': 'നീചം'}
+_ml_list = lambda gs: ', '.join(PLANET_ML[g] for g in gs)
+_dig_ml = lambda d: DIGNITY_PHRASE_ML.get(d, DIGNITY_ML.get(d, d))
+WINDOW_HEAD = [('Dasa / Bhukti', 'தசை / புக்தி', 'ദശ / ഭുക്തി'), ('From', 'முதல்', 'മുതൽ'), ('To', 'வரை', 'വരെ'),
+               ('Strength', 'வலு', 'ബലം')]
 
 
 def _house(planets, g):
@@ -67,8 +87,9 @@ def period_windows(dasha_rows, significators, now, horizon_years=25, limit=8):
 
 
 def _window_rows(windows):
-    return [((f"{w['dasa']} / {w['bhukti']}", f"{PLANET_TAMIL[w['dasa']]} / {PLANET_TAMIL[w['bhukti']]}"), w['start'], w['end'],
-             ('strong' if w['strength'] == 'strong' else 'moderate', 'வலுவானது' if w['strength'] == 'strong' else 'மிதமானது'))
+    return [((f"{w['dasa']} / {w['bhukti']}", f"{PLANET_TAMIL[w['dasa']]} / {PLANET_TAMIL[w['bhukti']]}",
+              f"{PLANET_ML[w['dasa']]} / {PLANET_ML[w['bhukti']]}"), w['start'], w['end'],
+             ('strong', 'வலுவானது', 'ശക്തം') if w['strength'] == 'strong' else ('moderate', 'மிதமானது', 'മിതം'))
             for w in windows]
 
 
@@ -112,6 +133,8 @@ def calculate_marriage_report(chart, jaimini=None, double_transit=None, now=None
     traits = [g for g in occupants] or [lord7]
     trait_en = '; '.join(SPOUSE_BY_GRAHA[g][0] for g in traits[:2])
     trait_ta = '; '.join(SPOUSE_BY_GRAHA[g][1] for g in traits[:2])
+    trait_ml = '; '.join(SPOUSE_BY_GRAHA_ML[g] for g in traits[:2])
+    M = MALAYALAM_SIGNS
     cards = [
         card('💞', f'The 7th house: {SIGNS[seventh]}', f'7-ஆம் இடம்: {TAMIL_SIGNS[seventh]}',
              f"The 7th lord {lord7} is in house {lord_house} ({HOUSE_THEMES[lord_house][0]}), {lord_dig.lower()}. "
@@ -124,7 +147,12 @@ def calculate_marriage_report(chart, jaimini=None, double_transit=None, now=None
              + (f"பார்வை: {', '.join(PLANET_TAMIL[g] for g in aspects)}. " if aspects else '')
              + (f"சுபர் தொடர்பு ({', '.join(PLANET_TAMIL[g] for g in good)}) இணக்கம் தரும். " if good else '')
              + (f"பாபர் தொடர்பு ({', '.join(PLANET_TAMIL[g] for g in hard)}) பொறுமையும் புரிதலும் கேட்கும்." if hard else ''),
-             verdict=verdict),
+             verdict=verdict, title_ml=f'7-ാം ഭാവം: {M[seventh]}',
+             body_ml=(f"7-ാം അധിപൻ {PLANET_ML[lord7]} {lord_house}-ാം ഭാവത്തിൽ ({HOUSE_THEMES_ML[lord_house]}), {_dig_ml(lord_dig)}. "
+                      + (f"7-ൽ: {_ml_list(occupants)}. " if occupants else '7-ാം ഭാവത്തിൽ ഗ്രഹമില്ല. ')
+                      + (f"ദൃഷ്ടി: {_ml_list(aspects)}. " if aspects else '')
+                      + (f"ശുഭഗ്രഹ ബന്ധം ({_ml_list(good)}) ഐക്യം നൽകും. " if good else '')
+                      + (f"പാപഗ്രഹ ബന്ധം ({_ml_list(hard)}) ക്ഷമയും പരസ്പരധാരണയും ആവശ്യപ്പെടും." if hard else '')).strip()),
         card('🌸', f'Venus, the karaka of marriage: {venus_dig}', f'களத்திர காரகன் சுக்கிரன்: {venus_dig}',
              f"Venus is in house {_house(planets, 'Venus')} in {planets['Venus']['sign']}. "
              + ('A well-placed Venus favours affection and a comfortable married life.' if venus_score > 0 else
@@ -136,12 +164,22 @@ def calculate_marriage_report(chart, jaimini=None, double_transit=None, now=None
              + ('நன்கு அமைந்த சுக்கிரன் அன்பையும் சுகமான இல்லறத்தையும் தரும்.' if venus_score > 0 else
                 'சுக்கிரனுக்கு ஆதரவு தேவை; அன்பையும் பொது ஆர்வங்களையும் வளர்க்கவும்.' if venus_score < 0 else
                 'சுக்கிரன் மிதமான நிலையில் உள்ளது.')
-             + f" பெண் ஜாதகத்தில் குருவும் கணவர் காரகன்: குரு {_house(planets, 'Jupiter')}-ஆம் இடத்தில்."),
+             + f" பெண் ஜாதகத்தில் குருவும் கணவர் காரகன்: குரு {_house(planets, 'Jupiter')}-ஆம் இடத்தில்.",
+             title_ml=f"വിവാഹകാരകൻ ശുക്രൻ: {DIGNITY_ML.get(venus_dig, venus_dig)}",
+             body_ml=(f"ശുക്രൻ {_house(planets, 'Venus')}-ാം ഭാവത്തിൽ {M[planets['Venus']['sign_index']]} രാശിയിൽ. "
+                      + ('നല്ല നിലയിലുള്ള ശുക്രൻ സ്നേഹവും സുഖകരമായ ദാമ്പത്യവും നൽകും.' if venus_score > 0 else
+                         'ശുക്രന് പിന്തുണ വേണം; സ്നേഹവും പൊതുതാൽപ്പര്യങ്ങളും വളർത്തുക.' if venus_score < 0 else
+                         'ശുക്രൻ മിതമായ നിലയിലാണ്.')
+                      + f" സ്ത്രീജാതകത്തിൽ വ്യാഴവും ഭർതൃകാരകനാണ്: വ്യാഴം {_house(planets, 'Jupiter')}-ാം ഭാവത്തിൽ, "
+                      + f"{_dig_ml(planets['Jupiter'].get('dignity', 'Neutral'))}.")),
         card('👤', 'The spouse', 'வாழ்க்கைத்துணை',
              f"The 7th house points to a partner who is {trait_en}. The Navamsa's 7th lord is {d9_lord7}"
              + (f", and the Darakaraka is {dk}" if dk else '') + '.',
              f"7-ஆம் இடம் காட்டும் வாழ்க்கைத்துணை: {trait_ta}. நவாம்ச 7-ஆம் அதிபதி {PLANET_TAMIL[d9_lord7]}"
-             + (f"; தாரகாரகன் {PLANET_TAMIL[dk]}" if dk else '') + '.'),
+             + (f"; தாரகாரகன் {PLANET_TAMIL[dk]}" if dk else '') + '.',
+             title_ml='ജീവിതപങ്കാളി',
+             body_ml=(f"7-ാം ഭാവം കാണിക്കുന്ന ജീവിതപങ്കാളി: {trait_ml}. നവാംശ 7-ാം അധിപൻ {PLANET_ML[d9_lord7]}"
+                      + (f"; ദാരകാരകൻ {PLANET_ML[dk]}" if dk else '') + '.')),
     ]
     if upapada is not None:
         second = (upapada + 1) % 12
@@ -153,14 +191,18 @@ def calculate_marriage_report(chart, jaimini=None, double_transit=None, now=None
                           "உபபதம் (12-ஆம் ஆரூடம்) திருமணத்தையும், அதன் 2-ஆம் இடம் அதன் நீடிப்பையும் காட்டும். "
                           + (f"அங்கு பாபர்கள் ({', '.join(PLANET_TAMIL[g] for g in in_second)}): உறவை நிலைப்படுத்தக் கவனம் தேவை." if in_second else
                              'அதன் 2-இல் பாபர் இல்லை; நீடித்த உறவுக்கு ஆதரவு.'),
-                          verdict='mixed' if in_second else 'good'))
+                          verdict='mixed' if in_second else 'good', title_ml=f'ഉപപദം {M[upapada]}',
+                          body_ml=("ഉപപദം (12-ാം ആരൂഢം) വിവാഹത്തെയും അതിൽ നിന്ന് 2-ാം ഭാവം അതിന്റെ തുടർച്ചയെയും കാണിക്കുന്നു. "
+                                   + (f"അവിടെ പാപഗ്രഹങ്ങൾ ({_ml_list(in_second)}): ബന്ധം സ്ഥിരമാക്കാൻ ശ്രദ്ധ വേണം." if in_second else
+                                      'അതിന്റെ 2-ൽ പാപഗ്രഹമില്ല; നീണ്ടുനിൽക്കുന്ന ബന്ധത്തിന് പിന്തുണ.'))))
     doshas = chart.get('doshas') or {}
     chevvai = doshas.get('chevvai') or {}
     if chevvai.get('effective', chevvai.get('present') and not chevvai.get('cancelled')):
         cards.append(card('🛡️', 'Chevvai Dosham', 'செவ்வாய் தோஷம்',
                           'Chevvai Dosham is present: match with a partner with a similar dosha (dosha samyam), and see the Parihara chapter.',
                           'செவ்வாய் தோஷம் உள்ளது: இதே தோஷம் உள்ள வரனுடன் பொருத்தவும் (தோஷ சாம்யம்); பரிகார அத்தியாயத்தைப் பார்க்கவும்.',
-                          verdict='bad'))
+                          verdict='bad', title_ml='ചൊവ്വാദോഷം',
+                          body_ml='ചൊവ്വാദോഷമുണ്ട്: സമാന ദോഷമുള്ള പങ്കാളിയുമായി ചേർക്കുക (ദോഷസാമ്യം); പരിഹാര അധ്യായം കാണുക.'))
 
     significators = {lord7, 'Venus', d9_lord7, *occupants} | ({dk} if dk else set())
     windows = period_windows(chart.get('dasha') or [], significators, now)
@@ -171,15 +213,20 @@ def calculate_marriage_report(chart, jaimini=None, double_transit=None, now=None
                       + (f" Saturn and Jupiter together activate the 7th (double transit) in {len(dt)} window(s) ahead." if dt else ''),
                       (f"திருமணக் காரகக் கிரகங்களின் ({', '.join(PLANET_TAMIL[g] for g in sorted(significators))}) காலங்கள் கீழே; "
                        'தசா, புக்தி அதிபதிகள் இருவரும் காரகர்களானால் வலுவானவை.' if windows else 'வரும் ஆண்டுகளில் தெளிவான திருமணக் காலம் இல்லை.')
-                      + (f" சனியும் குருவும் சேர்ந்து 7-ஆம் இடத்தைத் தூண்டும் (இரட்டைக் கோச்சாரம்) காலங்கள்: {len(dt)}." if dt else '')))
+                      + (f" சனியும் குருவும் சேர்ந்து 7-ஆம் இடத்தைத் தூண்டும் (இரட்டைக் கோச்சாரம்) காலங்கள்: {len(dt)}." if dt else ''),
+                      title_ml='എപ്പോൾ',
+                      body_ml=(f"വിവാഹകാരക ഗ്രഹങ്ങളുടെ ({_ml_list(sorted(significators))}) കാലങ്ങൾ താഴെ; "
+                               'ദശ, ഭുക്തി അധിപന്മാർ രണ്ടും കാരകരാണെങ്കിൽ അവ ശക്തമാണ്.' if windows else 'വരുന്ന വർഷങ്ങളിൽ വ്യക്തമായ വിവാഹകാലമില്ല.')
+                      + (f" ശനിയും വ്യാഴവും ചേർന്ന് 7-ാം ഭാവത്തെ ഉണർത്തുന്ന (ഇരട്ട ഗോചരം) കാലങ്ങൾ: {len(dt)}." if dt else '')))
     return chapter(
         'marriage', 'Marriage (Kalatra) Report', 'திருமண (களத்திர) அறிக்கை',
         'What the chart promises for marriage (the 7th house, Venus and Jupiter, the Darakaraka, Upapada and Navamsa) and '
         'the periods that bring it.',
         'திருமணம் குறித்து ஜாதகம் தருவது (7-ஆம் இடம், சுக்கிரன், குரு, தாரகாரகன், உபபதம், நவாம்சம்) மற்றும் அதைத் தரும் காலங்கள்.',
         cards=cards,
-        tables=[table('Periods for marriage', 'திருமணக் காலங்கள்',
-                      [('Dasa / Bhukti', 'தசை / புக்தி'), ('From', 'முதல்'), ('To', 'வரை'), ('Strength', 'வலு')], _window_rows(windows))],
+        tables=[table('Periods for marriage', 'திருமணக் காலங்கள்', WINDOW_HEAD, _window_rows(windows), title_ml='വിവാഹ കാലങ്ങൾ')],
+        title_ml='വിവാഹ (കളത്ര) റിപ്പോർട്ട്',
+        intro_ml='വിവാഹത്തെക്കുറിച്ച് ജാതകം നൽകുന്നത് (7-ാം ഭാവം, ശുക്രൻ, വ്യാഴം, ദാരകാരകൻ, ഉപപദം, നവാംശം), അത് നൽകുന്ന കാലങ്ങളും.',
         significators=sorted(significators), windows=windows, verdict=verdict)
 
 
@@ -196,11 +243,12 @@ def calculate_career_report(chart, jaimini=None, career_d10=None, double_transit
     d10_lord10 = SIGN_LORDS[(d10 + 9) % 12]
     lord_house = _house(planets, lord10)
     lord_dig, lord_score = _dignity_words(planets, lord10)
-    field_en = field_ta = ''
+    field_en = field_ta = field_ml = ''
     if career_d10 and career_d10.get('top_archetype'):
         top = career_d10['top_archetype']
         field_en = f" The best-fitting field is {top.get('name_en', top.get('title_en', ''))}."
         field_ta = f" பொருத்தமான துறை: {top.get('name_ta', top.get('title_ta', ''))}."
+        field_ml = f" അനുയോജ്യമായ മേഖല: {top.get('title_ml', top.get('title_en', ''))}."
     cards = [
         card('💼', f'The 10th house: {SIGNS[tenth]}', f'10-ஆம் இடம்: {TAMIL_SIGNS[tenth]}',
              f"The 10th lord {lord10} is in house {lord_house} ({HOUSE_THEMES[lord_house][0]}), {lord_dig.lower()}. "
@@ -209,7 +257,11 @@ def calculate_career_report(chart, jaimini=None, career_d10=None, double_transit
              f"10-ஆம் அதிபதி {PLANET_TAMIL[lord10]} {lord_house}-ஆம் இடத்தில் ({HOUSE_THEMES[lord_house][1]}). "
              + (f"10-இல்: {', '.join(PLANET_TAMIL[g] for g in occupants)}; இவை தொழிலின் தன்மையை வடிவமைக்கும். " if occupants else '')
              + f"தசாம்ச 10-ஆம் அதிபதி {PLANET_TAMIL[d10_lord10]}" + (f"; அமாத்யகாரகன் {PLANET_TAMIL[amk]}" if amk else '') + '.' + field_ta,
-             verdict='good' if lord_score > 0 and lord_house not in (6, 8, 12) else ('bad' if lord_score < 0 and lord_house in (6, 8, 12) else 'mixed')),
+             verdict='good' if lord_score > 0 and lord_house not in (6, 8, 12) else ('bad' if lord_score < 0 and lord_house in (6, 8, 12) else 'mixed'),
+             title_ml=f'10-ാം ഭാവം: {MALAYALAM_SIGNS[tenth]}',
+             body_ml=(f"10-ാം അധിപൻ {PLANET_ML[lord10]} {lord_house}-ാം ഭാവത്തിൽ ({HOUSE_THEMES_ML[lord_house]}), {_dig_ml(lord_dig)}. "
+                      + (f"10-ൽ: {_ml_list(occupants)}; ഇവ തൊഴിലിന്റെ സ്വഭാവം രൂപപ്പെടുത്തും. " if occupants else '')
+                      + f"ദശാംശ 10-ാം അധിപൻ {PLANET_ML[d10_lord10]}" + (f"; അമാത്യകാരകൻ {PLANET_ML[amk]}" if amk else '') + '.' + field_ml)),
     ]
     significators = {lord10, d10_lord10, 'Sun', 'Saturn', *occupants} | ({amk} if amk else set())
     windows = period_windows(chart.get('dasha') or [], significators, now)
@@ -220,12 +272,17 @@ def calculate_career_report(chart, jaimini=None, career_d10=None, double_transit
                       + (f" Double transit on the 10th: {len(dt)} window(s) ahead." if dt else ''),
                       (f"தொழில் காரகர்களின் ({', '.join(PLANET_TAMIL[g] for g in sorted(significators))}) காலங்கள் பதவி உயர்வு, புதிய பொறுப்பு, "
                        'அங்கீகாரம் தரும்; வலுவானவை கீழே.' if windows else 'வரும் ஆண்டுகளில் தெளிவான தொழில் உயர்வுக் காலம் இல்லை.')
-                      + (f" 10-ஆம் இடத்தில் இரட்டைக் கோச்சாரம்: {len(dt)} காலங்கள்." if dt else '')))
+                      + (f" 10-ஆம் இடத்தில் இரட்டைக் கோச்சாரம்: {len(dt)} காலங்கள்." if dt else ''),
+                      title_ml='ഉയർച്ചയുടെ കാലങ്ങൾ',
+                      body_ml=(f"തൊഴിൽ കാരകരുടെ ({_ml_list(sorted(significators))}) കാലങ്ങൾ സ്ഥാനക്കയറ്റം, പുതിയ ചുമതല, "
+                               'അംഗീകാരം എന്നിവ നൽകും; ശക്തമായവ താഴെ.' if windows else 'വരുന്ന വർഷങ്ങളിൽ വ്യക്തമായ തൊഴിൽ ഉയർച്ചാകാലമില്ല.')
+                      + (f" 10-ാം ഭാവത്തിൽ ഇരട്ട ഗോചരം: {len(dt)} കാലങ്ങൾ." if dt else '')))
     return chapter(
         'career_report', 'Career Report', 'தொழில் அறிக்கை',
         'The 10th house, its lord, the Dasamsa and the Amatyakaraka, with the periods that bring rise in work.',
         '10-ஆம் இடம், அதன் அதிபதி, தசாம்சம், அமாத்யகாரகன் மற்றும் தொழில் உயர்வுக் காலங்கள்.',
         cards=cards,
-        tables=[table('Periods for career', 'தொழில் காலங்கள்',
-                      [('Dasa / Bhukti', 'தசை / புக்தி'), ('From', 'முதல்'), ('To', 'வரை'), ('Strength', 'வலு')], _window_rows(windows))],
+        tables=[table('Periods for career', 'தொழில் காலங்கள்', WINDOW_HEAD, _window_rows(windows), title_ml='തൊഴിൽ കാലങ്ങൾ')],
+        title_ml='തൊഴിൽ റിപ്പോർട്ട്',
+        intro_ml='10-ാം ഭാവം, അതിന്റെ അധിപൻ, ദശാംശം, അമാത്യകാരകൻ, തൊഴിലിൽ ഉയർച്ച നൽകുന്ന കാലങ്ങൾ.',
         significators=sorted(significators), windows=windows)

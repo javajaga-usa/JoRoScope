@@ -7,7 +7,8 @@ The Surya, Chandra and Nabhasa yogas use the seven grahas only; Rahu and Ketu en
 yogas that name them.
 """
 from .engine import SIGN_LORDS
-from .readings.common import PLANET_TAMIL
+from .readings.common import PLANET_ML, PLANET_ML_CASE, PLANET_TAMIL
+from .yogas_ml import CATEGORIES_ML, NATURES_ML, YOGAS_ML
 from .shadbala import _benefics
 
 SEVEN = ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn')
@@ -325,24 +326,28 @@ class Chart:
         return self.sign(a) == self.sign(b) or exchange or (self.aspects(a, self.sign(b)) and self.aspects(b, self.sign(a)))
 
 
-def _found(key, planets, note_en='', note_ta=''):
+def _found(key, planets, note_en='', note_ta='', note_ml=''):
     en, ta, category, nature, desc_en, desc_ta = YOGAS[key]
     cat_en, cat_ta = CATEGORIES[category]
     nat_en, nat_ta = NATURES[nature]
+    name_ml, desc_ml = YOGAS_ML[key]
     suffix_en = f" ({', '.join(planets)})" if key in ('raja', 'dhana', 'yogakaraka', 'neechabhanga', 'maha_parivartana',
                                                     'khala_parivartana', 'dainya_parivartana', 'dharma_karmadhipati') else ''
     suffix_ta = f" ({', '.join(PLANET_TAMIL[g] for g in planets)})" if suffix_en else ''
-    return dict(key=key, name=en + suffix_en, name_ta=ta + suffix_ta, category=cat_en, category_ta=cat_ta,
-                auspiciousness=nat_en, auspiciousness_ta=nat_ta, nature=nature,
+    suffix_ml = f" ({', '.join(PLANET_ML[g] for g in planets)})" if suffix_en else ''
+    return dict(key=key, name=en + suffix_en, name_ta=ta + suffix_ta, name_ml=name_ml + suffix_ml,
+                category=cat_en, category_ta=cat_ta, category_ml=CATEGORIES_ML[category],
+                auspiciousness=nat_en, auspiciousness_ta=nat_ta, auspiciousness_ml=NATURES_ML[nature], nature=nature,
                 description=desc_en + (f' {note_en}' if note_en else ''),
-                description_ta=desc_ta + (f' {note_ta}' if note_ta else ''), planets=list(planets))
+                description_ta=desc_ta + (f' {note_ta}' if note_ta else ''),
+                description_ml=desc_ml + (f' {note_ml}' if note_ml else ''), planets=list(planets))
 
 
 def detect(planets):
     """Every yoga present in the chart, auspicious ones first."""
     c = Chart(planets)
     found = []
-    add = lambda key, grahas, note_en='', note_ta='': found.append(_found(key, grahas, note_en, note_ta))
+    add = lambda key, grahas, note_en='', note_ta='', note_ml='': found.append(_found(key, grahas, note_en, note_ta, note_ml))
 
     # --- Pancha Mahapurusha: Mars to Saturn in own, exaltation or moolatrikona sign in a kendra ---
     for g, key in (('Mars', 'ruchaka'), ('Mercury', 'bhadra'), ('Jupiter', 'hamsa'), ('Venus', 'malavya'), ('Saturn', 'sasa')):
@@ -397,7 +402,8 @@ def detect(planets):
         combust = planets['Mercury'].get('combust')
         add('budhaditya', ['Sun', 'Mercury'],
             'Mercury is combust, so the yoga works only partly.' if combust else '',
-            'புதன் அஸ்தங்கம் என்பதால் இந்த யோகம் பகுதியாகவே பலன் தரும்.' if combust else '')
+            'புதன் அஸ்தங்கம் என்பதால் இந்த யோகம் பகுதியாகவே பலன் தரும்.' if combust else '',
+            'ബുധൻ മൗഢ്യത്തിലായതിനാൽ ഈ യോഗം ഭാഗികമായേ ഫലം നൽകൂ.' if combust else '')
 
     # --- Raja and Dhana yogas by lordship ---
     kendra_lords = {h: c.lord(h) for h in KENDRA}
@@ -485,7 +491,7 @@ def detect(planets):
                 continue
             seen.add((a, b))
             kind = 'dainya_parivartana' if {h1, h2} & set(DUSTHANA) else ('khala_parivartana' if 3 in (h1, h2) else 'maha_parivartana')
-            add(kind, [a, b], f"Lords of houses {h1} and {h2}.", f"{h1}, {h2}-ஆம் பாவ அதிபதிகள்.")
+            add(kind, [a, b], f"Lords of houses {h1} and {h2}.", f"{h1}, {h2}-ஆம் பாவ அதிபதிகள்.", f"{h1}, {h2} ഭാവാധിപന്മാർ.")
 
     # --- Vipareeta Raja yogas ---
     for house, key in ((6, 'harsha'), (8, 'sarala'), (12, 'vimala')):
@@ -504,19 +510,23 @@ def detect(planets):
         in_kendra = lambda q: c.house(q) in KENDRA or c.from_('Moon', q) in KENDRA
         reasons = []
         if in_kendra(dispositor):
-            reasons.append((f'{dispositor}, lord of the sign, is in a kendra', f'ராசி அதிபதி {PLANET_TAMIL[dispositor]} கேந்திரத்தில்'))
+            reasons.append((f'{dispositor}, lord of the sign, is in a kendra', f'ராசி அதிபதி {PLANET_TAMIL[dispositor]} கேந்திரத்தில்',
+                            f'രാശ്യധിപൻ {PLANET_ML[dispositor]} കേന്ദ്രത്തിൽ'))
         if exalt_lord != dispositor and in_kendra(exalt_lord):
-            reasons.append((f'{exalt_lord}, lord of its exaltation sign, is in a kendra', f'உச்ச வீட்டு அதிபதி {PLANET_TAMIL[exalt_lord]} கேந்திரத்தில்'))
+            reasons.append((f'{exalt_lord}, lord of its exaltation sign, is in a kendra', f'உச்ச வீட்டு அதிபதி {PLANET_TAMIL[exalt_lord]} கேந்திரத்தில்',
+                            f'ഉച്ചരാശ്യധിപൻ {PLANET_ML[exalt_lord]} കേന്ദ്രത്തിൽ'))
         for q in exalted_here:
             if in_kendra(q):
-                reasons.append((f'{q}, exalted in that sign, is in a kendra', f'அந்த ராசியில் உச்சம் பெறும் {PLANET_TAMIL[q]} கேந்திரத்தில்'))
+                reasons.append((f'{q}, exalted in that sign, is in a kendra', f'அந்த ராசியில் உச்சம் பெறும் {PLANET_TAMIL[q]} கேந்திரத்தில்',
+                                f'ആ രാശിയിൽ ഉച്ചം നേടുന്ന {PLANET_ML[q]} കേന്ദ്രത്തിൽ'))
         if dispositor != g and c.aspects(dispositor, deb):
-            reasons.append((f'{dispositor} aspects it', f'{PLANET_TAMIL[dispositor]} பார்வை'))
+            reasons.append((f'{dispositor} aspects it', f'{PLANET_TAMIL[dispositor]} பார்வை', f'{PLANET_ML_CASE["gen"][dispositor]} ദൃഷ്ടി'))
         if planets[g]['vargas']['D9'] == EXALTATION_SIGN[g]:
-            reasons.append(('it is exalted in the Navamsa', 'நவாம்சத்தில் உச்சம்'))
+            reasons.append(('it is exalted in the Navamsa', 'நவாம்சத்தில் உச்சம்', 'നവാംശത്തിൽ ഉച്ചം'))
         if reasons:
             add('neechabhanga', [g], 'Cancelled because ' + '; '.join(r[0] for r in reasons) + '.',
-                'பங்கக் காரணம்: ' + '; '.join(r[1] for r in reasons) + '.')
+                'பங்கக் காரணம்: ' + '; '.join(r[1] for r in reasons) + '.',
+                'ഭംഗകാരണം: ' + '; '.join(r[2] for r in reasons) + '.')
 
     # --- Challenging combinations ---
     same = lambda a, b: c.sign(a) == c.sign(b)

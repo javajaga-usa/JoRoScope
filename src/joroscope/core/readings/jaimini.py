@@ -1,7 +1,10 @@
 """Jaimini: the seven chara karakas, the Karakamsa and the bhava arudhas (arudha padas).
 """
 
-from .common import PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS
+from .common import MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS
+from .jaimini_ml import (
+    ARUDHA_NAMES_ML, KARAKA_READINGS_ML, KARAKA_TITLES_ML, KARAKAMSA_RESULTS_ML, KARAKAMSHA_ML, KETU_12TH_ML
+)
 
 
 # 8. Jaimini 7 Chara Karakas & Karakamsha System
@@ -126,6 +129,9 @@ def calculate_jaimini_karakas(planets, vargas=None):
                 reading_en = f"{p} acts as your {title_en}, orchestrating matters of {signification}."
             if not reading_ta:
                 reading_ta = f"{PLANET_TAMIL.get(p, p)} உங்கள் {title_ta}வாக விளங்கி அப்பாவக நற்பலன்களை இயக்குவார்."
+            title_ml = KARAKA_TITLES_ML[code]
+            reading_ml = KARAKA_READINGS_ML.get(code, {}).get(
+                p, f"{PLANET_ML[p]} നിങ്ങളുടെ {title_ml} ആയി ആ ഭാവത്തിന്റെ ശുഭഫലങ്ങളെ നയിക്കും.")
 
             karakas_list.append({
                 'code': code,
@@ -141,7 +147,9 @@ def calculate_jaimini_karakas(planets, vargas=None):
                 'house': item['house'],
                 'dignity': item['dignity'],
                 'reading_en': reading_en,
-                'reading_ta': reading_ta
+                'reading_ta': reading_ta,
+                'title_ml': title_ml,
+                'reading_ml': reading_ml
             })
 
     # Karakamsha (Navamsa sign of Atmakaraka)
@@ -182,25 +190,30 @@ def calculate_jaimini_karakas(planets, vargas=None):
     }
 
     kk_en, kk_ta = karakamsha_interpretations.get(karakamsha_sign, ('Spiritual illumination through Atmakaraka dharma.', 'ஆன்ம வழிகாட்டுதல்.'))
+    kk_ml = KARAKAMSHA_ML[karakamsha_sign]
 
     # Grahas sharing the Atmakaraka's Navamsa sign (Jaimini Upadesa Sutras 1.2), and Ketu in the 12th from it
     navamsa_of = lambda p: vargas['D9'][p] if vargas and 'D9' in vargas else planets[p]['vargas']['D9']
     occupants = [p for p in KARAKAMSA_RESULTS if p != ak_planet and navamsa_of(p) == karakamsha_sign_idx]
-    karakamsa_results = [dict(planet=p, planet_ta=PLANET_TAMIL[p], en=KARAKAMSA_RESULTS[p][0], ta=KARAKAMSA_RESULTS[p][1])
+    karakamsa_results = [dict(planet=p, planet_ta=PLANET_TAMIL[p], en=KARAKAMSA_RESULTS[p][0], ta=KARAKAMSA_RESULTS[p][1],
+                              ml=KARAKAMSA_RESULTS_ML[p])
                          for p in occupants]
     if navamsa_of('Ketu') == (karakamsha_sign_idx + 11) % 12:
         karakamsa_results.append(dict(planet='Ketu', planet_ta=PLANET_TAMIL['Ketu'],
                                       en='Ketu in the 12th from the Karakamsa promises final liberation (moksha), the more so with benefics.',
-                                      ta='காரகாம்சத்திலிருந்து 12-இல் கேது இருப்பதால் மோட்ச பாக்கியம் உண்டு; சுப கிரகச் சேர்க்கையால் மேலும் வலுப்பெறும்.'))
+                                      ta='காரகாம்சத்திலிருந்து 12-இல் கேது இருப்பதால் மோட்ச பாக்கியம் உண்டு; சுப கிரகச் சேர்க்கையால் மேலும் வலுப்பெறும்.',
+                                      ml=KETU_12TH_ML))
     if karakamsa_results:
         kk_en += ' ' + ' '.join(r['en'] for r in karakamsa_results)
         kk_ta += ' ' + ' '.join(r['ta'] for r in karakamsa_results)
+        kk_ml += ' ' + ' '.join(r['ml'] for r in karakamsa_results)
 
     # Arudha padas and the classical readings from the Arudha Lagna and the Upapada
     padas = jaimini_arudhas(planets)
     asc_sign = planets['Ascendant']['sign_index']
     arudha_rows = [dict(code=f"A{h}", house=h, sign=SIGNS[s], sign_ta=TAMIL_SIGNS[s], from_lagna=(s - asc_sign) % 12 + 1,
-                        name_en=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[0], name_ta=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[1])
+                        name_en=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[0], name_ta=ARUDHA_NAMES.get(h, (f"A{h}", f"A{h}"))[1],
+                        sign_ml=MALAYALAM_SIGNS[s], name_ml=ARUDHA_NAMES_ML.get(h, f"A{h}"))
                    for h, s in enumerate(padas, 1)]
     grahas = ('Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu')
     in_sign = lambda s: [g for g in grahas if planets[g]['sign_index'] == s]
@@ -212,12 +225,14 @@ def calculate_jaimini_karakas(planets, vargas=None):
         fair = all(benefic(g) for g in gains)
         notes.append(dict(
             en=f"{', '.join(gains)} in the 11th from the Arudha Lagna bring steady gains{' by fair means' if fair else ', not always by conventional means'}.",
+            ml=f"ആരൂഢ ലഗ്നത്തിൽ നിന്ന് 11-ൽ {', '.join(PLANET_ML[g] for g in gains)} നിൽക്കുന്നതിനാൽ സ്ഥിരവരുമാനമുണ്ട്{' (സത്യസന്ധമായ വഴിയിൽ)' if fair else ' (എപ്പോഴും സാധാരണ വഴിയിലല്ല)'}.",
             ta=f"ஆரூட லக்னத்திலிருந்து 11-இல் {', '.join(PLANET_TAMIL[g] for g in gains)} இருப்பதால் நிலையான வருமானம் உண்டு{' (நேர்மையான வழியில்)' if fair else ' (எப்போதும் வழக்கமான வழியில் அல்ல)'}."))
     losses = in_sign((al + 11) % 12)
     if losses:
         good = all(benefic(g) for g in losses)
         notes.append(dict(
             en=f"{', '.join(losses)} in the 12th from the Arudha Lagna {'direct spending to good causes' if good else 'bring expenses and losses to guard against'}.",
+            ml=f"ആരൂഢ ലഗ്നത്തിൽ നിന്ന് 12-ൽ {', '.join(PLANET_ML[g] for g in losses)} നിൽക്കുന്നതിനാൽ {'നല്ല കാര്യങ്ങൾക്കായി ചെലവുണ്ടാകും' if good else 'ചെലവുകളിലും നഷ്ടങ്ങളിലും ശ്രദ്ധ വേണം'}.",
             ta=f"ஆரூட லக்னத்திலிருந்து 12-இல் {', '.join(PLANET_TAMIL[g] for g in losses)} இருப்பதால் {'நல்ல காரியங்களுக்குச் செலவு ஏற்படும்' if good else 'செலவுகளிலும் இழப்புகளிலும் கவனம் தேவை'}."))
     second_ul = in_sign((ul + 1) % 12)
     if second_ul:
@@ -225,6 +240,8 @@ def calculate_jaimini_karakas(planets, vargas=None):
         notes.append(dict(
             en=(f"{', '.join(harsh)} in the 2nd from the Upapada can strain the continuity of marriage; remedies and patience help."
                 if harsh else "Benefics in the 2nd from the Upapada sustain a lasting marriage."),
+            ml=(f"ഉപപദത്തിൽ നിന്ന് 2-ൽ {', '.join(PLANET_ML[g] for g in harsh)} നിൽക്കുന്നതിനാൽ ദാമ്പത്യജീവിതത്തിന്റെ തുടർച്ചയിൽ പരീക്ഷണങ്ങൾ വരാം; പരിഹാരവും ക്ഷമയും സഹായിക്കും."
+                if harsh else "ഉപപദത്തിൽ നിന്ന് 2-ൽ ശുഭഗ്രഹങ്ങൾ നിൽക്കുന്നതിനാൽ ദാമ്പത്യം നീണ്ടുനിൽക്കും."),
             ta=(f"உபபதத்திலிருந்து 2-இல் {', '.join(PLANET_TAMIL[g] for g in harsh)} இருப்பதால் இல்லற வாழ்வின் தொடர்ச்சியில் சோதனைகள் வரலாம்; பரிகாரமும் பொறுமையும் உதவும்."
                 if harsh else "உபபதத்திலிருந்து 2-இல் சுப கிரகங்கள் இருப்பதால் இல்லறம் நீடித்து நிலைக்கும்.")))
 
@@ -236,12 +253,15 @@ def calculate_jaimini_karakas(planets, vargas=None):
         'amatyakaraka': amk_planet,
         'scheme_en': 'Seven chara karakas (Sun to Saturn), by degrees within the sign',
         'scheme_ta': 'ஏழு சர காரகங்கள் (சூரியன் முதல் சனி வரை), ராசிக்குள் உள்ள பாகைகளின்படி',
+        'scheme_ml': 'ഏഴ് ചര കാരകങ്ങൾ (സൂര്യൻ മുതൽ ശനി വരെ), രാശിക്കുള്ളിലെ ഡിഗ്രി പ്രകാരം',
         'karakamsha': {
             'sign': karakamsha_sign,
             'tamil_sign': karakamsha_tamil,
             'occupants': karakamsa_results,
             'interpretation_en': kk_en,
-            'interpretation_ta': kk_ta
+            'interpretation_ta': kk_ta,
+            'malayalam_sign': MALAYALAM_SIGNS[karakamsha_sign_idx],
+            'interpretation_ml': kk_ml
         }
     }
 

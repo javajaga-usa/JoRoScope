@@ -2,7 +2,7 @@
 """
 
 from .common import (
-    DASA_LORDS, PLANET_TAMIL, SIGNS, SIGN_LORDS, STARS, TAMIL_SIGNS, VIMSHOTTARI_YEARS, _ordinal
+    DASA_LORDS, PLANET_ML, PLANET_TAMIL, SIGNS, SIGN_LORDS, STARS, TAMIL_SIGNS, VIMSHOTTARI_YEARS, _ordinal
 )
 
 
@@ -84,6 +84,33 @@ SHADBALA_READINGS = {
         'weak_ta': 'சனி பலம் குறைவாக இருந்தால் காரியத் தடைகளும், தாமதங்களும் வரலாம். ஏழை எளியவர்களுக்கு அன்னதானம் செய்வதும், அனுமன் வழிபாடும் தடைகளை நீக்கும்.'
     }
 }
+SHADBALA_READINGS_ML = {
+    'Sun': ('അധികാരം, ആരോഗ്യം, നേതൃത്വം, സാമൂഹിക പ്രശസ്തി',
+            'സൂര്യന് ഉയർന്ന ബലമുള്ളതിനാൽ ഉറച്ച ആത്മവിശ്വാസം, ഗാംഭീര്യമുള്ള വ്യക്തിത്വം, സർക്കാർ വഴി നേട്ടങ്ങൾ, നേതൃസ്ഥാനങ്ങൾ എന്നിവ ലഭിക്കും.',
+            'സൂര്യന് ബലം കുറവായതിനാൽ ചിലപ്പോൾ ആത്മസംശയവും മേലധികാരികളുമായി അഭിപ്രായഭിന്നതയും വരാം. ആദിത്യഹൃദയ പാരായണവും അച്ഛന്റെ അനുഗ്രഹവും നല്ലത്.'),
+    'Moon': ('മനസ്സമാധാനം, ഉൾക്കാഴ്ച, ജനപിന്തുണ, ഭാവനാശേഷി',
+             'ചന്ദ്രന് ഉത്തമ ബലമുള്ളതിനാൽ മനസ്സമാധാനം, വ്യക്തമായ ഉൾക്കാഴ്ച, ഭാവനാശേഷി, ജനങ്ങൾക്കിടയിൽ സൽപ്പേര് എന്നിവ വർധിക്കും.',
+             'ചന്ദ്രന് ബലം കുറവായതിനാൽ മനസ്സമാധാനക്കുറവോ അമിതചിന്തയോ ഉണ്ടാകാം. ധ്യാനവും അമ്മയെ പരിചരിക്കലും സമാധാനം നൽകും.'),
+    'Mars': ('ധൈര്യം, ഭൂമിയോഗം, സാങ്കേതിക വൈദഗ്ധ്യം, ശത്രുക്കളെ ജയിക്കാനുള്ള ശക്തി',
+             'ചൊവ്വയ്ക്ക് നല്ല ബലമുള്ളതിനാൽ ഭയമില്ലാത്ത മനസ്സ്, ഭൂമി-വീട് വാങ്ങാനുള്ള യോഗം, സാങ്കേതികവിദ്യയിലും ഭരണത്തിലും വലിയ വിജയം ലഭിക്കും.',
+             'ചൊവ്വയ്ക്ക് ബലം കുറവാണെങ്കിൽ തിടുക്കത്തിലുള്ള തീരുമാനങ്ങളും കോപവും വരാം. വ്യായാമവും സുബ്രഹ്മണ്യ ആരാധനയും ഊർജ്ജത്തെ സന്തുലിതമാക്കും.'),
+    'Mercury': ('വ്യാപാര സാമർത്ഥ്യം, മൂർച്ചയുള്ള ബുദ്ധി, ആശയവിനിമയശേഷി, കണക്കിലെ വിവേകം',
+                'ബുധന് മികച്ച ബലമുള്ളതിനാൽ സംസാരം, എഴുത്ത്, ഗണിതം, വ്യാപാരം, കമ്പ്യൂട്ടർ മേഖലകളിൽ അസാധാരണ നേട്ടങ്ങൾ കൈവരിക്കാം.',
+                'ബുധന് ബലം കുറവായതിനാൽ ശ്രദ്ധ ചിതറാം. ബുധനാഴ്ച വിഷ്ണുസഹസ്രനാമ പാരായണം ബുദ്ധിയെ മൂർച്ചയുള്ളതാക്കും.'),
+    'Jupiter': ('ദൈവാനുഗ്രഹം, ധർമ്മചിന്ത, സാമ്പത്തിക വളർച്ച, സന്താനഭാഗ്യം, മാർഗ്ഗദർശന മഹിമ',
+                'വ്യാഴത്തിന് പൂർണ്ണ ബലമുള്ളതിനാൽ സദ്ഗുണങ്ങൾ, സാമ്പത്തിക വർധന, ആത്മീയ ജ്ഞാനം, മുതിർന്നവരുടെ അനുഗ്രഹം എന്നിവ ധാരാളമായി ലഭിക്കും.',
+                'വ്യാഴത്തിന് ബലം കുറവാണെങ്കിൽ അനാവശ്യ ചെലവുകൾ വരാം. വ്യാഴാഴ്ച ദക്ഷിണാമൂർത്തി ആരാധനയും ഗുരുക്കന്മാരോടുള്ള ആദരവും ഉത്തമം.'),
+    'Venus': ('കലാസ്വാദനം, ദാമ്പത്യസുഖം, ആഡംബരസുഖങ്ങൾ, ആകർഷണീയമായ രൂപം',
+              'ശുക്രന് നിറഞ്ഞ ബലമുള്ളതിനാൽ കല, വാഹനം, വസ്ത്രാഭരണങ്ങൾ, സുഖജീവിതം, മധുരമായ ദാമ്പത്യം എന്നിവ ലഭിക്കും.',
+              'ശുക്രന് ബലം കുറവാണെങ്കിൽ ബന്ധങ്ങളിൽ വിട്ടുവീഴ്ച വേണ്ടിവരാം. വെള്ളിയാഴ്ച മഹാലക്ഷ്മി ആരാധന ജീവിതത്തിൽ ശുഭയോഗങ്ങൾ ചേർക്കും.'),
+    'Saturn': ('തളരാത്ത അധ്വാനം, ദീർഘായുസ്സ്, ഭരണ അച്ചടക്കം, കർമ്മഫലങ്ങളെ ജയിക്കുന്ന മനോബലം',
+               'ശനിക്ക് നല്ല ബലമുള്ളതിനാൽ ഇരുമ്പുപോലുള്ള മനോബലം, കഠിനാധ്വാനത്താൽ ക്രമേണ ഉയർന്ന പദവി, സ്ഥിരമായ സമ്പത്ത് എന്നിവ ലഭിക്കും.',
+               'ശനിക്ക് ബലം കുറവാണെങ്കിൽ കാര്യതടസ്സങ്ങളും കാലതാമസവും വരാം. പാവപ്പെട്ടവർക്ക് അന്നദാനവും ഹനുമാൻ ആരാധനയും തടസ്സങ്ങൾ നീക്കും.'),
+}
+SHADBALA_FACTORS_ML = ['ഉച്ചബിന്ദുവിനടുത്ത്', 'നീചബിന്ദുവിനടുത്ത്', 'സപ്തവർഗ്ഗങ്ങളിൽ നല്ല മാന്യത', 'മിക്ക വർഗ്ഗങ്ങളിലും ശത്രുക്ഷേത്രത്തിൽ',
+                       'ദിഗ്ബലം നിറഞ്ഞ നിലയിൽ', 'ദിഗ്ബലം കുറഞ്ഞ നിലയിൽ', 'വക്ര/മന്ദ ഗതിയാൽ ചേഷ്ടാബലം', 'ശുഭഗ്രഹദൃഷ്ടി',
+                       'പാപഗ്രഹദൃഷ്ടി', 'ഗ്രഹയുദ്ധത്തിൽ വിജയം', 'ഗ്രഹയുദ്ധത്തിൽ പരാജയം']
+VIMSOPAKA_GRADES_ML = {'Excellent': 'അത്യുത്തമം', 'Good': 'നല്ലത്', 'Average': 'ശരാശരി', 'Poor': 'ബലഹീനം'}
 # Why a graha is strong or weak, read from its Shadbala components (virupas)
 SHADBALA_FACTORS = [
     ('uchcha', lambda v: v >= 45, 1, 'Close to its exaltation point', 'உச்ச நிலைக்கு அருகில் உள்ளது'),
@@ -113,11 +140,13 @@ def calculate_shadbala(chart):
         r = raw[p_name]
         ratio = round(r['ratio'], 2)
         is_adequate = ratio >= 1.0
-        factors = [dict(en=en, ta=ta, effect=effect) for key, test, effect, en, ta in SHADBALA_FACTORS if test(r[key])]
+        factors = [dict(en=en, ta=ta, ml=ml, effect=effect)
+                   for (key, test, effect, en, ta), ml in zip(SHADBALA_FACTORS, SHADBALA_FACTORS_ML) if test(r[key])]
         if p_name == 'Moon':
             bright = r['paksha'] >= 60
             factors.insert(0, dict(en='A bright Moon' if bright else 'A dim Moon near Amavasai',
                                    ta='ஒளி மிகுந்த சந்திரன்' if bright else 'அமாவாசைக்கு அருகில் ஒளி குறைந்த சந்திரன்',
+                                   ml='പ്രകാശമുള്ള ചന്ദ്രൻ' if bright else 'അമാവാസിക്കടുത്ത് പ്രകാശം കുറഞ്ഞ ചന്ദ്രൻ',
                                    effect=1 if bright else -1))
         ishta, kashta = r['ishta'], r['kashta']
         favourable = ishta >= kashta
@@ -125,7 +154,10 @@ def calculate_shadbala(chart):
                     + ('favourable results.' if favourable else 'testing results that reward patience.'))
         phala_ta = (f"இஷ்ட பலன் {ishta:.1f}, கஷ்ட பலன் {kashta:.1f}: இதன் தசா புக்திகள் பெரும்பாலும் "
                     + ('நற்பலன்களைத் தரும்.' if favourable else 'பொறுமையைச் சோதிக்கும் பலன்களைத் தரும்.'))
+        phala_ml = (f"ഇഷ്ടഫലം {ishta:.1f}, കഷ്ടഫലം {kashta:.1f}: ഇതിന്റെ ദശാ-ഭുക്തികൾ മിക്കവാറും "
+                    + ('നല്ല ഫലങ്ങൾ നൽകും.' if favourable else 'ക്ഷമ പരീക്ഷിക്കുന്ന ഫലങ്ങൾ നൽകും.'))
         interp = SHADBALA_READINGS[p_name]
+        theme_ml, strong_ml, weak_ml = SHADBALA_READINGS_ML[p_name]
         shadbala_list.append({
             'planet': p_name,
             'planet_ta': PLANET_TAMIL[p_name],
@@ -147,7 +179,10 @@ def calculate_shadbala(chart):
             'theme_en': interp['theme_en'],
             'theme_ta': interp['theme_ta'],
             'reading_en': (interp['strong_en'] if is_adequate else interp['weak_en']) + ' ' + phala_en,
-            'reading_ta': (interp['strong_ta'] if is_adequate else interp['weak_ta']) + ' ' + phala_ta
+            'reading_ta': (interp['strong_ta'] if is_adequate else interp['weak_ta']) + ' ' + phala_ta,
+            'planet_ml': PLANET_ML[p_name],
+            'theme_ml': theme_ml,
+            'reading_ml': (strong_ml if is_adequate else weak_ml) + ' ' + phala_ml
         })
 
     shadbala_list.sort(key=lambda x: x['strength_ratio'], reverse=True)
@@ -173,6 +208,7 @@ def calculate_shadbala(chart):
             score = round(v['score'], 2)
             grade = next(g for limit, g in VIMSOPAKA_GRADES if score >= limit)
             row[scheme] = dict(score=score, dignified=v['dignified'], grade_en=grade[0], grade_ta=grade[1],
+                               grade_ml=VIMSOPAKA_GRADES_ML[grade[0]],
                                bheda_en=v['bheda'][0] if v['bheda'] else None,
                                bheda_ta=v['bheda'][1] if v['bheda'] else None)
         vimsopaka_rows.append(row)
@@ -185,6 +221,11 @@ def calculate_shadbala(chart):
         'vimsopaka': vimsopaka_rows,
         'method_en': 'Brihat Parashara Hora Shastra, as worked in B.V. Raman\'s Graha and Bhava Balas; minimum strengths per BPHS.',
         'method_ta': 'பிருஹத் பராசர ஹோரா சாஸ்திரம் (பி.வி. ராமனின் கிரக-பாவ பலம் நூல் வழி); குறைந்தபட்ச பலம் பராசரர் வகுத்தபடி.',
+        'method_ml': 'ബൃഹത് പരാശര ഹോരാശാസ്ത്രം (ബി.വി. രാമന്റെ ഗ്രഹ-ഭാവ ബലം ഗ്രന്ഥം പ്രകാരം); കുറഞ്ഞ ബലം പരാശരൻ നിശ്ചയിച്ചതുപോലെ.',
+        'summary_ml': (f"നിങ്ങളുടെ ജാതകത്തിൽ ഏറ്റവും ബലമുള്ള ഗ്രഹം {dominant['planet_ml']} (ആവശ്യമായ ഷഡ്ബലത്തിന്റെ "
+                       f"{dominant['strength_ratio']} മടങ്ങ്); ഇത് നിങ്ങളുടെ {dominant['theme_ml']} എന്നിവയ്ക്ക് കരുത്തേകും. "
+                       f"7 ഗ്രഹങ്ങളിൽ {len(adequate)} എണ്ണം കുറഞ്ഞ ബലം നേടിയിട്ടുണ്ട്; "
+                       f"ബലപ്പെടുത്തേണ്ട ഗ്രഹം {vulnerable['planet_ml']} ({vulnerable['strength_ratio']} മടങ്ങ്)."),
         'summary_en': (f"{dominant['planet']} is the strongest graha at {dominant['strength_ratio']}x its required Shadbala, "
                        f"fuelling your {dominant['theme_en']}. {len(adequate)} of 7 grahas meet their classical minimum; "
                        f"{vulnerable['planet']} ({vulnerable['strength_ratio']}x) is the one to strengthen."),
@@ -206,6 +247,10 @@ KP_MATTERS = [
     (10, 'Profession & Status', 'தொழில் & அந்தஸ்து', (2, 6, 10, 11), (1, 5, 9)),
     (11, 'Gains & Fulfilment of Desires', 'லாபம் & விருப்பங்கள் நிறைவேறுதல்', (2, 6, 11), (5, 8, 12))
 ]
+KP_MATTERS_ML = {1: 'ആരോഗ്യം & വ്യക്തിത്വം', 2: 'ധനം & കുടുംബം', 5: 'സന്താനഭാഗ്യം & ബുദ്ധി', 7: 'വിവാഹം & പങ്കാളിത്തം',
+                 10: 'തൊഴിൽ & പദവി', 11: 'ലാഭം & ആഗ്രഹസാഫല്യം'}
+KP_VERDICTS_ML = {'promised': 'ഉറപ്പ്', 'mixed': 'കാലതാമസത്തോടെ ഉറപ്പ്', 'weak': 'ബലം കുറവ്', 'denied': 'തടസ്സം',
+                  'neutral': 'വ്യക്തമല്ല'}
 KP_VERDICTS = {
     'promised': ('Promised', 'உறுதி'),
     'mixed': ('Promised with delays', 'தாமதத்துடன் உறுதி'),
@@ -237,6 +282,13 @@ def _houses_ta(houses, case):
         return f"{hs[0]}-ஆம் பாவத்தைக்" if case == 'acc' else f"{hs[0]}-ஆம் பாவத்"
     joined = ', '.join(map(str, hs))
     return f"{joined} ஆகிய பாவங்களைக்" if case == 'acc' else f"{joined} ஆகிய பாவங்களின்"
+
+
+def _houses_ml(houses):
+    hs = sorted(houses)
+    if len(hs) == 1:
+        return f"{hs[0]}-ാം ഭാവം"
+    return ', '.join(map(str, hs)) + ' ഭാവങ്ങൾ'
 
 
 def calculate_kp_system(chart):
@@ -302,6 +354,16 @@ def calculate_kp_system(chart):
                     f"{_houses_en(primary)}; {sub} itself signifies {_houses_en(secondary)}.")
         basis_ta = (f"{cusp}-ஆம் பாவ ஆரம்பத்தின் உப-அதிபதி {sub_ta}; அது {star_ta} நட்சத்திரத்தில் உள்ளது. "
                     f"{star_ta} {_houses_ta(primary, 'acc')} குறிக்கிறது; {sub_ta} தானாக {_houses_ta(secondary, 'acc')} குறிக்கிறது.")
+        sub_ml, star_ml, t_ml = PLANET_ML[sub], PLANET_ML[star_lord], KP_MATTERS_ML[cusp]
+        basis_ml = (f"{cusp}-ാം ഭാവാരംഭത്തിന്റെ ഉപ-അധിപൻ {sub_ml}; അത് {star_ml} നക്ഷത്രത്തിലാണ്. "
+                    f"{star_ml} സൂചിപ്പിക്കുന്നത്: {_houses_ml(primary)}; {sub_ml} സ്വയം സൂചിപ്പിക്കുന്നത്: {_houses_ml(secondary)}.")
+        outcome_ml = {
+            'promised': f"{t_ml}: {_houses_ml(good)} ബന്ധത്താൽ വ്യക്തമായി ഉറപ്പുനൽകുന്നു.",
+            'mixed': f"{t_ml}: {_houses_ml(good)} ബന്ധത്താൽ ഉറപ്പ്; എന്നാൽ {_houses_ml(bad)} ബന്ധത്താൽ കാലതാമസമോ പ്രയാസമോ ഉണ്ടാകും.",
+            'weak': f"{t_ml} സാധ്യമാണ്; എന്നാൽ ഉപ-അധിപന്റെ സ്വന്തം {_houses_ml(own_good)} ബന്ധത്തിലൂടെ മാത്രം കുറഞ്ഞ പിന്തുണയുണ്ട്.",
+            'denied': f"{t_ml} തടസ്സങ്ങൾ നേരിടും: {_houses_ml(bad)} ബന്ധം ഇതിന് എതിരാണ്; അനുകൂല ദശയിൽ മാത്രമേ ഫലം ലഭിക്കൂ.",
+            'neutral': f"{t_ml} ഈ ഉപ-അധിപനാൽ വ്യക്തമായി സൂചിപ്പിക്കപ്പെടുന്നില്ല; നടപ്പ് ദശാനാഥന്മാർ തീരുമാനിക്കും.",
+        }[verdict]
         outcome = {
             'promised': (f"{title_en} is clearly promised through {_houses_en(good)}.",
                          f"{title_ta} {_houses_ta(good, 'gen')} தொடர்பால் உறுதியாக வாக்களிக்கப்பட்டுள்ளது."),
@@ -321,7 +383,9 @@ def calculate_kp_system(chart):
             sub_lord=sub, sub_lord_ta=sub_ta, star_lord=star_lord, star_lord_ta=star_ta,
             signified_houses=sorted(primary), favourable_houses=list(favourable), negating_houses=list(negating),
             verdict=verdict, verdict_en=KP_VERDICTS[verdict][0], verdict_ta=KP_VERDICTS[verdict][1],
-            reading_en=f"{basis_en} {outcome[0]}", reading_ta=f"{basis_ta} {outcome[1]}"
+            reading_en=f"{basis_en} {outcome[0]}", reading_ta=f"{basis_ta} {outcome[1]}",
+            title_ml=f"{cusp}-ാം ഭാവ ഉപ-അധിപൻ ({t_ml})", verdict_ml=KP_VERDICTS_ML[verdict],
+            reading_ml=f"{basis_ml} {outcome_ml}"
         )
 
     # Ruling planets at birth: Lagna sign, star and sub lords, Moon sign and star lords, and the day lord

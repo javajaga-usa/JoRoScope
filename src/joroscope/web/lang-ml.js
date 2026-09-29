@@ -6,7 +6,6 @@
  * Loaded after i18n.js.
  */
 I18N.ml = {
-  "ml_readings_note": "വിശദ ഫലങ്ങൾ മലയാള വിവർത്തനം പൂർത്തിയാകുന്നതുവരെ ഇംഗ്ലീഷിൽ കാണിക്കും.",
   "workspace": "പ്രവർത്തനമേഖല",
   "birth_chart": "ജാതകവും വർഗ്ഗങ്ങളും",
   "planets_strengths": "ഗ്രഹങ്ങളും ബലവും",
@@ -140,6 +139,7 @@ I18N.ml = {
   "rasi_navamsa": "രാശി + നവാംശം",
   "jathaga_kurippu": "ജാതകക്കുറിപ്പ്",
   "jathaga_kurippu_sub": "പഞ്ചാംഗ പാരമ്പര്യത്തിലെ ജനനക്കുറിപ്പുകൾ",
+  "badge_ja": "ജാ",
   "chevvai_dosham": "ചൊവ്വാ ദോഷം (കുജ ദോഷം)",
   "rahu_ketu_dosham": "രാഹു-കേതു ദോഷം (സർപ്പ ദോഷം)",
   "dosha_samyam": "ദോഷസാമ്യം (ചൊവ്വ, പാപ ബലം)",
@@ -812,6 +812,57 @@ const ML_TERMS = {
   "Complete Report": "സമ്പൂർണ്ണ റിപ്പോർട്ട്",
   "Horoscope": "ജാതകം",
   "Dark": "ഇരുണ്ട",
+  "Ruby": "മാണിക്യം",
+  "Natural Pearl": "മുത്ത്",
+  "Red Coral": "പവിഴം",
+  "Emerald": "മരതകം",
+  "Yellow Sapphire": "പുഷ്യരാഗം",
+  "Diamond": "വജ്രം",
+  "Blue Sapphire": "ഇന്ദ്രനീലം",
+  "Gold": "സ്വർണ്ണം",
+  "Copper": "ചെമ്പ്",
+  "Platinum": "പ്ലാറ്റിനം",
+  "Silver": "വെള്ളി",
+  "Iron": "ഇരുമ്പ്",
+  "Ring Finger": "മോതിരവിരൽ",
+  "Middle Finger": "നടുവിരൽ",
+  "Little Finger": "ചെറുവിരൽ",
+  "Index Finger": "ചൂണ്ടുവിരൽ",
+  "Middle / Little Finger": "നടുവിരൽ / ചെറുവിരൽ",
+  "Little / Ring Finger": "ചെറുവിരൽ / മോതിരവിരൽ",
+  "Little / Index Finger": "ചെറുവിരൽ / ചൂണ്ടുവിരൽ",
+  "Index / Ring Finger": "ചൂണ്ടുവിരൽ / മോതിരവിരൽ",
+  "Bright Red": "തിളങ്ങുന്ന ചുവപ്പ്",
+  "Crimson": "കടുംചുവപ്പ്",
+  "Golden Yellow": "സ്വർണ്ണ മഞ്ഞ",
+  "Diamond White": "വജ്രവെള്ള",
+  "Pale Pink": "ഇളം പിങ്ക്",
+  "Cream": "ക്രീം",
+  "Emerald Green": "മരതകപ്പച്ച",
+  "Pastel Shades": "മൃദുവർണ്ണങ്ങൾ",
+  "Pearl White": "മുത്തുവെള്ള",
+  "Deep Gold": "കടുംസ്വർണ്ണം",
+  "Orange": "ഓറഞ്ച്",
+  "Ruby Red": "മാണിക്യച്ചുവപ്പ്",
+  "Parrot Green": "തത്തപ്പച്ച",
+  "Turquoise": "നീലപ്പച്ച",
+  "Pure White": "ശുദ്ധവെള്ള",
+  "Rose Pink": "റോസ്",
+  "Silk Blue": "പട്ടുനീല",
+  "Scarlet Red": "ചെഞ്ചുവപ്പ്",
+  "Rust": "തുരുമ്പ് നിറം",
+  "Amber": "ആംബർ",
+  "Bright Yellow": "തിളങ്ങുന്ന മഞ്ഞ",
+  "Saffron": "കാവി",
+  "Royal Blue": "രാജനീല",
+  "Navy": "കടുംനീല",
+  "Steel Grey": "ഉരുക്കുചാര",
+  "Electric Blue": "ഇലക്ട്രിക് നീല",
+  "Violet": "വയലറ്റ്",
+  "Indigo": "ഇൻഡിഗോ",
+  "Pale Yellow": "ഇളംമഞ്ഞ",
+  "Golden Amber": "സ്വർണ്ണ ആംബർ",
+  "Sea Green": "കടൽപ്പച്ച",
   "Sign": "രാശി",
   "Pancha-vargeeya Bala": "പഞ്ചവർഗ്ഗീയ ബലം",
   "Value": "മൂല്യം",
@@ -884,11 +935,41 @@ const ML_TERMS = {
 const ML_SHORT = { Sun: 'സൂ', Moon: 'ച', Mars: 'ചൊ', Mercury: 'ബു', Jupiter: 'വ്യാ', Venus: 'ശു', Saturn: 'ശ', Rahu: 'രാ', Ketu: 'കേ',
   Ascendant: 'ല', Mandi: 'മാ' };
 
-// Malayalam for a term or a list of terms; anything not in the dictionary stays as it is
+// Malayalam the server wrote for its readings, keyed by their English text. Server objects carry
+// Malayalam as a "_ml" field beside "_en" and "_ta" (or "ml" beside "en" and "ta"); learnMalayalam()
+// collects them from each response so that every place showing the English text can show it.
+const ML_DYNAMIC = new Map();
+
+function learnMalayalam(value) {
+  if (Array.isArray(value)) {
+    value.forEach(learnMalayalam);
+    return;
+  }
+  if (!value || typeof value !== 'object') return;
+  if (typeof value.en === 'string' && typeof value.ml === 'string') ML_DYNAMIC.set(value.en.trim(), value.ml);
+  for (const [key, ml] of Object.entries(value)) {
+    if (key.endsWith('_ml')) {
+      // The English beside it is "name_en" or plain "name"
+      const base = key.slice(0, -3);
+      const en = value[base + '_en'] ?? value[base];
+      if (typeof en === 'string' && typeof ml === 'string') ML_DYNAMIC.set(en.trim(), ml);
+      else if (Array.isArray(en) && Array.isArray(ml)) en.forEach((item, i) => {
+        if (typeof item === 'string' && typeof ml[i] === 'string') ML_DYNAMIC.set(item.trim(), ml[i]);
+      });
+    } else if (ml && typeof ml === 'object') {
+      learnMalayalam(ml);
+    }
+  }
+}
+
+// Malayalam for a term or a list of terms; anything not known stays as it is
 function mlTerm(value) {
   if (Array.isArray(value)) return value.map(mlTerm);
   if (typeof value !== 'string') return value;
-  return ML_TERMS[value] ?? ML_TERMS[value.trim()] ?? value;
+  const key = value.trim();
+  const known = ML_DYNAMIC.get(key) ?? ML_TERMS[value] ?? ML_TERMS[key];
+  if (known !== undefined) return known;
+  return key.length <= 80 ? mlTermsInText(value) : value;
 }
 
 // Whole-word Malayalam for known terms inside short labels such as "Purva Ashadha (Pada 2)"
@@ -909,10 +990,12 @@ function translateTree(root) {
   const nodes = [];
   while (walker.nextNode()) nodes.push(walker.currentNode);
   nodes.forEach(node => {
+    if (node.parentElement?.closest('[data-keep-en]')) return;  // an English second label kept on purpose
     const raw = node.nodeValue;
     const key = raw.trim();
     if (!key) return;
-    if (ML_TERMS[key] !== undefined) node.nodeValue = raw.replace(key, ML_TERMS[key]);
+    if (ML_DYNAMIC.has(key)) node.nodeValue = raw.replace(key, ML_DYNAMIC.get(key));
+    else if (ML_TERMS[key] !== undefined) node.nodeValue = raw.replace(key, ML_TERMS[key]);
     else if (key.length <= 80 && /[A-Za-z]{2}/.test(key)) node.nodeValue = mlTermsInText(raw);
   });
 }

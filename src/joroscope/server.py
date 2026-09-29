@@ -32,6 +32,17 @@ else:
     WEB_DIR = MODULE_DIR / 'web'
 
 
+def strip_malayalam(value):
+    """Drop the Malayalam texts ("_ml" fields, and "ml" beside "en") from a response for pages
+    that are not showing Malayalam; they would add about a third to a chart."""
+    if isinstance(value, list):
+        return [strip_malayalam(v) for v in value]
+    if isinstance(value, dict):
+        return {k: strip_malayalam(v) for k, v in value.items()
+                if not k.endswith('_ml') and not (k == 'ml' and 'en' in value)}
+    return value
+
+
 class Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):
         pass
@@ -90,10 +101,15 @@ class Handler(BaseHTTPRequestHandler):
                 timeline = (result.get('predictions') or {}).get('timeline_predictions')
                 if timeline:
                     defer_timeline_details(timeline)
+                if data.get('lang') != 'ml':
+                    result = strip_malayalam(result)
                 self.send(json.dumps(result, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/timeline':
                 timeline = (calculate(data).get('predictions') or {}).get('timeline_predictions') or {}
-                self.send(json.dumps({'details': timeline_details(timeline)}, ensure_ascii=False, allow_nan=False).encode())
+                details = {'details': timeline_details(timeline)}
+                if data.get('lang') != 'ml':
+                    details = strip_malayalam(details)
+                self.send(json.dumps(details, ensure_ascii=False, allow_nan=False).encode())
             elif req_path == '/api/match':
                 boy = data.get('boy')
                 girl = data.get('girl')

@@ -8,6 +8,9 @@ from datetime import datetime, timezone
 from typing import Dict, Any
 from zoneinfo import ZoneInfo
 
+from .readings.common import PLANET_ML, PLANET_ML_CASE
+from .timeline_ml import ARCHETYPE_FIELDS, ARCHETYPES_ML, PLANET_CORE_FIELDS, PLANET_CORE_ML
+
 PLANET_TAMIL = {
     'Sun': 'சூரியன்', 'Moon': 'சந்திரன்', 'Mars': 'செவ்வாய்', 'Mercury': 'புதன்',
     'Jupiter': 'குரு', 'Venus': 'சுக்கிரன்', 'Saturn': 'சனி', 'Rahu': 'ராகு', 'Ketu': 'கேது',
@@ -767,6 +770,68 @@ PLANET_CORE = {
 
 
 def get_dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int, d_dignity: str, b_dignity: str) -> Dict[str, Any]:
+    reading = _dasa_bhukti_reading(d_lord, b_lord, mutual_kendra)
+    key = (d_lord, b_lord)
+    if key in ARCHETYPES_ML:
+        reading.update({f'{field}_ml': text for field, text in zip(ARCHETYPE_FIELDS, ARCHETYPES_ML[key])})
+    else:
+        reading.update(_generic_reading_ml(d_lord, b_lord, mutual_kendra))
+    return reading
+
+
+def _generic_reading_ml(d_lord, b_lord, mutual_kendra):
+    """Malayalam for a period built from the planetary matrix, following the English and Tamil below."""
+    d = dict(zip(PLANET_CORE_FIELDS, PLANET_CORE_ML.get(d_lord, PLANET_CORE_ML['Jupiter'])))
+    b = dict(zip(PLANET_CORE_FIELDS, PLANET_CORE_ML.get(b_lord, PLANET_CORE_ML['Venus'])))
+    dn, bn = PLANET_ML.get(d_lord, d_lord), PLANET_ML.get(b_lord, b_lord)
+    if mutual_kendra in (1, 5, 9):
+        swa = d_lord == b_lord
+        axis = 'സ്വന്തം അപഹാരം' if swa else f'{mutual_kendra}-ാം ത്രികോണ ശുഭസ്ഥിതി'
+        opening = (f'{dn} ദശയിൽ സ്വന്തം അപഹാരം: ദശാനാഥന്റെ കാരകത്വങ്ങൾ നേരിട്ട് പ്രകടമാകും;' if swa else
+                   f'{dn} ദശയിൽ {bn} അപഹാരം ത്രികോണ ശുഭസ്ഥിതിയിൽ ചേരുന്നതിനാൽ,')
+        out = dict(
+            theme=f'{opening} {b["gov"]} എന്നീ വഴികളിൽ നല്ല ഫലങ്ങൾ നൽകുന്ന ഉത്തമമായ ശുഭകാലം.',
+            career=f'{b["career_pos"]} {dn} ദശാനാഥന്റെ ബലത്താൽ ജോലിയിലും തൊഴിലിലും പുതിയ മതിപ്പും ഉന്നത പദവികളും ലഭിക്കും.',
+            wealth=f'{b["wealth_pos"]} {d["wealth_pos"]}',
+            health=f'{b["health_pos"]} ദശാനാഥന്റെ അനുഗ്രഹത്താൽ മനസ്സമാധാനവും ഉത്സാഹവും ഉയരും.',
+            family=f'{b["family_pos"]} കുടുംബത്തിൽ സന്തോഷവും മുതിർന്നവരുടെ അനുഗ്രഹവും നിറഞ്ഞിരിക്കും.',
+            milestones=f'{b["milestone"]} {d["milestone"]}',
+            remedy=f'{b["remedy"]} കൂടാതെ {PLANET_ML_CASE["acc"].get(d_lord, dn)}യും ആരാധിക്കുന്നത് സർവ്വ സൗഭാഗ്യങ്ങളും നൽകും.')
+    elif mutual_kendra in (3, 11):
+        axis = f'{mutual_kendra}-ാം ഉപചയ വളർച്ചാസ്ഥിതി'
+        out = dict(
+            theme=f'{dn} ദശയിൽ {bn} അപഹാരം ഉപചയസ്ഥാനത്ത് നിൽക്കുന്നതിനാൽ കഠിനാധ്വാനത്തിനൊത്ത സ്ഥിരമായ വിജയവും സാമ്പത്തിക വളർച്ചയും ലഭിക്കുന്ന ഉത്തമകാലം.',
+            career=f'{b["career_pos"]} പഴയ തടസ്സങ്ങൾ നീങ്ങി പുതിയ തൊഴിൽ സംരംഭങ്ങളിൽ ലാഭവും പങ്കാളികളുടെ പിന്തുണയും ലഭിക്കും.',
+            wealth=f'{b["wealth_pos"]} കുടിശ്ശികകൾ പിരിഞ്ഞുകിട്ടും; സമ്പാദ്യവും സാമ്പത്തികബലവും പടിപടിയായി ഉയരും.',
+            health=f'{b["health_pos"]} ശരീരബലം കൂടും; ക്ഷീണം മാറി ഉന്മേഷം ഉയരും.',
+            family=f'{b["family_pos"]} ബന്ധുക്കളുടെയും സുഹൃത്തുക്കളുടെയും സഹകരണത്താൽ കുടുംബത്തിൽ പുരോഗതി.',
+            milestones=f'{b["milestone"]} സ്ഥാപന വിപുലീകരണം, പുതിയ കരാറുകൾ നേടൽ, മത്സരങ്ങളിൽ വിജയം.',
+            remedy=f'{b["remedy"]} പാവങ്ങൾക്ക് അന്നദാനവും വസ്ത്രദാനവും ചെയ്യുന്നത് വിജയം വേഗത്തിലാക്കും.')
+    elif mutual_kendra in (6, 8, 12):
+        axis = f'{mutual_kendra}-ാം ദുഃസ്ഥാന കർമ്മജാഗ്രതാ കാലം'
+        out = dict(
+            theme=f'{dn} ദശയിൽ {bn} അപഹാരം ദുഃസ്ഥാനത്ത് നിൽക്കുന്നതിനാൽ സമചിത്തതയും വിവേകവും ആത്മീയ സമർപ്പണവും വേണ്ട കർമ്മജാഗ്രതാ കാലം.',
+            career=f'{b["career_neg"]} ജോലിസ്ഥലത്ത് ഉന്നത അധികാരികളുമായുള്ള അനാവശ്യ തർക്കങ്ങൾ ഒഴിവാക്കുക; ക്ഷമയാണ് ഗുണം.',
+            wealth=f'{b["wealth_neg"]} പുതിയ കടം വാങ്ങുന്നതും കൊടുക്കുന്നതും ഒഴിവാക്കുക; ആവശ്യമില്ലാത്ത ആഡംബരച്ചെലവുകൾ നിയന്ത്രിക്കുക.',
+            health=f'{b["health_neg"]} മനോസമ്മർദ്ദവും ക്ഷീണവും വരാതിരിക്കാൻ ധ്യാനം, യോഗ, ലളിതമായ പോഷകാഹാരം ശീലിക്കുക.',
+            family=f'{b["family_neg"]} കുടുംബാംഗങ്ങളോട് അനാവശ്യ സംശയങ്ങളും തർക്കങ്ങളും ഒഴിവാക്കി സമാധാനം പാലിക്കുന്നത് ഐക്യം നൽകും.',
+            milestones='പുണ്യസ്ഥല യാത്രകൾ, കുലദൈവ നേർച്ചകൾ നിറവേറ്റൽ, വെല്ലുവിളികളെ ജയിക്കാനുള്ള മനോബലം നേടൽ.',
+            remedy=f'{b["remedy"]} നവഗ്രഹശാന്തിയും പാവങ്ങൾക്ക് അന്നദാനവും ദോഷങ്ങൾ നീക്കി ഗുണം ചെയ്യും.')
+    else:
+        axis = f'{mutual_kendra}-ാം കേന്ദ്ര പ്രവർത്തനകാലം'
+        out = dict(
+            theme=f'{dn} ദശയിൽ {bn} അപഹാരം കേന്ദ്രസ്ഥാനത്ത് നിൽക്കുന്നതിനാൽ ജീവിതത്തിലെ വഴിത്തിരിവുകളും പുതിയ ചുമതലകളും സാമൂഹിക അംഗീകാരവും ലഭിക്കുന്ന പ്രവർത്തനകാലം.',
+            career=f'{b["career_pos"]} പുതിയ ചുമതലകൾ, നേതൃഗുണം പ്രകടമാകൽ, സ്ഥാപന വിപുലീകരണം, ഭരണവിജയം.',
+            wealth=f'{b["wealth_pos"]} ഭൂമി, വീട്, വാഹനങ്ങൾ എന്നിവയിലെ ശുഭനിക്ഷേപങ്ങളാൽ സ്വത്തിന്റെ മൂല്യം ഗണ്യമായി ഉയരും.',
+            health=f'{b["health_pos"]} ചുറുചുറുക്കുള്ള ശരീരസ്ഥിതി; അധികാധ്വാനത്തിനിടയിൽ മതിയായ വിശ്രമം എടുക്കുന്നത് നല്ലത്.',
+            family=f'{b["family_pos"]} വീട്ടിൽ മംഗളകാര്യ ചർച്ചകൾ, പുതിയ ബന്ധങ്ങളുടെ വരവ്, കുടുംബസമാധാനം.',
+            milestones=f'{b["milestone"]} ദീർഘകാല ലക്ഷ്യങ്ങൾ നിറവേറൽ, പുതിയ സ്വത്ത് വാങ്ങൽ, പൊതുമതിപ്പ്.',
+            remedy=f'{b["remedy"]} കുലദൈവാരാധനയും ഇഷ്ടദേവതാ ആരാധനയും സർവ്വ കാര്യസിദ്ധിയും നൽകും.')
+    out['title'] = f'{dn} മഹാദശ — {bn} അപഹാരം ({axis})'
+    return {f'{k}_ml': v for k, v in out.items()}
+
+
+def _dasa_bhukti_reading(d_lord: str, b_lord: str, mutual_kendra: int) -> Dict[str, Any]:
     key = (d_lord, b_lord)
     if key in DASA_BHUKTI_ARCHETYPES:
         return dict(DASA_BHUKTI_ARCHETYPES[key])
@@ -886,6 +951,7 @@ DUSTHANA = (6, 8, 12)
 ROLE_SCORE = {'yogakaraka': 2, 'benefic': 1, 'neutral': 0, 'malefic': -1}
 ROLE_WORDS = {'yogakaraka': ('a Yogakaraka', 'யோககாரகர்'), 'benefic': ('a functional benefic', 'சுப ஆதிபத்தியம் பெற்றவர்'),
               'neutral': ('functionally neutral', 'சம ஆதிபத்தியம் உடையவர்'), 'malefic': ('a functional malefic', 'பாப ஆதிபத்தியம் பெற்றவர்')}
+ROLE_WORDS_ML = {'yogakaraka': 'യോഗകാരകൻ', 'benefic': 'ശുഭാധിപത്യമുള്ളവൻ', 'neutral': 'സമാധിപത്യമുള്ളവൻ', 'malefic': 'പാപാധിപത്യമുള്ളവൻ'}
 # Icons for the annual view by the running Bhukti lord's main significations
 BHUKTI_ICONS = {'Sun': '🏛️', 'Moon': '🌙', 'Mars': '🏡', 'Mercury': '📚', 'Jupiter': '🎓', 'Venus': '💍',
                 'Saturn': '⚙️', 'Rahu': '✈️', 'Ketu': '🧘'}
@@ -896,7 +962,8 @@ def _period_assessment(d_lord, b_lord, planets):
     functional role from its lordships, its house and dignity, its position from the Dasa
     lord, and the two lords' natural friendship. Returns a -4..+5 score and the reasons."""
     from .engine import NATURAL_FRIENDS, SIGN_LORDS
-    from .readings.common import _functional_role, _house_list, _ordinal, DIGNITY_SCORE, DIGNITY_PHRASE, HOUSE_THEMES
+    from .readings.common import (_functional_role, _house_list, _ordinal, DIGNITY_SCORE, DIGNITY_PHRASE, DIGNITY_PHRASE_ML,
+                                  HOUSE_THEMES, HOUSE_THEMES_ML)
     asc_sign = planets['Ascendant']['sign_index']
     b = planets[b_lord]
     agent = b_lord
@@ -931,7 +998,13 @@ def _period_assessment(d_lord, b_lord, planets):
                 f"placed {_ordinal(mutual)} from the Dasa lord {d_lord}. The Bhukti brings matters of {theme_en} to the fore.")
     basis_ta = (f"இந்த ஜாதகத்தில் {PLANET_TAMIL[b_lord]}{agent_ta} {lords_ta}{house}-ம் பாவத்தில் {dig_ta} உள்ளார்; இவர் {role_ta}, "
                 f"தசா நாதர் {PLANET_TAMIL[d_lord]}-க்கு {mutual}-ஆம் இடத்தில் உள்ளார். இப்புக்தியில் {theme_ta} தொடர்பான விஷயங்கள் முன்னிலை பெறும்.")
-    return score, basis_en, basis_ta
+    dig_ml = DIGNITY_PHRASE_ML.get(b.get('dignity', 'Neutral'), DIGNITY_PHRASE_ML['Neutral'])
+    lords_ml = f"{_house_list(owned, 'ml')} എന്നിവയുടെ അധിപനായി " if owned and b_lord not in ('Rahu', 'Ketu') else ''
+    agent_ml = f" ({PLANET_ML_CASE['dat'][agent]} വേണ്ടി)" if agent != b_lord else ''
+    basis_ml = (f"ഈ ജാതകത്തിൽ {PLANET_ML[b_lord]}{agent_ml} {lords_ml}{house}-ാം ഭാവത്തിൽ {dig_ml} നിൽക്കുന്നു; ഇത് {ROLE_WORDS_ML[role]}, "
+                f"ദശാനാഥനായ {PLANET_ML_CASE['loc'][d_lord]} നിന്ന് {mutual}-ാം സ്ഥാനത്ത്. ഈ അപഹാരത്തിൽ "
+                f"{'; '.join(HOUSE_THEMES_ML[h] for h in themes)} എന്നീ കാര്യങ്ങൾ മുന്നിലെത്തും.")
+    return score, basis_en, basis_ta, basis_ml
 
 
 
@@ -1012,22 +1085,27 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
                 mutual_class = 'trine'
                 mutual_rel = '1-5-9 Auspicious Trine' if mutual_dist in (5, 9) else '1-1 Swabhukti Alignment'
                 mutual_rel_ta = '1-5-9 திரிகோண சுப அமைப்பு' if mutual_dist in (5, 9) else '1-1 சுய புக்தி அமைப்பு'
+                mutual_rel_ml = '1-5-9 ത്രികോണ ശുഭസ്ഥിതി' if mutual_dist in (5, 9) else '1-1 സ്വന്തം അപഹാരം'
             elif mutual_dist in (4, 7, 10):
                 mutual_class = 'kendra'
                 mutual_rel = '1-7 Full Mutual Aspect' if mutual_dist == 7 else f'{mutual_dist}-Kendra Dynamic Action'
                 mutual_rel_ta = '1-7 நேரடி சம சப்தம பார்வை' if mutual_dist == 7 else f'{mutual_dist}-ஆம் கேந்திர செயல் அமைப்பு'
+                mutual_rel_ml = '1-7 നേർക്കുനേർ സപ്തമ ദൃഷ്ടി' if mutual_dist == 7 else f'{mutual_dist}-ാം കേന്ദ്ര പ്രവർത്തന സ്ഥിതി'
             elif mutual_dist in (3, 11):
                 mutual_class = 'growth'
                 mutual_rel = f'{mutual_dist}-11 Upachaya Growth'
                 mutual_rel_ta = f'{mutual_dist}-11 உபஜெய வளர்ச்சி அமைப்பு'
+                mutual_rel_ml = f'{mutual_dist}-11 ഉപചയ വളർച്ചാസ്ഥിതി'
             elif mutual_dist in (6, 8):
                 mutual_class = 'friction'
                 mutual_rel = '6-8 Shadashtaka Friction'
                 mutual_rel_ta = '6-8 சஷ்டாஷ்டக கவன அமைப்பு'
+                mutual_rel_ml = '6-8 ഷഷ്ഠാഷ്ടക ജാഗ്രതാസ്ഥിതി'
             else:  # 2, 12
                 mutual_class = 'transition'
                 mutual_rel = '2-12 Dwirdwadasa Transition'
                 mutual_rel_ta = '2-12 துவித்வாதச சுபவிரய அமைப்பு'
+                mutual_rel_ml = '2-12 ദ്വിർദ്വാദശ മാറ്റസ്ഥിതി'
 
             d_dignity = planets.get(d_lord, {}).get('dignity', 'Neutral')
             b_dignity = planets.get(b_lord, {}).get('dignity', 'Neutral')
@@ -1036,17 +1114,19 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
 
             # Potency: the chart's own assessment weighs twice the pair's general nature
             if b_lord in planets and d_lord in planets and 'Ascendant' in planets:
-                chart_score, basis_en, basis_ta = _period_assessment(d_lord, b_lord, planets)
+                chart_score, basis_en, basis_ta, basis_ml = _period_assessment(d_lord, b_lord, planets)
                 chart_potency = max(1, min(5, 3 + round(chart_score / 1.6)))
                 potency = max(1, min(5, round((reading.get('base_potency', 3) + 2 * chart_potency) / 3)))
                 reading['theme_en'] = f"{basis_en} {reading['theme_en']}"
                 reading['theme_ta'] = f"{basis_ta} {reading['theme_ta']}"
+                reading['theme_ml'] = f"{basis_ml} {reading['theme_ml']}"
             else:
                 potency = reading.get('base_potency', 3)
 
             status_class = 'auspicious' if potency >= 4 else ('moderate' if potency == 3 else 'challenging')
             status_text_en = 'Auspicious ★★★' if potency >= 4 else ('Moderate ★★' if potency == 3 else 'Caution ★')
             status_text_ta = 'சுப காலம் ★★★' if potency >= 4 else ('மத்தியம பலன் ★★' if potency == 3 else 'கவனமான காலம் ★')
+            status_text_ml = 'ശുഭകാലം ★★★' if potency >= 4 else ('മധ്യമ ഫലം ★★' if potency == 3 else 'ശ്രദ്ധിക്കേണ്ട കാലം ★')
 
             period_obj = {
                 'id': f"timeline-{d_idx}-{b_idx}",
@@ -1070,26 +1150,36 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
                 'status_class': status_class,
                 'status_text_en': status_text_en,
                 'status_text_ta': status_text_ta,
+                'status_text_ml': status_text_ml,
                 'mutual_house': mutual_dist,
                 'mutual_class': mutual_class,
                 'mutual_rel': mutual_rel,
                 'mutual_rel_ta': mutual_rel_ta,
+                'mutual_rel_ml': mutual_rel_ml,
                 'title_en': reading['title_en'],
                 'title_ta': reading['title_ta'],
+                'title_ml': reading['title_ml'],
                 'theme_en': reading['theme_en'],
                 'theme_ta': reading['theme_ta'],
+                'theme_ml': reading['theme_ml'],
                 'career_en': reading['career_en'],
                 'career_ta': reading['career_ta'],
+                'career_ml': reading['career_ml'],
                 'wealth_en': reading['wealth_en'],
                 'wealth_ta': reading['wealth_ta'],
+                'wealth_ml': reading['wealth_ml'],
                 'health_en': reading['health_en'],
                 'health_ta': reading['health_ta'],
+                'health_ml': reading['health_ml'],
                 'family_en': reading['family_en'],
                 'family_ta': reading['family_ta'],
+                'family_ml': reading['family_ml'],
                 'milestones_en': reading['milestones_en'],
                 'milestones_ta': reading['milestones_ta'],
+                'milestones_ml': reading['milestones_ml'],
                 'remedy_en': reading['remedy_en'],
-                'remedy_ta': reading['remedy_ta']
+                'remedy_ta': reading['remedy_ta'],
+                'remedy_ml': reading['remedy_ml']
             }
 
             timeline_periods.append(period_obj)
@@ -1114,10 +1204,13 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
                     'status_class': status_class,
                     'title_en': reading['title_en'],
                     'title_ta': reading['title_ta'],
+                    'title_ml': reading['title_ml'],
                     'strategic_advice_en': reading['theme_en'],
                     'strategic_advice_ta': reading['theme_ta'],
+                    'strategic_advice_ml': reading['theme_ml'],
                     'primary_remedy_en': reading['remedy_en'],
-                    'primary_remedy_ta': reading['remedy_ta']
+                    'primary_remedy_ta': reading['remedy_ta'],
+                    'primary_remedy_ml': reading['remedy_ml']
                 }
 
     # 10-Year Annual Projections (Current Year - 1 to Current Year + 9)
@@ -1170,6 +1263,8 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
             'dasa_bhukti_str_ta': f"{PLANET_TAMIL.get(d_lord, d_lord)} / {PLANET_TAMIL.get(b_lord, b_lord)}",
             'theme_en': matched_period['theme_en'] if matched_period else 'Progressive life milestones.',
             'theme_ta': matched_period['theme_ta'] if matched_period else 'வாழ்வியல் முன்னேற்ற காலம்.',
+            'theme_ml': matched_period['theme_ml'] if matched_period else 'ജീവിത പുരോഗതിയുടെ കാലം.',
+            'dasa_bhukti_str_ml': f"{PLANET_ML.get(d_lord, d_lord)} / {PLANET_ML.get(b_lord, b_lord)}",
             'icon': chosen_icon,
             'score': max(40, min(98, score)),
             'saturn_cycle': saturn_note,
@@ -1187,7 +1282,7 @@ def calculate_timeline_predictions(chart: Dict[str, Any]) -> Dict[str, Any]:
 # The six reading texts of each period. The chart response keeps them only for the running
 # period; the rest come from /api/timeline when a card is opened, as they are most of its size.
 DETAIL_FIELDS = tuple(f"{part}_{lang}" for part in ('career', 'wealth', 'health', 'family', 'milestones', 'remedy')
-                      for lang in ('en', 'ta'))
+                      for lang in ('en', 'ta', 'ml'))
 
 
 def timeline_details(timeline: Dict[str, Any]) -> Dict[str, Dict[str, str]]:

@@ -17,7 +17,7 @@ The Kota Swami is the lord of the birth sign.
 from datetime import datetime, timezone
 
 from .engine import AYAN, STARS, TAMIL_STARS, SIGNS, TAMIL, sidereal_position, swe, utc_to_jd
-from .readings.common import PLANET_TAMIL, SIGN_LORDS
+from .readings.common import MALAYALAM_SIGNS, MALAYALAM_STARS, PLANET_ML, PLANET_TAMIL, SIGN_LORDS
 from .readings.report import card, chapter, table
 
 ABHIJIT_TA = 'அபிஜித்'
@@ -52,6 +52,11 @@ BENEFICS = ('Jupiter', 'Venus', 'Mercury', 'Moon')
 MEAN_SPEED = {'Mars': 0.524, 'Mercury': 0.986, 'Jupiter': 0.083, 'Venus': 0.986, 'Saturn': 0.0335}
 BODIES = (('Sun', swe.SUN), ('Moon', swe.MOON), ('Mars', swe.MARS), ('Mercury', swe.MERCURY), ('Jupiter', swe.JUPITER),
           ('Venus', swe.VENUS), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE))
+SPECIAL_STARS_ML = {'Janma': 'ജന്മ', 'Karma': 'കർമ്മ', 'Sanghatika': 'സാംഘാതിക', 'Samudaya': 'സാമുദായിക',
+                    'Vainashika': 'വൈനാശിക', 'Manasa': 'മാനസ'}
+KOTA_RINGS_ML = ['ബാഹ്യം (പുറം)', 'പ്രാകാരം', 'മധ്യം', 'സ്തംഭം (ഉൾഭാഗം)']
+RESULT_ML = {'troubled': 'ബാധ', 'supported': 'പിന്തുണ', 'mixed': 'സമ്മിശ്രം', 'clear': 'വ്യക്തം'}
+MOTION_ML = {'entering': 'ഉള്ളിലേക്ക് കടക്കുന്നു', 'at the centre': 'മധ്യത്തിൽ', 'leaving': 'പുറത്തേക്ക് പോകുന്നു'}
 KOTA_RINGS = [('Bahya (outer)', 'பாஹ்யம் (வெளி)'), ('Prakara', 'பிராகாரம்'), ('Madhya', 'மத்யம்'), ('Stambha (inner)', 'ஸ்தம்பம் (உள்)')]
 ABHIJIT_START, ABHIJIT_END = 276 + 40 / 60, 280 + 53 / 60 + 20 / 3600
 
@@ -70,6 +75,17 @@ def star28_name(n):
         return 'Abhijit', ABHIJIT_TA
     i = n - 1 if n < 22 else n - 2
     return STARS[i], TAMIL_STARS[i]
+
+
+def star28_ml(n):
+    if n == 22:
+        return 'അഭിജിത്'
+    return MALAYALAM_STARS[n - 1 if n < 22 else n - 2]
+
+
+def _ml3(pair):
+    """Add the Malayalam to an (en, ta) result or motion word."""
+    return (*pair, RESULT_ML.get(pair[0], MOTION_ML.get(pair[0], pair[0])))
 
 
 def _cells():
@@ -148,13 +164,15 @@ def calculate_chakras(chart, now=None):
         good_hits += len(benefic)
         bad_hits += len(malefic) * (2 if label in ('Janma', 'Vainashika') else 1)
         name, name_ta = star28_name(s28)
-        rows.append(((label, label_ta), (name, name_ta), (', '.join(on) or '—', ', '.join(PLANET_TAMIL[g] for g in on) or '—'),
-                     ('troubled', 'பாதிப்பு') if malefic and not benefic else (('supported', 'துணை') if benefic and not malefic else
-                                                                                   (('mixed', 'கலப்பு') if on else ('clear', 'தெளிவு')))))
+        rows.append(((label, label_ta, SPECIAL_STARS_ML[label]), (name, name_ta, star28_ml(s28)),
+                     (', '.join(on) or '—', ', '.join(PLANET_TAMIL[g] for g in on) or '—', ', '.join(PLANET_ML[g] for g in on) or '—'),
+                     _ml3(('troubled', 'பாதிப்பு') if malefic and not benefic else (('supported', 'துணை') if benefic and not malefic else
+                                                                                        (('mixed', 'கலப்பு') if on else ('clear', 'தெளிவு'))))))
     sign_on = sorted(set(hits.get(SIGN_CELL[birth_sign], [])))
-    rows.append((('Birth sign', 'ஜன்ம ராசி'), (SIGNS[birth_sign - 1], TAMIL[birth_sign - 1]),
-                 (', '.join(sign_on) or '—', ', '.join(PLANET_TAMIL[g] for g in sign_on) or '—'),
-                 ('troubled', 'பாதிப்பு') if any(g not in BENEFICS for g in sign_on) else (('supported', 'துணை') if sign_on else ('clear', 'தெளிவு'))))
+    rows.append((('Birth sign', 'ஜன்ம ராசி', 'ജന്മരാശി'), (SIGNS[birth_sign - 1], TAMIL[birth_sign - 1], MALAYALAM_SIGNS[birth_sign - 1]),
+                 (', '.join(sign_on) or '—', ', '.join(PLANET_TAMIL[g] for g in sign_on) or '—', ', '.join(PLANET_ML[g] for g in sign_on) or '—'),
+                 _ml3(('troubled', 'பாதிப்பு') if any(g not in BENEFICS for g in sign_on) else
+                      (('supported', 'துணை') if sign_on else ('clear', 'தெளிவு')))))
 
     # The grid with the transit grahas in their stars
     grid = []
@@ -167,9 +185,10 @@ def calculate_chakras(chart, now=None):
                 gs = [g for g, s in transit_star.items() if s == v]
                 cls = 'star birth' if v == birth else 'star'
                 out_row.append(dict(en=name + (' · ' + ' '.join(gs) if gs else ''), ta=name_ta + (' · ' + ' '.join(PLANET_TAMIL[g] for g in gs) if gs else ''),
+                                    ml=star28_ml(v) + (' · ' + ' '.join(PLANET_ML[g] for g in gs) if gs else ''),
                                     cls=cls + (' struck' if (r, c) in hits else '')))
             elif isinstance(v, int):
-                out_row.append(dict(en=SIGNS[v - 1], ta=TAMIL[v - 1], cls='sign' + (' birth' if v == birth_sign else '') + (' struck' if (r, c) in hits else '')))
+                out_row.append(dict(en=SIGNS[v - 1], ta=TAMIL[v - 1], ml=MALAYALAM_SIGNS[v - 1], cls='sign' + (' birth' if v == birth_sign else '') + (' struck' if (r, c) in hits else '')))
             else:
                 out_row.append(dict(en=v.replace('<br>', ' · '), ta=v.replace('<br>', ' · '), cls='letter'))
         grid.append(out_row)
@@ -184,7 +203,8 @@ def calculate_chakras(chart, now=None):
         if g not in BENEFICS and ring >= 2 and q <= 4:
             danger += 1
         name, name_ta = star28_name(transit_star[g])
-        kota_rows.append(((g, PLANET_TAMIL[g]), (name, name_ta), count, KOTA_RINGS[ring], motion))
+        kota_rows.append(((g, PLANET_TAMIL[g], PLANET_ML[g]), (name, name_ta, star28_ml(transit_star[g])), count,
+                          (*KOTA_RINGS[ring], KOTA_RINGS_ML[ring]), _ml3(motion)))
     kota_swami = SIGN_LORDS[moon['sign_index']]
     ks_count = (transit_star[kota_swami] - birth) % 28 + 1
     ks_ring = {1: 0, 7: 0, 2: 1, 6: 1, 3: 2, 5: 2, 4: 3}[(ks_count - 1) % 7 + 1]
@@ -198,7 +218,11 @@ def calculate_chakras(chart, now=None):
              f"உங்கள் ஜன்ம நட்சத்திரம், சிறப்பு நட்சத்திரங்கள் மீது சுப வேதை: {good_hits}; பாப வேதை: {bad_hits}. "
              + {'good': 'கோச்சாரம் இப்போது துணை நிற்கிறது.', 'bad': 'கோச்சாரம் உங்கள் நட்சத்திரங்களை அழுத்துகிறது: புதிய முயற்சிகளிலும் உடல்நலத்திலும் கவனம்.',
                 'mixed': 'கோச்சார வேதைகள் சமநிலையில் உள்ளன.'}[sbc_verdict],
-             verdict=sbc_verdict),
+             verdict=sbc_verdict, title_ml='സർവതോഭദ്ര വേധം (ഇപ്പോൾ)',
+             body_ml=(f"നിങ്ങളുടെ ജന്മനക്ഷത്രത്തിലും പ്രത്യേക നക്ഷത്രങ്ങളിലും ശുഭവേധം: {good_hits}; പാപവേധം: {bad_hits}. "
+                      + {'good': 'ഗോചരം ഇപ്പോൾ പിന്തുണയ്ക്കുന്നു.',
+                         'bad': 'ഗോചരം നിങ്ങളുടെ നക്ഷത്രങ്ങളെ സമ്മർദ്ദത്തിലാക്കുന്നു: പുതിയ സംരംഭങ്ങളിലും ആരോഗ്യത്തിലും ശ്രദ്ധ.',
+                         'mixed': 'ഗോചര വേധങ്ങൾ സന്തുലിതമാണ്.'}[sbc_verdict])),
         card('🏰', 'Kota Chakra now', 'கோட்டைச் சக்கரம் (இப்போது)',
              (f"{danger} malefic{' is' if danger == 1 else 's are'} inside the fort, heading for the Stambha. " if danger else '')
              + ('Guard health and property this period.' if danger else 'The fort is not under attack.')
@@ -208,7 +232,11 @@ def calculate_chakras(chart, now=None):
              + ('இக்காலத்தில் உடல்நலம், சொத்தில் கவனம்.' if danger else 'கோட்டை தாக்குதலின்றி உள்ளது.')
              + f" கோட்டை அதிபதி {PLANET_TAMIL[kota_swami]} {KOTA_RINGS[ks_ring][1]} வளையத்தில்"
              + (', கோட்டையை நன்கு காக்கிறார்.' if ks_ring >= 2 else '.'),
-             verdict='bad' if danger >= 2 else ('mixed' if danger == 1 else 'good')),
+             verdict='bad' if danger >= 2 else ('mixed' if danger == 1 else 'good'), title_ml='കോട്ടചക്രം (ഇപ്പോൾ)',
+             body_ml=((f"{danger} പാപഗ്രഹങ്ങൾ കോട്ടയ്ക്കുള്ളിൽ സ്തംഭത്തിലേക്ക് നീങ്ങുന്നു. " if danger else '')
+                      + ('ഈ കാലത്ത് ആരോഗ്യത്തിലും സ്വത്തിലും ശ്രദ്ധ.' if danger else 'കോട്ട ആക്രമണത്തിലല്ല.')
+                      + f" കോട്ടാധിപൻ {PLANET_ML[kota_swami]} {KOTA_RINGS_ML[ks_ring]} വലയത്തിൽ"
+                      + (', കോട്ടയെ നന്നായി കാക്കുന്നു.' if ks_ring >= 2 else '.'))),
     ]
     return chapter(
         'chakras', 'Sarvatobhadra & Kota Chakra', 'சர்வதோபத்ர & கோட்டைச் சக்கரம்',
@@ -216,7 +244,11 @@ def calculate_chakras(chart, now=None):
         'இன்றைய கோச்சாரத்திற்கான நரபதி ஜயசார்யரின் வேதைச் சக்கரங்கள், உங்கள் ஜன்ம நட்சத்திரம், ராசியுடன்.',
         cards=cards,
         tables=[table('Vedha on your stars', 'உங்கள் நட்சத்திரங்கள் மீது வேதை',
-                      [('Star', 'நட்சத்திரம்'), ('Name', 'பெயர்'), ('Vedha by', 'வேதை'), ('Result', 'பலன்')], rows),
+                      [('Star', 'நட்சத்திரம்', 'നക്ഷത്രം'), ('Name', 'பெயர்', 'പേര്'), ('Vedha by', 'வேதை', 'വേധം'), ('Result', 'பலன்', 'ഫലം')],
+                      rows, title_ml='നിങ്ങളുടെ നക്ഷത്രങ്ങളിൽ വേധം'),
                 table('Kota Chakra', 'கோட்டைச் சக்கரம்',
-                      [('Graha', 'கிரகம்'), ('Star', 'நட்சத்திரம்'), ('Count', 'எண்ணிக்கை'), ('Ring', 'வளையம்'), ('Motion', 'நகர்வு')], kota_rows)],
+                      [('Graha', 'கிரகம்', 'ഗ്രഹം'), ('Star', 'நட்சத்திரம்', 'നക്ഷത്രം'), ('Count', 'எண்ணிக்கை', 'എണ്ണം'),
+                       ('Ring', 'வளையம்', 'വലയം'), ('Motion', 'நகர்வு', 'ഗതി')], kota_rows, title_ml='കോട്ടചക്രം')],
+        title_ml='സർവതോഭദ്ര & കോട്ടചക്രം',
+        intro_ml='ഇന്നത്തെ ഗോചരത്തിനായുള്ള നരപതി ജയാചാര്യരുടെ വേധചക്രങ്ങൾ, നിങ്ങളുടെ ജന്മനക്ഷത്രവും രാശിയുമായി.',
         grid=grid, birth_star28=birth, kota_swami=kota_swami)

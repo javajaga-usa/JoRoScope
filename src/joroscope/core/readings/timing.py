@@ -4,11 +4,12 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from .common import PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS, _ordinal
+from .common import MALAYALAM_SIGNS, PLANET_ML, PLANET_TAMIL, SIGNS, SIGN_LORDS, TAMIL_SIGNS, _ordinal
 
 
 KAKSHYA_LORDS = ['Saturn', 'Jupiter', 'Mars', 'Sun', 'Venus', 'Mercury', 'Moon', 'Ascendant']
 KAKSHYA_LORDS_TA = ['சனி', 'குரு', 'செவ்வாய்', 'சூரியன்', 'சுக்கிரன்', 'புதன்', 'சந்திரன்', 'லக்னம்']
+KAKSHYA_LORDS_ML = [PLANET_ML[p] for p in KAKSHYA_LORDS]
 
 # 9. K.N. Rao & BVB Double Transit (Dwi-Gochara) Engine
 # An event needs transit Saturn and Jupiter both to influence (occupy or aspect) the house or
@@ -20,6 +21,10 @@ DOUBLE_TRANSIT_EVENTS = [
     ('children', 5, ('Jupiter',), 'Progeny & Children', 'புத்திர பாக்கியம்'),
     ('property', 4, ('Mars', 'Venus'), 'Property, Home & Vehicle', 'பூமி, வீடு & வாகனம்')
 ]
+DT_TITLES_ML = {'marriage': 'വിവാഹം & ദാമ്പത്യം', 'career': 'തൊഴിൽ പുരോഗതി & സ്ഥാനക്കയറ്റം', 'children': 'സന്താനഭാഗ്യം',
+                'property': 'ഭൂമി, വീട് & വാഹനം'}
+DT_STATUS_ML = {'active': 'സജീവ കാലം: ഇരട്ട ഗോചരവും ദശാ പിന്തുണയും', 'transit': 'ഗോചരം അനുകൂലം; പിന്തുണയ്ക്കുന്ന ദശയ്ക്കായി കാത്തിരിക്കുന്നു',
+                'building': 'രൂപപ്പെടുന്നു: ദശാ പിന്തുണ, ഒരു ഗോചരം മാത്രം അനുകൂലം', 'quiet': 'ശാന്തമായ കാലം'}
 DT_STATUS = {
     'active': (90, 'Active window: double transit with dasa support', 'செயல்படும் காலம்: இரட்டைப் பெயர்ச்சியுடன் தசா ஆதரவு'),
     'transit': (65, 'Transit ready, awaiting a supporting dasa', 'பெயர்ச்சி சாதகம்; ஆதரவான தசைக்காகக் காத்திருக்கிறது'),
@@ -118,7 +123,23 @@ def calculate_double_transit(chart):
         else:
             next_en = " No double-transit window opens in the next 6 years."
             next_ta = " அடுத்த 6 ஆண்டுகளில் இரட்டைப் பெயர்ச்சி காலம் இல்லை."
+        M, lord_ml = MALAYALAM_SIGNS, PLANET_ML[lord]
+        linked, unlinked = 'ബന്ധപ്പെടുന്നു', 'ബന്ധപ്പെടുന്നില്ല'
+        desc_ml = (f"ഗോചര ശനി ({M[sat_sign]}) നിങ്ങളുടെ {house}-ാം ഭാവവുമായോ ({M[house_sign]}) അതിന്റെ അധിപനായ {lord_ml}-ുമായോ "
+                   f"{linked if sat_now else unlinked}; ഗോചര വ്യാഴം ({M[jup_sign]}) {linked if jup_now else unlinked}.")
+        if maha:
+            desc_ml += (f" നടപ്പ് {PLANET_ML[maha]}{'–' + PLANET_ML[antar] if antar else ''} ദശ ഈ കാര്യവുമായി "
+                        f"{'ബന്ധപ്പെട്ടിരിക്കുന്നു' if dasa_now else 'ബന്ധപ്പെട്ടിട്ടില്ല'}.")
+        if best:
+            desc_ml += (f" അടുത്ത {'ദശാ പിന്തുണയുള്ള ' if best['dasa_support'] else ''}ഇരട്ട ഗോചര കാലം: "
+                        f"{best['start']} മുതൽ {best['end']} വരെ ({PLANET_ML[best['dasa']]}–{PLANET_ML[best['bhukti']]} ദശ).")
+        else:
+            desc_ml += " അടുത്ത 6 വർഷത്തിൽ ഇരട്ട ഗോചര കാലമില്ല."
         milestones.append({
+            'title_ml': DT_TITLES_ML[key],
+            'target_house_ml': f"{house}-ാം ഭാവം ({M[house_sign]}) & അധിപൻ {lord_ml}",
+            'status_ml': DT_STATUS_ML[status],
+            'desc_ml': desc_ml,
             'key': key,
             'title_en': title_en,
             'title_ta': title_ta,
@@ -187,6 +208,8 @@ def calculate_kakshya_transits(chart):
                 'range_str': f"{int(start_d)}°{int((start_d*60)%60):02d}′ – {int(end_d)}°{int((end_d*60)%60):02d}′",
                 'lord': k_lord,
                 'lord_ta': k_lord_ta,
+                'lord_ml': KAKSHYA_LORDS_ML[k],
+                'status_ml': 'ശുഭഫലം (ഫലപ്രദം)' if has_bindu else 'ശ്രദ്ധ (നിഷ്ഫലം)',
                 'has_bindu': has_bindu,
                 'status_en': 'Fruitful (Phala-Prada)' if has_bindu else 'Caution (Nishphala)',
                 'status_ta': 'சுப பலன் (பலப்பிரதம்)' if has_bindu else 'கவனம் (நிஷ்பலம்)',
@@ -209,6 +232,7 @@ def calculate_kakshya_transits(chart):
             'kakshya_timeline': sat_table,
             'bindus': bav['Saturn'][sat_sign],
             'summary_en': f"Saturn transits Kakshya {sat_k_idx + 1} ({sat_curr['lord']}) of {SIGNS[sat_sign]}, where it holds {bav['Saturn'][sat_sign]} of 8 bindus. Status: {sat_curr['status_en']}.",
+            'summary_ml': f"ശനി {MALAYALAM_SIGNS[sat_sign]} രാശിയുടെ {sat_k_idx + 1}-ാം കക്ഷ്യയിൽ ({sat_curr['lord_ml']}) സഞ്ചരിക്കുന്നു; ഈ രാശിയിൽ ശനിക്ക് 8-ൽ {bav['Saturn'][sat_sign]} ബിന്ദുക്കളുണ്ട്. ഫലം: {sat_curr['status_ml']}.",
             'summary_ta': f"சனி பகவான் {TAMIL_SIGNS[sat_sign]} ராசியின் {sat_k_idx + 1}-வது கக்ஷ்யையில் ({sat_curr['lord_ta']}) சஞ்சரிக்கிறார்; இந்த ராசியில் சனிக்கு 8-ல் {bav['Saturn'][sat_sign]} பரல்கள் உள்ளன. பலன்: {sat_curr['status_ta']}."
         },
         'jupiter': {
@@ -219,6 +243,7 @@ def calculate_kakshya_transits(chart):
             'kakshya_timeline': jup_table,
             'bindus': bav['Jupiter'][jup_sign],
             'summary_en': f"Jupiter transits Kakshya {jup_k_idx + 1} ({jup_curr['lord']}) of {SIGNS[jup_sign]}, where it holds {bav['Jupiter'][jup_sign]} of 8 bindus. Status: {jup_curr['status_en']}.",
+            'summary_ml': f"വ്യാഴം {MALAYALAM_SIGNS[jup_sign]} രാശിയുടെ {jup_k_idx + 1}-ാം കക്ഷ്യയിൽ ({jup_curr['lord_ml']}) സഞ്ചരിക്കുന്നു; ഈ രാശിയിൽ വ്യാഴത്തിന് 8-ൽ {bav['Jupiter'][jup_sign]} ബിന്ദുക്കളുണ്ട്. ഫലം: {jup_curr['status_ml']}.",
             'summary_ta': f"குரு பகவான் {TAMIL_SIGNS[jup_sign]} ராசியின் {jup_k_idx + 1}-வது கக்ஷ்யையில் ({jup_curr['lord_ta']}) சஞ்சரிக்கிறார்; இந்த ராசியில் குருவுக்கு 8-ல் {bav['Jupiter'][jup_sign]} பரல்கள் உள்ளன. பலன்: {jup_curr['status_ta']}."
         }
     }

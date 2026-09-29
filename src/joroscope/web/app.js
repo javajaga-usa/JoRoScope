@@ -442,6 +442,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (LANGUAGES.includes(saved)) currentLang = saved;
   } catch (e) {}
   $('#lang-label').textContent = LANGUAGE_NAMES[nextLanguage(currentLang)];
+  renderRectEvents();  // drawn at setup, possibly before the saved language was known
+  fillPrasnaQuestions();
   // In Malayalam, terms that renderers write in English (signs, stars, labels) are translated in place
   new MutationObserver(records => {
     if (currentLang !== 'ml') return;
@@ -494,6 +496,8 @@ function switchPredictionTab(ptab) {
 // Language Management
 function toggleLanguage() {
   currentLang = nextLanguage(currentLang);
+  // A chart fetched in English or Tamil has no Malayalam readings: fetch it again
+  if (currentLang === 'ml' && currentChart && currentChartPayload?.lang !== 'ml') $('#birth-form').requestSubmit();
   try {
     localStorage.setItem('joroscope_lang', currentLang);
   } catch (e) {}
@@ -699,6 +703,7 @@ async function handleFormSubmit(e) {
   try {
     const formData = new FormData(e.target);
     const payload = Object.fromEntries(formData);
+    payload.lang = currentLang;  // the server sends Malayalam readings only when asked
     const resp = await fetch('/api/chart', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -708,6 +713,7 @@ async function handleFormSubmit(e) {
     if (!resp.ok) throw new Error(result.error || 'Calculation failed.');
 
     currentChart = result;
+    learnMalayalam(result);
     currentChartPayload = payload;
     timelineDetailsLoad = null;
     $('#chart-empty').hidden = true;
@@ -754,10 +760,10 @@ function renderQuickStats() {
   $('#res-zodiac-icon').textContent = ZODIAC_SYMBOLS[ascSignIdx];
 
   $('#stat-lagna').textContent = currentLang === 'ta' ? p.Ascendant.tamil : p.Ascendant.sign;
-  $('#stat-lagna-tamil').textContent = currentLang === 'ta' ? p.Ascendant.sign : p.Ascendant.tamil;
+  $('#stat-lagna-tamil').textContent = currentLang === 'en' ? p.Ascendant.tamil : p.Ascendant.sign;
 
   $('#stat-moon').textContent = currentLang === 'ta' ? p.Moon.tamil : p.Moon.sign;
-  $('#stat-moon-tamil').textContent = currentLang === 'ta' ? p.Moon.sign : p.Moon.tamil;
+  $('#stat-moon-tamil').textContent = currentLang === 'en' ? p.Moon.tamil : p.Moon.sign;
 
   $('#stat-star').textContent = currentLang === 'ta' ? p.Moon.tamil_nakshatra : p.Moon.nakshatra;
   $('#stat-star-pada').textContent = txt(
@@ -797,6 +803,7 @@ function tithiLabel(name) {
 }
 
 function pakshaLabel(paksha) {
+  if (currentLang === 'ml') return paksha.startsWith('Shukla') ? 'വെളുത്ത പക്ഷം' : 'കറുത്ത പക്ഷം';
   if (currentLang !== 'ta') return paksha;
   return paksha.startsWith('Shukla') ? 'வளர்பிறை' : 'தேய்பிறை';
 }
@@ -869,12 +876,13 @@ function kurippuRows() {
   const star = si.birth_star;
   const mandi = si.mandi;
   const pick = (en, ta) => isTa ? ta : en;
+  const withTa = (en, ta) => currentLang === 'en' ? `${en} (${ta})` : en;  // the Tamil name beside English only
   const starIdx = STARS_EN.indexOf(p.Moon.nakshatra);
 
   const rows = [
-    [pick('Tamil Year', 'வருடம்'), pick(`${tc.year} (${tc.year_ta})`, `${tc.year_ta} வருடம்`)],
-    [pick('Tamil Month & Date', 'மாதம் & தேதி'), pick(`${tc.month} ${tc.day} (${tc.month_ta})`, `${tc.month_ta} ${tc.day}`)],
-    [pick('Vaaram (Vedic day)', 'கிழமை'), pick(`${si.vaaram.en} (${si.vaaram.ta})`, si.vaaram.ta)],
+    [pick('Tamil Year', 'வருடம்'), pick(withTa(tc.year, tc.year_ta), `${tc.year_ta} வருடம்`)],
+    [pick('Tamil Month & Date', 'மாதம் & தேதி'), pick(withTa(`${tc.month} ${tc.day}`, tc.month_ta), `${tc.month_ta} ${tc.day}`)],
+    [pick('Vaaram (Vedic day)', 'கிழமை'), pick(withTa(si.vaaram.en, si.vaaram.ta), si.vaaram.ta)],
     [pick('Sunrise', 'சூரிய உதயம்'), clockTime(si.sunrise_local)],
     [pick('Udayadi Nazhigai', 'உதயாதி நாழிகை'), pick(`${nz.nazhigai} nazhigai ${nz.vinadi} vinadi`, `${nz.nazhigai} நாழிகை ${nz.vinadi} விநாடி`)],
     [pick('Dinamanam (day length)', 'தினமானம்'), pick(`${nz.dinamanam} nazhigai`, `${nz.dinamanam} நாழிகை`)],

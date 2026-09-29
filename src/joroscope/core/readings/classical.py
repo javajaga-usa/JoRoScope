@@ -6,7 +6,8 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from .common import (
-    DIGNITY_SCORE, DUSTHANAS, HOUSE_THEMES, KENDRAS, NATURAL_BENEFICS, PLANET_TAMIL, SIGNS,
+    DIGNITY_SCORE, DUSTHANAS, HOUSE_THEMES, HOUSE_THEMES_ML, KENDRAS, MALAYALAM_SIGNS, NATURAL_BENEFICS, PLANET_ML,
+    MALAYALAM_STARS, PLANET_TAMIL, SIGNS, STARS,
     SIGN_LORDS, TAMIL_SIGNS, TRIKONAS, _ordinal
 )
 
@@ -61,6 +62,25 @@ BNN_SUTRAS = [
      'Breaks or changes in career and a pull toward detachment; success in technical, research or spiritual work.',
      'சனி-கேது தொடர்பால் தொழிலில் இடைவெளிகள் அல்லது மாற்றங்கள், பற்றின்மை நாட்டம்; தொழில்நுட்பம், ஆராய்ச்சி அல்லது ஆன்மீகப் பணிகளில் வெற்றி.'),
 ]
+# Malayalam for the sutras above, in the same order: (title, significance)
+BNN_SUTRAS_ML = [
+    ('ധർമ്മ-കർമ്മാധിപതി യോഗം (വ്യാഴം + ശനി)', 'ജീവകാരകനായ വ്യാഴവും കർമ്മകാരകനായ ശനിയും ബന്ധപ്പെടുന്ന ഉത്തമ യോഗം. തുടക്കത്തിൽ അധ്വാനത്തിനൊത്ത അംഗീകാരം അല്പം വൈകിയാലും 36 വയസ്സിനുശേഷം (ശനി പക്വത നേടുന്ന പ്രായം) മായാത്ത സൽപ്പേരും ഉന്നത പദവിയും സാമൂഹിക ആദരവും ലഭിക്കും.'),
+    ('ദേവ-സേനാപതി യോഗം (വ്യാഴം + ചൊവ്വ)', 'വ്യാഴവും ചൊവ്വയും ചേരുന്നതിനാൽ ഭയമില്ലാത്ത ധൈര്യം, ഭൂമി-വീട് യോഗം, എഞ്ചിനീയറിംഗ്/സാങ്കേതിക വൈദഗ്ധ്യം, നേതൃഭരണ ചുമതലകൾ ലഭിക്കും.'),
+    ('ഭൃഗു-ഗുരു യോഗം (വ്യാഴം + ശുക്രൻ)', 'രണ്ട് വലിയ ശുഭഗ്രഹങ്ങളായ വ്യാഴവും ശുക്രനും ചേരുന്ന മഹാശുഭയോഗം. സ്വർണ്ണം, സമ്പത്ത്, വാഹനയോഗം, കുടുംബസന്തോഷം, ആഡംബരസൗകര്യങ്ങൾ സ്വാഭാവികമായി ലഭിക്കും.'),
+    ('സരസ്വതീ യോഗം (വ്യാഴം + ബുധൻ)', 'വ്യാഴവും ബുധനും ചേരുന്നതിനാൽ വാക്ചാതുര്യം, എഴുത്ത്, ഗണിതം, ജ്യോതിഷം, വ്യാപാരം എന്നിവയിൽ മുദ്ര പതിപ്പിക്കുന്ന വിദ്യാജ്ഞാനം ഉണ്ടാകും.'),
+    ('ശിവ-രാജ യോഗം (വ്യാഴം + സൂര്യൻ)', 'സൂര്യനും വ്യാഴവും ചേരുന്നതിനാൽ പിതൃവഴി അഭിമാനം, സർക്കാർ പിന്തുണ, ഗാംഭീര്യമുള്ള രൂപം, സത്യസന്ധമായ വഴിയിൽ ഉന്നത ആദരവ് ലഭിക്കും.'),
+    ('ഗുരു-രാഹു ബന്ധം (നവീന ചിന്ത)', 'വ്യാഴവും രാഹുവും ചേരുന്നതിനാൽ പഴമയെ കടന്ന് ആധുനിക ശാസ്ത്രം, കമ്പ്യൂട്ടർ, വിദേശബന്ധങ്ങൾ എന്നിവയാൽ വലിയ പുരോഗതി നേടാനുള്ള ശേഷിയുണ്ട്.'),
+    ('ജ്ഞാന മുക്തി യോഗം (വ്യാഴം + കേതു)', 'ജ്ഞാനകാരകനായ കേതുവും വ്യാഴവും ചേരുന്നതിനാൽ ഈശ്വരഭക്തി, ഉൾക്കാഴ്ച, ജ്യോതിഷം, ആത്മീയ ഗവേഷണം എന്നിവയിൽ അഗാധ ജ്ഞാനം ഉണ്ടാകും.'),
+    ('ലക്ഷ്മീ-കർമ്മ യോഗം (ശനി + ശുക്രൻ)', 'ശനിയും ശുക്രനും ചേരുന്നതിനാൽ കഠിനാധ്വാനം വലിയ സമ്പത്തായി മാറും. സ്ഥിരമായ ഭൂസ്വത്തുക്കളും തൊഴിലിലൂടെ സ്ഥിരവരുമാനവും വർധിക്കും.'),
+    ('വ്യാപാര യോഗം (ശനി + ബുധൻ)', 'ശനിയും ബുധനും ചേരുന്നതിനാൽ കണക്ക്, ഓഡിറ്റ്, സോഫ്റ്റ്‌വെയർ, വ്യാപാര മാനേജ്‌മെന്റ് എന്നിവയിൽ സൂക്ഷ്മ വൈദഗ്ധ്യം നേടി തൊഴിലിൽ വിജയിക്കും.'),
+    ('ഗജകേസരി സൂത്രം (വ്യാഴം + ചന്ദ്രൻ)', 'വ്യാഴ-ചന്ദ്ര ബന്ധത്താൽ ആദരവ്, അമ്മയുടെ പിന്തുണ, നല്ല പൊതുപദവി; ഉദാരമനസ്സും സംതൃപ്തിയും.'),
+    ('കർമ്മ-ഭൂമി സൂത്രം (ശനി + ചൊവ്വ)', 'ശനി-ചൊവ്വ ബന്ധത്താൽ ഭൂമി, യന്ത്രം, എഞ്ചിനീയറിംഗ്, നിർമ്മാണ മേഖലകളിൽ അധ്വാനം; പോരാട്ടത്തിലൂടെ നേടുന്ന വിജയം. ജോലിസ്ഥലത്ത് അപകടങ്ങളിലും സംഘർഷങ്ങളിലും ശ്രദ്ധ വേണം.'),
+    ('പിതൃ-കർമ്മ സൂത്രം (ശനി + സൂര്യൻ)', 'ശനി-സൂര്യ ബന്ധത്താൽ സർക്കാരിന്റെയോ വലിയ സ്ഥാപനങ്ങളുടെയോ കീഴിൽ ജോലി; അച്ഛനോടുള്ള ഉത്തരവാദിത്തങ്ങൾ, അച്ഛനുമായി അഭിപ്രായവ്യത്യാസങ്ങൾ വരാം.'),
+    ('ജനസേവാ സൂത്രം (ശനി + ചന്ദ്രൻ)', 'ശനി-ചന്ദ്ര ബന്ധത്താൽ ജനസേവനമോ പൊതുജനങ്ങളുമായി ബന്ധപ്പെട്ട ജോലിയോ; ഉത്തരവാദിത്തമുള്ള മനസ്സ്, എന്നാൽ ആകുലത ഒഴിവാക്കണം.'),
+    ('വിദേശ-കർമ്മ സൂത്രം (ശനി + രാഹു)', 'ശനി-രാഹു ബന്ധത്താൽ വലിയ സ്ഥാപനങ്ങളിലോ സാങ്കേതികവിദ്യയിലോ വിദേശത്തോ ജോലി; തൊഴിലിൽ പെട്ടെന്നുള്ള ഉയർച്ചകളും മാറ്റങ്ങളും.'),
+    ('കർമ്മ-വൈരാഗ്യ സൂത്രം (ശനി + കേതു)', 'ശനി-കേതു ബന്ധത്താൽ തൊഴിലിൽ ഇടവേളകളോ മാറ്റങ്ങളോ, നിസ്സംഗതയിലേക്കുള്ള ചായ്‌വ്; സാങ്കേതിക, ഗവേഷണ, ആത്മീയ ജോലികളിൽ വിജയം.'),
+]
+BNN_LINKS_ML = ['ഒരേ രാശിയിൽ ചേർന്ന്', 'ത്രികോണത്തിൽ (5/9)', 'പരസ്പരം എതിർരാശിയിൽ (7)', 'അടുത്തടുത്ത രാശികളിൽ (2/12)']
 BNN_LINKS = [
     ((0,), 'joined in the same sign', 'ஒரே ராசியில் சேர்ந்து'),
     ((4, 8), 'in trine (5th/9th)', 'திரிகோணத்தில் (5/9)'),
@@ -85,10 +105,14 @@ def _bnn_link(planets, a, b):
 def calculate_bhrigu_nandi_nadi(chart):
     planets = chart['planets']
     trine_map = {
-        'dharma_fire': {'name_en': 'Dharma Trine (Fire: Aries, Leo, Sagittarius)', 'name_ta': 'தர்ம திரிகோணம் (நெருப்பு: மேஷம், சிம்மம், தனுசு)', 'planets': []},
-        'artha_earth': {'name_en': 'Artha Trine (Earth: Taurus, Virgo, Capricorn)', 'name_ta': 'அர்த்த திரிகோணம் (நிலம்: ரிஷபம், கன்னி, மகரம்)', 'planets': []},
-        'kama_air': {'name_en': 'Kama Trine (Air: Gemini, Libra, Aquarius)', 'name_ta': 'காம திரிகோணம் (காற்று: மிதுனம், துலாம், கும்பம்)', 'planets': []},
-        'moksha_water': {'name_en': 'Moksha Trine (Water: Cancer, Scorpio, Pisces)', 'name_ta': 'மோட்ச திரிகோணம் (நீர்: கடகம், விருச்சிகம், மீனம்)', 'planets': []}
+        'dharma_fire': {'name_en': 'Dharma Trine (Fire: Aries, Leo, Sagittarius)', 'name_ta': 'தர்ம திரிகோணம் (நெருப்பு: மேஷம், சிம்மம், தனுசு)',
+                        'name_ml': 'ധർമ്മ ത്രികോണം (അഗ്നി: മേടം, ചിങ്ങം, ധനു)', 'planets': []},
+        'artha_earth': {'name_en': 'Artha Trine (Earth: Taurus, Virgo, Capricorn)', 'name_ta': 'அர்த்த திரிகோணம் (நிலம்: ரிஷபம், கன்னி, மகரம்)',
+                        'name_ml': 'അർത്ഥ ത്രികോണം (ഭൂമി: ഇടവം, കന്നി, മകരം)', 'planets': []},
+        'kama_air': {'name_en': 'Kama Trine (Air: Gemini, Libra, Aquarius)', 'name_ta': 'காம திரிகோணம் (காற்று: மிதுனம், துலாம், கும்பம்)',
+                     'name_ml': 'കാമ ത്രികോണം (വായു: മിഥുനം, തുലാം, കുംഭം)', 'planets': []},
+        'moksha_water': {'name_en': 'Moksha Trine (Water: Cancer, Scorpio, Pisces)', 'name_ta': 'மோட்ச திரிகோணம் (நீர்: கடகம், விருச்சிகம், மீனம்)',
+                         'name_ml': 'മോക്ഷ ത്രികോണം (ജലം: കർക്കടകം, വൃശ്ചികം, മീനം)', 'planets': []}
     }
 
     p_names = ['Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu']
@@ -106,19 +130,23 @@ def calculate_bhrigu_nandi_nadi(chart):
         })
 
     sutras = []
-    for a, b, title_en, title_ta, sig_en, sig_ta in BNN_SUTRAS:
+    for (a, b, title_en, title_ta, sig_en, sig_ta), (title_ml, sig_ml) in zip(BNN_SUTRAS, BNN_SUTRAS_ML):
         link = _bnn_link(planets, a, b)
         if link:
             rank, link_en, link_ta = link
+            link_ml = BNN_LINKS_ML[rank]
             sutras.append({
                 'title_en': title_en,
                 'title_ta': title_ta,
+                'title_ml': title_ml,
                 'planets': [a, b],
                 'link_rank': rank,
                 'link_en': link_en,
                 'link_ta': link_ta,
+                'link_ml': link_ml,
                 'significance_en': f"{a} and {b} are {link_en}. {sig_en}",
-                'significance_ta': f"{PLANET_TAMIL[a]}, {PLANET_TAMIL[b]} {link_ta} உள்ளனர். {sig_ta}"
+                'significance_ta': f"{PLANET_TAMIL[a]}, {PLANET_TAMIL[b]} {link_ta} உள்ளனர். {sig_ta}",
+                'significance_ml': f"{PLANET_ML[a]}, {PLANET_ML[b]} {link_ml} നിൽക്കുന്നു. {sig_ml}"
             })
     sutras.sort(key=lambda x: x['link_rank'])  # conjunctions first, adjacent signs last
 
@@ -126,6 +154,8 @@ def calculate_bhrigu_nandi_nadi(chart):
         sutras.append({
             'title_en': 'Pancha-Bhuta Balance (Nadi Alignment)',
             'title_ta': 'பஞ்சபூத சமநிலை (நாடி யோகம்)',
+            'title_ml': 'പഞ്ചഭൂത സന്തുലനം (നാഡി യോഗം)',
+            'significance_ml': 'ഗ്രഹങ്ങൾ ധർമ്മ, അർത്ഥ, കാമ, മോക്ഷ ത്രികോണങ്ങളിൽ സമമായി വ്യാപിച്ചിരിക്കുന്നതിനാൽ ജീവിതത്തിന്റെ എല്ലാ ഘട്ടങ്ങളിലും എളുപ്പം ഇണങ്ങി മുന്നേറാനുള്ള സന്തുലനം ലഭിക്കും.',
             'planets': ['Jupiter', 'Ascendant'],
             'significance_en': 'Planetary energies are evenly distributed across Dharma, Artha, Kama, and Moksha trines, bestowing a versatile life orientation that adapts skillfully across all worldly stages.',
             'significance_ta': 'கிரகங்கள் தர்ம, அர்த்த, காம, மோட்ச திரிகோணங்களில் சமச்சீராகப் பரவியுள்ளதால் வாழ்வின் அனைத்து நிலைகளிலும் எளிதில் பழகி முன்னேறும் சமநிலை வாய்க்கும்.'
@@ -135,6 +165,7 @@ def calculate_bhrigu_nandi_nadi(chart):
         'trines': trine_map,
         'sutras': sutras,
         'summary_en': f"Bhrigu Nandi Nadi reveals {len(sutras)} core karmic sutras anchored by Jeeva Karaka (Jupiter) and Karma Karaka (Saturn). Your primary life lessons and breakthroughs unfold through purposeful service and ethical expansion.",
+        'summary_ml': f"ഭൃഗു നന്ദി നാഡി നിയമപ്രകാരം നിങ്ങളുടെ ജാതകത്തിൽ {len(sutras)} പ്രധാന കർമ്മ യോഗങ്ങൾ പ്രവർത്തിക്കുന്നു. ജീവകാരകനായ വ്യാഴത്തിന്റെയും കർമ്മകാരകനായ ശനിയുടെയും സ്ഥിതികൾ അധ്വാനത്താലും ധർമ്മമാർഗ്ഗത്താലും നിങ്ങളെ ജീവിതത്തിന്റെ ഉന്നതിയിലെത്തിക്കും.",
         'summary_ta': f"பிருகு நந்தி நாடி விதிகளின்படி உங்கள் ஜாதகத்தில் {len(sutras)} முதன்மை கர்ம யோகங்கள் செயல்படுகின்றன. ஜீவகாரகன் (குரு) மற்றும் கர்மகாரகன் (சனி) அமைப்புகள் உழைப்பாலும் தர்ம நெறியாலும் உங்கள் வாழ்வின் உச்சத்தை அடையச் செய்யும்."
     }
 
@@ -159,6 +190,14 @@ LAJJITADI = {
     'Kshobhita': ('Kshobhita (Agitated)', 'க்ஷோபித (கலக்கம்)', -1,
                   'Joined by the Sun and aspected by a malefic or an enemy: its results come amid agitation and loss.',
                   'சூரியனுடன் சேர்ந்து பாப அல்லது பகை கிரகப் பார்வை பெற்றதால் பலன்கள் கலக்கத்துடனும் இழப்புடனும் வரும்.')
+}
+LAJJITADI_ML = {
+    'Lajjita': ('ലജ്ജിത (ലജ്ജ)', '5-ാം ഭാവത്തിൽ രാഹു, കേതു, സൂര്യൻ, ശനി അല്ലെങ്കിൽ ചൊവ്വയോടൊപ്പം നിൽക്കുന്നതിനാൽ ഫലം പൂർണ്ണമായി നൽകാൻ മടിക്കും.'),
+    'Garvita': ('ഗർവിത (അഭിമാനം)', 'ഉച്ചത്തിലോ മൂലത്രികോണത്തിലോ നിൽക്കുന്നതിനാൽ ഐശ്വര്യവും സുഖവും കാര്യവിജയവും നൽകും.'),
+    'Kshudita': ('ക്ഷുധിത (വിശപ്പ്)', 'ശത്രുക്ഷേത്രത്തിലോ ശത്രുവിനോടൊപ്പമോ ശത്രുദൃഷ്ടിയിലോ ശനിയോടൊപ്പമോ നിൽക്കുന്നതിനാൽ ഫലങ്ങൾ കുറവോടെയും ആകുലതയോടെയും വരും.'),
+    'Trushita': ('തൃഷിത (ദാഹം)', 'ജലരാശിയിൽ പാപഗ്രഹദൃഷ്ടിയുണ്ടായി ശുഭദൃഷ്ടിയില്ലാത്തതിനാൽ ഫലങ്ങൾ വൈകുകയും തൃപ്തിയില്ലാതിരിക്കുകയും ചെയ്യും.'),
+    'Mudita': ('മുദിത (സന്തോഷം)', 'മിത്രക്ഷേത്രത്തിലോ മിത്രത്തോടൊപ്പമോ മിത്രദൃഷ്ടിയിലോ വ്യാഴത്തോടൊപ്പമോ നിൽക്കുന്നതിനാൽ സന്തോഷവും ലാഭവും നൽകും.'),
+    'Kshobhita': ('ക്ഷോഭിത (കലക്കം)', 'സൂര്യനോടൊപ്പം നിന്ന് പാപ/ശത്രു ഗ്രഹദൃഷ്ടിയുള്ളതിനാൽ ഫലങ്ങൾ കലക്കത്തോടെയും നഷ്ടത്തോടെയും വരും.'),
 }
 WATERY_SIGNS = (3, 7, 11)
 
@@ -192,7 +231,8 @@ def lajjitadi_avasthas(p_name, planets):
     if 'Sun' in with_it and any(q in malefics or enemy(q) for q in aspected_by):
         states.append('Kshobhita')
     return [dict(key=k, en=LAJJITADI[k][0], ta=LAJJITADI[k][1], effect=LAJJITADI[k][2],
-                 reading_en=LAJJITADI[k][3], reading_ta=LAJJITADI[k][4]) for k in states]
+                 reading_en=LAJJITADI[k][3], reading_ta=LAJJITADI[k][4],
+                 ml=LAJJITADI_ML[k][0], reading_ml=LAJJITADI_ML[k][1]) for k in states]
 
 
 def calculate_planetary_avasthas(chart):
@@ -226,6 +266,8 @@ def calculate_planetary_avasthas(chart):
         else:
             j_en = 'Swapna (Dreaming / Contemplative)'; j_ta = 'ஸ்வப்ன (கனவு நிலை)'; j_pct = 60
 
+        b_ml = {'Bala (Infant)': 'ബാല അവസ്ഥ (ശിശു)', 'Kumara (Youth)': 'കുമാര അവസ്ഥ (യുവാവ്)', 'Yuva (Adult / Prime)': 'യുവ അവസ്ഥ (പൂർണ്ണ ബലം)', 'Vriddha (Old / Mature)': 'വൃദ്ധ അവസ്ഥ (വൃദ്ധൻ)', 'Mrita (Dead / Dormant)': 'മൃത അവസ്ഥ (നിഷ്ക്രിയം)'}[b_en]
+        j_ml = {'Jagrat (Awake / Alert)': 'ജാഗ്രത് (ഉണർന്ന നില)', 'Sushupti (Sleeping / Dormant)': 'സുഷുപ്തി (ഉറങ്ങുന്ന നില)', 'Swapna (Dreaming / Contemplative)': 'സ്വപ്ന (സ്വപ്ന നില)'}[j_en]
         fruit_potency = round((b_pct * 0.6) + (j_pct * 0.4))
         moods = lajjitadi_avasthas(p_name, planets)
 
@@ -238,10 +280,13 @@ def calculate_planetary_avasthas(chart):
             'baladi_pct': b_pct,
             'jagradadi': j_en,
             'jagradadi_ta': j_ta,
+            'baladi_ml': b_ml,
+            'jagradadi_ml': j_ml,
             'fruit_potency': fruit_potency,
             'lajjitadi': moods,
             'interpretation_en': f"Operating in {b_en} and {j_en}. Manifests approximately {fruit_potency}% of its innate planetary potential in physical life events.",
-            'interpretation_ta': f"{b_ta} மற்றும் {j_ta} நிலையில் உள்ளதால், தனது இயற்கை காரகத்துவங்களில் சுமார் {fruit_potency}% முழு பலன்களை நடைமுறை வாழ்வில் வழங்கும்."
+            'interpretation_ta': f"{b_ta} மற்றும் {j_ta} நிலையில் உள்ளதால், தனது இயற்கை காரகத்துவங்களில் சுமார் {fruit_potency}% முழு பலன்களை நடைமுறை வாழ்வில் வழங்கும்.",
+            'interpretation_ml': f"{b_ml}, {j_ml} എന്നീ നിലകളിലായതിനാൽ സ്വാഭാവിക കാരകത്വത്തിന്റെ ഏകദേശം {fruit_potency}% ഫലം പ്രായോഗിക ജീവിതത്തിൽ നൽകും."
         })
 
     return {'avasthas': avastha_list}
@@ -261,6 +306,16 @@ def calculate_nakshatra_pada_reading(chart):
     elements_ta = ['நெருப்பு', 'நிலம்', 'காற்று', 'நீர்']
     elem = elements[nav_idx % 4]
     elem_ta = elements_ta[nav_idx % 4]
+    elem_ml = ['അഗ്നി', 'ഭൂമി', 'വായു', 'ജലം'][nav_idx % 4]
+    star_ml = MALAYALAM_STARS[STARS.index(star)]
+    nav_ml = MALAYALAM_SIGNS[nav_idx]
+    lord_ml = PLANET_ML[pada_lord]
+    pada_ml = {
+        1: f"{star_ml} നക്ഷത്രം 1-ാം പാദം (ധർമ്മ പാദം). നവാംശത്തിൽ {nav_ml} രാശിയിൽ {lord_ml} ആധിപത്യത്തിൽ. ഉന്മേഷവും നേതൃശേഷിയും എന്തിലും മുന്നിൽ നിൽക്കാനുള്ള ധൈര്യവും ഉണ്ട്. പുതിയ സംരംഭങ്ങൾ തുടങ്ങി വിജയകരമായി പൂർത്തിയാക്കും.",
+        2: f"{star_ml} നക്ഷത്രം 2-ാം പാദം (അർത്ഥ പാദം). നവാംശത്തിൽ {nav_ml} രാശിയിൽ {lord_ml} ആധിപത്യത്തിൽ. ക്ഷമയും സംയമനവും ആസൂത്രിതമായ അധ്വാനവും സമ്പാദ്യശീലവും ഉണ്ട്. കുടുംബത്തിൽ സമാധാനവും സ്ഥിരമായ സ്വത്തുസമ്പാദനവും ലഭിക്കും.",
+        3: f"{star_ml} നക്ഷത്രം 3-ാം പാദം (കാമ പാദം). നവാംശത്തിൽ {nav_ml} രാശിയിൽ {lord_ml} ആധിപത്യത്തിൽ. സമർത്ഥമായ സംസാരവും അറിവുതേടലും കലാതാൽപ്പര്യവും സുഹൃദ്‌വലയത്തിൽ സ്വാധീനവും ഉണ്ട്. ആശയവിനിമയത്തിലും വ്യാപാരത്തിലും തിളങ്ങും.",
+        4: f"{star_ml} നക്ഷത്രം 4-ാം പാദം (മോക്ഷ പാദം). നവാംശത്തിൽ {nav_ml} രാശിയിൽ {lord_ml} ആധിപത്യത്തിൽ. കരുണയും ഉൾക്കാഴ്ചയും ആത്മീയ താൽപ്പര്യവും ത്യാഗമനോഭാവവും ഉണ്ട്. മറ്റുള്ളവരെ സഹായിക്കുന്ന മനസ്സിനാൽ ജനപിന്തുണ ലഭിക്കും.",
+    }
 
     pada_forecasts = {
         1: {
@@ -292,8 +347,12 @@ def calculate_nakshatra_pada_reading(chart):
         'pada_lord_ta': PLANET_TAMIL[pada_lord],
         'element': elem,
         'element_ta': elem_ta,
+        'element_ml': elem_ml,
+        'navamsa_ml': nav_ml,
+        'pada_lord_ml': lord_ml,
         'reading_en': f['en'],
-        'reading_ta': f['ta']
+        'reading_ta': f['ta'],
+        'reading_ml': pada_ml.get(pada, pada_ml[1])
     }
 
 # 6. SENSITIVE SAHAMS (TAJIKA & PARASHARA COSMIC POINTS)
@@ -328,6 +387,19 @@ SAHAMS = [
      'The point of illness: where health needs care and how resilient the body is.',
      'நோயின் புள்ளி: உடல் நலத்தில் கவனம் தேவைப்படும் இடமும் உடலின் எதிர்ப்பு சக்தியும்.')
 ]
+
+# Malayalam for each saham: (name, keyword, reading)
+SAHAMS_ML = {
+    'Punya Saham': ('പുണ്യ സഹം', 'ഭാഗ്യം & പൂർവ്വപുണ്യം', 'ദൈവാനുഗ്രഹത്തിന്റെയും പൂർവ്വപുണ്യത്തിന്റെയും ബിന്ദു: അപ്രതീക്ഷിത ഭാഗ്യം, ധർമ്മചിന്ത, സത്യസന്ധമായ സമ്പത്ത്.'),
+    'Vidya Saham': ('വിദ്യാ സഹം', 'വിദ്യ & ജ്ഞാനം', 'വിദ്യയുടെ ബിന്ദു: പഠനം, പരീക്ഷകൾ, വിശകലനശേഷി, വേഗത്തിലുള്ള ഗ്രാഹ്യം.'),
+    'Vivaha Saham': ('വിവാഹ സഹം', 'വിവാഹം', 'വിവാഹത്തിന്റെ ബിന്ദു: വിവാഹകാലം, പങ്കാളിയുമായുള്ള ഐക്യം, നിലനിൽക്കുന്ന സ്നേഹം.'),
+    'Putra Saham': ('പുത്ര സഹം', 'സന്താനഭാഗ്യം', 'സന്താനങ്ങളുടെ ബിന്ദു: സന്താനഭാഗ്യവും അവരിലൂടെയുള്ള സന്തോഷവും.'),
+    'Karma Saham': ('കർമ്മ സഹം', 'തൊഴിൽ & കർമ്മം', 'തൊഴിലിന്റെ ബിന്ദു: ജോലിയിലെ പ്രയത്നം, ജോലിസ്ഥലത്തെ പദവി, ചെയ്ത കർമ്മങ്ങളുടെ ഫലം.'),
+    'Artha Saham': ('അർത്ഥ സഹം', 'ധനം', 'ധനത്തിന്റെ ബിന്ദു: വരുമാനം, സമ്പാദ്യം, ധനാഗമനം.'),
+    'Vanika Saham': ('വാണിജ്യ സഹം', 'വ്യാപാരം', 'വ്യാപാരത്തിന്റെ ബിന്ദു: കച്ചവടം, കൊടുക്കൽ-വാങ്ങൽ, വാണിജ്യ വിജയം.'),
+    'Samartha Saham': ('സാമർത്ഥ്യ സഹം', 'കഴിവ് & സംരംഭം', 'കഴിവിന്റെ ബിന്ദു: മുൻകൈ, പ്രവർത്തനക്ഷമത, കാര്യങ്ങൾ സാധിക്കാനുള്ള ഉത്സാഹം.'),
+    'Roga Saham': ('രോഗ സഹം', 'ആരോഗ്യം & രോഗം', 'രോഗത്തിന്റെ ബിന്ദു: ആരോഗ്യത്തിൽ ശ്രദ്ധ വേണ്ട മേഖലയും ശരീരത്തിന്റെ പ്രതിരോധശേഷിയും.'),
+}
 
 
 def _saham(a, b, c):
@@ -365,14 +437,16 @@ def calculate_sahams(chart):
         lord_house = planets[lord]['house']
         lord_dignity = planets[lord].get('dignity', 'Neutral')
         if lord_house in DUSTHANAS or lord_dignity == 'Debilitated':
-            strength, note_en, note_ta = 'weak', 'needs strengthening', 'பலப்படுத்த வேண்டியது'
+            strength, note_en, note_ta, note_ml = 'weak', 'needs strengthening', 'பலப்படுத்த வேண்டியது', 'ബലപ്പെടുത്തേണ്ടതാണ്'
         elif lord_house in KENDRAS + TRIKONAS + (11,) and DIGNITY_SCORE.get(lord_dignity, 0) >= 0:
-            strength, note_en, note_ta = 'strong', 'well supported', 'நல்ல ஆதரவுடன் உள்ளது'
+            strength, note_en, note_ta, note_ml = 'strong', 'well supported', 'நல்ல ஆதரவுடன் உள்ளது', 'നല്ല പിന്തുണയോടെയാണ്'
         else:
-            strength, note_en, note_ta = 'moderate', 'moderately supported', 'மிதமான ஆதரவுடன் உள்ளது'
+            strength, note_en, note_ta, note_ml = 'moderate', 'moderately supported', 'மிதமான ஆதரவுடன் உள்ளது', 'മിതമായ പിന്തുണയോടെയാണ്'
         malefics = [q for q in ('Saturn', 'Mars', 'Rahu', 'Ketu') if planets[q]['sign_index'] == s_idx]
         affliction_en = f" {', '.join(malefics)} in the same sign afflicts it." if malefics else ''
         affliction_ta = f" அதே ராசியில் உள்ள {', '.join(PLANET_TAMIL[q] for q in malefics)} இதைப் பாதிக்கிறது." if malefics else ''
+        affliction_ml = f" അതേ രാശിയിലുള്ള {', '.join(PLANET_ML[q] for q in malefics)} ഇതിനെ ബാധിക്കുന്നു." if malefics else ''
+        name_ml, kw_ml, r_ml = SAHAMS_ML[en_title]
         d = int(deg); m = int((deg * 60) % 60)
         sahams_list.append({
             'name_en': en_title,
@@ -389,6 +463,12 @@ def calculate_sahams(chart):
             'strength': strength,
             'keyword_en': kw_en,
             'keyword_ta': kw_ta,
+            'name_ml': name_ml,
+            'keyword_ml': kw_ml,
+            'malayalam_sign': MALAYALAM_SIGNS[s_idx],
+            'lord_ml': PLANET_ML[lord],
+            'reading_ml': (f"{r_ml} ഇത് {house}-ാം ഭാവമായ {MALAYALAM_SIGNS[s_idx]} രാശിയിൽ വീഴുന്നു; അതിന്റെ അധിപനായ "
+                           f"{PLANET_ML[lord]} {lord_house}-ാം ഭാവത്തിൽ നിൽക്കുന്നതിനാൽ ഈ ജീവിതമേഖല {note_ml}.{affliction_ml}"),
             'reading_en': (f"{r_en} It falls in {SIGNS[s_idx]}, the {_ordinal(house)} house; its lord {lord} sits in the "
                            f"{_ordinal(lord_house)} house, so this area of life is {note_en}.{affliction_en}"),
             'reading_ta': (f"{r_ta} இது {house}-ஆம் பாவமான {TAMIL_SIGNS[s_idx]} ராசியில் விழுகிறது; அதன் அதிபதி "
@@ -399,6 +479,7 @@ def calculate_sahams(chart):
         'is_day_birth': is_day,
         'birth_type_en': 'Diurnal (Day Birth)' if is_day else 'Nocturnal (Night Birth)',
         'birth_type_ta': 'பகல் பிறப்பு' if is_day else 'இரவு பிறப்பு',
+        'birth_type_ml': 'പകൽ ജനനം' if is_day else 'രാത്രി ജനനം',
         'sahams': sahams_list
     }
 
@@ -419,6 +500,45 @@ VAARA_PHALA = [
     ('Born on a Saturday, ruled by Saturn: patient, disciplined and hardworking; success comes steadily through perseverance, often after early struggles.',
      'சனிக்கிழமை பிறந்தவர் (சனி ஆதிக்கம்): பொறுமை, ஒழுக்கம், கடின உழைப்பு உடையவர்; தொடக்கத்தில் போராட்டங்கள் இருந்தாலும் விடாமுயற்சியால் படிப்படியாக வெற்றி பெறுவார்.')
 ]
+VAARA_PHALA_ML = [
+    'ഞായറാഴ്ച ജനനം (സൂര്യന്റെ ആധിപത്യം): ആത്മാഭിമാനം, ധൈര്യം, ലക്ഷ്യബോധം, കർത്തവ്യബോധം, നേതൃഗുണം എന്നിവയുണ്ട്; അഹങ്കാരവും മുൻകോപവും ശ്രദ്ധിക്കണം.',
+    'തിങ്കളാഴ്ച ജനനം (ചന്ദ്രന്റെ ആധിപത്യം): സൗമ്യത, വൈകാരികത, ഭാവനാശേഷി; സ്നേഹവും കരുതലും, യാത്രയിലും സുഖങ്ങളിലും താൽപ്പര്യം; മനോഭാവം വേഗം മാറാം.',
+    'ചൊവ്വാഴ്ച ജനനം (ചൊവ്വയുടെ ആധിപത്യം): ഉന്മേഷം, ധീരത, സംരംഭകത്വം; മറ്റുള്ളവർക്കായി പോരാടുന്ന സ്വഭാവം; തിടുക്കവും കോപവും നിയന്ത്രിക്കണം.',
+    'ബുധനാഴ്ച ജനനം (ബുധന്റെ ആധിപത്യം): ബുദ്ധിശക്തി, വാക്ചാതുര്യം, നർമ്മബോധം; വേഗത്തിൽ പഠിക്കും; വ്യാപാരം, എഴുത്ത്, കണക്ക് എന്നിവയിൽ സമർത്ഥൻ.',
+    'വ്യാഴാഴ്ച ജനനം (വ്യാഴത്തിന്റെ ആധിപത്യം): ജ്ഞാനം, സത്യസന്ധത, ഉദാരമനസ്സ്; അധ്യാപകനായോ ഉപദേശകനായോ ആദരിക്കപ്പെടും; ആത്മീയ താൽപ്പര്യമുണ്ട്.',
+    'വെള്ളിയാഴ്ച ജനനം (ശുക്രന്റെ ആധിപത്യം): ആകർഷണീയത, കലാസ്വാദനം; സൗന്ദര്യം, സുഖം, ഐക്യം എന്നിവ ഇഷ്ടപ്പെടും; സന്തോഷകരമായ കുടുംബജീവിതം ലഭിക്കും.',
+    'ശനിയാഴ്ച ജനനം (ശനിയുടെ ആധിപത്യം): ക്ഷമ, അച്ചടക്കം, കഠിനാധ്വാനം; തുടക്കത്തിൽ പ്രയാസങ്ങളുണ്ടായാലും സ്ഥിരോത്സാഹത്താൽ ക്രമേണ വിജയം നേടും.',
+]
+TITHI_CLASSES_ML = [
+    ('നന്ദ (സന്തോഷം)', 'മറ്റുള്ളവർക്ക് സന്തോഷം നൽകുന്ന ഉത്സാഹസ്വഭാവം'),
+    ('ഭദ്ര (ക്ഷേമം)', 'സ്ഥിരതയും വിശ്വാസ്യതയുമുള്ള, നിലനിൽക്കുന്നവ പടുത്തുയർത്തുന്ന സ്വഭാവം'),
+    ('ജയ (വിജയം)', 'പ്രയത്നത്താൽ വിജയം നേടുന്ന മത്സരബുദ്ധി'),
+    ('രിക്ത (ശൂന്യത)', 'അധിക പ്രയത്നത്താൽ ലഭിക്കുന്ന ഫലങ്ങളും തടസ്സങ്ങളെ മറികടക്കാനുള്ള ശക്തിയും'),
+    ('പൂർണ്ണ (നിറവ്)', 'ഏറ്റെടുക്കുന്ന കാര്യങ്ങളിൽ പൂർണ്ണതയും സംതൃപ്തിയും'),
+]
+TITHI_DEITIES_ML = ['അഗ്നി', 'ബ്രഹ്മാവ്', 'ഗൗരി', 'ഗണപതി', 'നാഗങ്ങൾ', 'സുബ്രഹ്മണ്യൻ', 'സൂര്യൻ', 'ശിവൻ', 'ദുർഗ്ഗ', 'യമൻ',
+                    'വിശ്വദേവർ', 'വിഷ്ണു', 'കാമദേവൻ', 'ശിവൻ']
+TITHI_ML = ['പ്രഥമ', 'ദ്വിതീയ', 'തൃതീയ', 'ചതുർത്ഥി', 'പഞ്ചമി', 'ഷഷ്ഠി', 'സപ്തമി', 'അഷ്ടമി', 'നവമി', 'ദശമി', 'ഏകാദശി',
+            'ദ്വാദശി', 'ത്രയോദശി', 'ചതുർദ്ദശി']
+TITHI_OBSERVANCE_ML = {
+    11: 'വിഷ്ണുവിനുള്ള ഏകാദശി വ്രതമാണ് പരമ്പരാഗത അനുഷ്ഠാനം.',
+    13: 'ഇത് പ്രദോഷ ദിവസമാണ്; സന്ധ്യയ്ക്ക് ശിവാരാധന പരമ്പരാഗതമാണ്.',
+    30: 'അമാവാസിയിൽ പിതൃക്കൾക്ക് തർപ്പണം ചെയ്യുന്നത് പരമ്പരാഗത അനുഷ്ഠാനമാണ്.',
+}
+NITYA_YOGA_ML = {
+    'Vishkambha': ('വിഷ്കംഭം', 'തൂൺ'), 'Priti': ('പ്രീതി', 'സ്നേഹം'), 'Ayushman': ('ആയുഷ്മാൻ', 'ദീർഘായുസ്സ്'),
+    'Saubhagya': ('സൗഭാഗ്യം', 'ഭാഗ്യം'), 'Shobhana': ('ശോഭനം', 'ശോഭ'), 'Atiganda': ('അതിഗണ്ഡം', 'വലിയ ആപത്ത്'),
+    'Sukarma': ('സുകർമ്മം', 'സത്കർമ്മം'), 'Dhriti': ('ധൃതി', 'ദൃഢത'), 'Shula': ('ശൂലം', 'കുന്തം'), 'Ganda': ('ഗണ്ഡം', 'ആപത്ത്'),
+    'Vriddhi': ('വൃദ്ധി', 'വളർച്ച'), 'Dhruva': ('ധ്രുവം', 'സ്ഥിരത'), 'Vyaghata': ('വ്യാഘാതം', 'ആഘാതം'),
+    'Harshana': ('ഹർഷണം', 'ആഹ്ലാദം'), 'Vajra': ('വജ്രം', 'ഇടിമിന്നൽ'), 'Siddhi': ('സിദ്ധി', 'കാര്യസിദ്ധി'),
+    'Vyatipata': ('വ്യതീപാതം', 'വിപത്ത്'), 'Variyan': ('വരീയാൻ', 'സുഖം'), 'Parigha': ('പരിഘം', 'തടസ്സം'),
+    'Shiva': ('ശിവം', 'മംഗളം'), 'Siddha': ('സിദ്ധം', 'പൂർണ്ണത'), 'Sadhya': ('സാദ്ധ്യം', 'നേട്ടം'), 'Shubha': ('ശുഭം', 'നന്മ'),
+    'Shukla': ('ശുക്ലം', 'പ്രകാശം'), 'Brahma': ('ബ്രഹ്മം', 'സൃഷ്ടി'), 'Indra': ('ഐന്ദ്രം', 'നേതൃത്വം'),
+    'Vaidhriti': ('വൈധൃതി', 'ഭിന്നത'),
+}
+KARANA_ML = {'Bava': 'ബവം', 'Balava': 'ബാലവം', 'Kaulava': 'കൗലവം', 'Taitila': 'തൈതിലം', 'Gara': 'ഗരജ',
+             'Vanija': 'വണിജ', 'Vishti': 'ഭദ്ര (വിഷ്ടി)', 'Shakuni': 'ശകുനി', 'Chatushpada': 'ചതുഷ്പാദം',
+             'Naga': 'നാഗവം', 'Kimstughna': 'കിംസ്തുഘ്നം'}
 # Tithi classes (Nanda, Bhadra, Jaya, Rikta, Purna) by the tithi's number within its paksha
 TITHI_CLASSES = [
     ('Nanda (joy)', 'நந்தா (மகிழ்ச்சி)', 'a cheerful nature that brings joy to others', 'பிறருக்கு மகிழ்ச்சி தரும் உற்சாக இயல்பு'),
@@ -466,7 +586,8 @@ def generate_panchanga_phala(chart):
     weekday = weekday if weekday is not None else ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].index(panch['weekday'])
     items = []
     en, ta = VAARA_PHALA[weekday]
-    items.append(dict(key='vaara', title_en='Weekday (Vaara)', title_ta='கிழமை (வாரம்)', reading_en=en, reading_ta=ta))
+    items.append(dict(key='vaara', title_en='Weekday (Vaara)', title_ta='கிழமை (வாரம்)', title_ml='ആഴ്ച (വാരം)',
+                      reading_en=en, reading_ta=ta, reading_ml=VAARA_PHALA_ML[weekday]))
 
     tithi = panch['tithi']
     in_paksha = (tithi - 1) % 15 + 1
@@ -482,8 +603,20 @@ def generate_panchanga_phala(chart):
         f"ஒவ்வொரு மாதமும் இத்திதியில் {deity_ta} வழிபாடு பாரம்பரியமாகப் பரிந்துரைக்கப்படுகிறது.")) or ('', '')
     paksha_en = 'waxing (Shukla)' if tithi <= 15 else 'waning (Krishna)'
     paksha_ta = 'வளர்பிறை' if tithi <= 15 else 'தேய்பிறை'
+    paksha_ml = 'വെളുത്ത പക്ഷം' if tithi <= 15 else 'കറുത്ത പക്ഷം'
+    class_ml, trait_ml = TITHI_CLASSES_ML[(in_paksha - 1) % 5]
+    if in_paksha == 15:
+        deity_ml = 'ചന്ദ്രൻ' if tithi == 15 else 'പിതൃക്കൾ'
+        tithi_ml = 'പൗർണ്ണമി' if tithi == 15 else 'അമാവാസി'
+    else:
+        deity_ml, tithi_ml = TITHI_DEITIES_ML[in_paksha - 1], TITHI_ML[in_paksha - 1]
+    obs_key = 30 if tithi == 30 else in_paksha
+    observance_ml = ('' if obs_key == 10 else TITHI_OBSERVANCE_ML.get(
+        obs_key, f"എല്ലാ മാസവും ഈ തിഥിയിൽ {deity_ml} ആരാധന പരമ്പരാഗതമായി നിർദ്ദേശിക്കപ്പെടുന്നു."))
     items.append(dict(
-        key='tithi', title_en='Tithi', title_ta='திதி',
+        key='tithi', title_en='Tithi', title_ta='திதி', title_ml='തിഥി',
+        reading_ml=(f"{paksha_ml} {tithi_ml} തിഥിയിൽ ജനനം; ഇത് {class_ml} തിഥിയാണ്: {trait_ml}. "
+                    f"അധിദേവത: {deity_ml}. {observance_ml}".rstrip()),
         reading_en=(f"Born on {panch['tithi_name']} of the {paksha_en} fortnight, a {class_en} tithi: {trait_en}. "
                     f"Presiding deity: {deity_en}. {observance[0]}".rstrip()),
         reading_ta=(f"{paksha_ta} {tithi_ta} திதியில் பிறந்தவர்; இது {class_ta} திதி: {trait_ta}. "
@@ -491,6 +624,12 @@ def generate_panchanga_phala(chart):
 
     yoga = panch['yoga_name']
     meaning_en, yoga_ta, meaning_ta = NITYA_YOGA_MEANINGS.get(yoga, (yoga, yoga, yoga))
+    yoga_ml, meaning_ml = NITYA_YOGA_ML.get(yoga, (yoga, yoga))
+    if panch.get('yoga_auspiciousness') == 'Auspicious':
+        yoga_ml_text = f"{yoga_ml} യോഗത്തിൽ ('{meaning_ml}') ജനനം; ഇത് ശുഭ നിത്യയോഗമായതിനാൽ ക്ഷേമവും കാര്യവിജയവും ഉണ്ടാകും."
+    else:
+        yoga_ml_text = (f"{yoga_ml} യോഗത്തിൽ ('{meaning_ml}') ജനനം; ഇത് ഒമ്പത് പ്രയാസകരമായ നിത്യയോഗങ്ങളിൽ ഒന്നാണ്: ക്ഷമയാൽ "
+                        f"തടസ്സങ്ങൾ നീങ്ങും; ജന്മനക്ഷത്ര ദിവസം ഈശ്വരാരാധന പരമ്പരാഗതമായി നിർദ്ദേശിക്കപ്പെടുന്നു.")
     if panch.get('yoga_auspiciousness') == 'Auspicious':
         yoga_en_text = f"Born in {yoga} yoga ('{meaning_en}'), an auspicious nitya yoga that supports well-being and success in undertakings."
         yoga_ta_text = f"{yoga_ta} யோகத்தில் ('{meaning_ta}') பிறந்தவர்; இது சுப நித்ய யோகம் என்பதால் நலமும் காரிய வெற்றியும் உண்டு."
@@ -499,21 +638,27 @@ def generate_panchanga_phala(chart):
                         f"patience, and prayer on the birth star day is traditionally advised.")
         yoga_ta_text = (f"{yoga_ta} யோகத்தில் ('{meaning_ta}') பிறந்தவர்; இது ஒன்பது கடினமான நித்ய யோகங்களில் ஒன்று: பொறுமையால் "
                         f"தடைகள் நீங்கும்; ஜன்ம நட்சத்திர நாளில் இறை வழிபாடு செய்வது பாரம்பரியமாகப் பரிந்துரைக்கப்படுகிறது.")
-    items.append(dict(key='yoga', title_en='Nitya Yoga', title_ta='நித்ய யோகம்', reading_en=yoga_en_text, reading_ta=yoga_ta_text))
+    items.append(dict(key='yoga', title_en='Nitya Yoga', title_ta='நித்ய யோகம்', title_ml='നിത്യയോഗം',
+                      reading_en=yoga_en_text, reading_ta=yoga_ta_text, reading_ml=yoga_ml_text))
 
     karana = panch['karana_name']
     karana_ta = KARANA_TAMIL.get(karana, karana)
+    karana_ml = KARANA_ML.get(karana, karana)
     if karana == 'Vishti':
         k_en = ("Born in Vishti (Bhadra) karana, traditionally a difficult karana: energy is strong but needs direction; "
                 "worship of Ganapati is advised.")
+        k_ml = "ഭദ്ര (വിഷ്ടി) കരണത്തിൽ ജനനം; ഇത് പ്രയാസകരമായ കരണമാണ്: ഊർജ്ജം ശക്തമാണ്, അതിനെ നല്ല വഴിക്ക് തിരിക്കണം; ഗണപതി ആരാധന നല്ലത്."
         k_ta = "பத்திரை (விஷ்டி) கரணத்தில் பிறந்தவர்; இது கடினமான கரணம்: ஆற்றல் அதிகம், அதை நல்வழியில் செலுத்த வேண்டும்; விநாயகர் வழிபாடு நலம்."
     elif karana in ('Shakuni', 'Chatushpada', 'Naga', 'Kimstughna'):
         k_en = f"Born in {karana} karana, one of the four fixed karanas: a steady, determined temperament that prefers stability to change."
+        k_ml = f"{karana_ml} കരണത്തിൽ ജനനം; ഇത് നാല് സ്ഥിര കരണങ്ങളിൽ ഒന്നാണ്: മാറ്റത്തേക്കാൾ സ്ഥിരത ഇഷ്ടപ്പെടുന്ന ദൃഢസ്വഭാവം."
         k_ta = f"{karana_ta} கரணத்தில் பிறந்தவர்; இது நான்கு ஸ்திர கரணங்களில் ஒன்று: மாற்றத்தை விட நிலைத்தன்மையை விரும்பும் உறுதியான இயல்பு."
     else:
         k_en = f"Born in {karana} karana, a movable karana: an active, adaptable temperament that does well with travel and new ventures."
+        k_ml = f"{karana_ml} കരണത്തിൽ ജനനം; ഇത് ചര കരണമാണ്: ഏത് സാഹചര്യത്തിനും ഇണങ്ങുന്ന ഉന്മേഷമുള്ള സ്വഭാവം; യാത്രകളും പുതിയ സംരംഭങ്ങളും ഗുണം ചെയ്യും."
         k_ta = f"{karana_ta} கரணத்தில் பிறந்தவர்; இது சர கரணம்: சுறுசுறுப்பான, எந்தச் சூழலுக்கும் ஏற்றுக்கொள்ளும் இயல்பு; பயணங்களும் புதிய முயற்சிகளும் நலம் தரும்."
-    items.append(dict(key='karana', title_en='Karana', title_ta='கரணம்', reading_en=k_en, reading_ta=k_ta))
+    items.append(dict(key='karana', title_en='Karana', title_ta='கரணம்', title_ml='കരണം', reading_en=k_en, reading_ta=k_ta,
+                      reading_ml=k_ml))
     return items
 
 
@@ -529,7 +674,7 @@ def calculate_sudarshana_chakra(chart):
         row = dict(house=house)
         for name, _, start in refs:
             sign = (start + house - 1) % 12
-            row[name.lower()] = dict(sign=SIGNS[sign], sign_ta=TAMIL_SIGNS[sign],
+            row[name.lower()] = dict(sign=SIGNS[sign], sign_ta=TAMIL_SIGNS[sign], sign_ml=MALAYALAM_SIGNS[sign],
                                      planets=[g for g in grahas if planets[g]['sign_index'] == sign])
         rows.append(row)
     tz = ZoneInfo(chart.get('timezone') or 'UTC')
@@ -546,7 +691,10 @@ def calculate_sudarshana_chakra(chart):
                     f"{rows[active - 1]['sun']['sign']}): matters of {themes_en} come to the fore this year."),
         reading_ta=(f"உங்கள் {age + 1}-வது வயதில் சுதர்சன சக்கரம் லக்னம், சந்திரன், சூரியன் மூன்றிலிருந்தும் {active}-ஆம் பாவத்தை "
                     f"({rows[active - 1]['lagna']['sign_ta']}, {rows[active - 1]['moon']['sign_ta']}, {rows[active - 1]['sun']['sign_ta']}) "
-                    f"இயக்குகிறது: இந்த ஆண்டு {themes_ta} தொடர்பான விஷயங்கள் முன்னிலை பெறும்.")
+                    f"இயக்குகிறது: இந்த ஆண்டு {themes_ta} தொடர்பான விஷயங்கள் முன்னிலை பெறும்."),
+        reading_ml=(f"നിങ്ങളുടെ {age + 1}-ാം വയസ്സിൽ സുദർശന ചക്രം ലഗ്നം, ചന്ദ്രൻ, സൂര്യൻ എന്നീ മൂന്നിൽ നിന്നും {active}-ാം ഭാവത്തെ "
+                    f"({rows[active - 1]['lagna']['sign_ml']}, {rows[active - 1]['moon']['sign_ml']}, {rows[active - 1]['sun']['sign_ml']}) "
+                    f"ഉണർത്തുന്നു: ഈ വർഷം {HOUSE_THEMES_ML[active]} എന്നിവയുമായി ബന്ധപ്പെട്ട കാര്യങ്ങൾ മുന്നിൽ വരും.")
     )
 
 

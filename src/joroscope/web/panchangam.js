@@ -32,6 +32,7 @@ async function loadDailyPanchangam() {
     const panch = await resp.json();
     if (!resp.ok) throw new Error(panch.error || 'Panchangam calculation failed.');
     lastDailyPanchangam = panch;
+    learnMalayalam(panch);
     populatePanchangamView(panch);
   } catch (err) {
     errorEl.textContent = errorText(err.message);
@@ -73,6 +74,7 @@ async function loadMuhurthams() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Muhurtham search failed.');
     lastMuhurthams = data;
+    learnMalayalam(data);
     renderMuhurthams(data);
   } catch (err) {
     notify(errorText(err.message));
@@ -122,6 +124,7 @@ async function loadMonthCalendar() {
     const cal = await resp.json();
     if (!resp.ok) throw new Error(cal.error || 'Calendar calculation failed.');
     lastCalendar = cal;
+    learnMalayalam(cal);
     renderMonthCalendar(cal);
   } catch (err) {
     notify(errorText(err.message));
@@ -444,12 +447,12 @@ function exportChandrashtamamIcs() {
 
 // Prasna (horary): the question list comes from the server's answer, so the first ask fills it
 const PRASNA_QUESTIONS = [
-  ['general', 'General question', 'பொதுக் கேள்வி'], ['marriage', 'Marriage or relationship', 'திருமணம் / உறவு'],
-  ['career', 'Job, career or promotion', 'வேலை / தொழில் / பதவி உயர்வு'], ['money', 'Money, loans or business gain', 'பணம் / கடன் / வியாபார லாபம்'],
-  ['health', 'Health or recovery', 'உடல்நலம் / குணமடைதல்'], ['travel', 'Travel or going abroad', 'பயணம் / வெளிநாடு'],
-  ['children', 'Children or conception', 'குழந்தை / கருத்தரிப்பு'], ['property', 'House, land or vehicle', 'வீடு / நிலம் / வாகனம்'],
-  ['education', 'Studies or examinations', 'படிப்பு / தேர்வு'], ['lost', 'A lost or stolen object', 'தொலைந்த / திருடுபோன பொருள்'],
-  ['dispute', 'Dispute or court case', 'வழக்கு / தகராறு']
+  ['general', 'General question', 'பொதுக் கேள்வி', 'പൊതുവായ ചോദ്യം'], ['marriage', 'Marriage or relationship', 'திருமணம் / உறவு', 'വിവാഹം / ബന്ധം'],
+  ['career', 'Job, career or promotion', 'வேலை / தொழில் / பதவி உயர்வு', 'ജോലി / തൊഴിൽ / സ്ഥാനക്കയറ്റം'], ['money', 'Money, loans or business gain', 'பணம் / கடன் / வியாபார லாபம்', 'പണം / കടം / വ്യാപാര ലാഭം'],
+  ['health', 'Health or recovery', 'உடல்நலம் / குணமடைதல்', 'ആരോഗ്യം / രോഗശാന്തി'], ['travel', 'Travel or going abroad', 'பயணம் / வெளிநாடு', 'യാത്ര / വിദേശം'],
+  ['children', 'Children or conception', 'குழந்தை / கருத்தரிப்பு', 'സന്താനം / ഗർഭധാരണം'], ['property', 'House, land or vehicle', 'வீடு / நிலம் / வாகனம்', 'വീട് / ഭൂമി / വാഹനം'],
+  ['education', 'Studies or examinations', 'படிப்பு / தேர்வு', 'പഠനം / പരീക്ഷ'], ['lost', 'A lost or stolen object', 'தொலைந்த / திருடுபோன பொருள்', 'നഷ്ടപ്പെട്ട / മോഷണം പോയ വസ്തു'],
+  ['dispute', 'Dispute or court case', 'வழக்கு / தகராறு', 'കേസ് / തർക്കം']
 ];
 let lastPrasna = null;
 
@@ -457,7 +460,7 @@ function fillPrasnaQuestions() {
   const sel = $('#prasna-question');
   if (!sel) return;
   const chosen = sel.value || 'general';
-  sel.innerHTML = PRASNA_QUESTIONS.map(([k, en, ta]) => `<option value="${k}">${esc(txt(en, ta))}</option>`).join('');
+  sel.innerHTML = PRASNA_QUESTIONS.map(([k, en, ta, ml]) => `<option value="${k}">${esc(txt(en, ta, ml))}</option>`).join('');
   sel.value = chosen;
 }
 
@@ -476,6 +479,7 @@ async function askPrasna() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Prasna failed.');
     lastPrasna = data;
+    learnMalayalam(data);
     renderChapterInto($('#prasna-result'), data);
   } catch (err) {
     notify(errorText(err.message));
@@ -486,11 +490,13 @@ async function askPrasna() {
 
 // Birth time rectification: an editable list of dated life events
 const RECT_EVENTS = [
-  ['marriage', 'Marriage', 'திருமணம்'], ['child', 'Birth of a child', 'குழந்தை பிறப்பு'],
-  ['career', 'Job, promotion or business start', 'வேலை / பதவி உயர்வு / தொழில் தொடக்கம்'],
-  ['education', 'Degree or education milestone', 'பட்டம் / கல்வி நிலை'], ['relocation', 'Moving house or abroad', 'இடமாற்றம் / வெளிநாடு'],
-  ['property', 'Buying property or a vehicle', 'சொத்து / வாகனம் வாங்குதல்'], ['illness', 'Illness, surgery or accident', 'நோய் / அறுவை சிகிச்சை / விபத்து'],
-  ['father', 'Loss of father', 'தந்தை இழப்பு'], ['mother', 'Loss of mother', 'தாய் இழப்பு']
+  ['marriage', 'Marriage', 'திருமணம்', 'വിവാഹം'], ['child', 'Birth of a child', 'குழந்தை பிறப்பு', 'കുഞ്ഞിന്റെ ജനനം'],
+  ['career', 'Job, promotion or business start', 'வேலை / பதவி உயர்வு / தொழில் தொடக்கம்', 'ജോലി / സ്ഥാനക്കയറ്റം / സംരംഭ തുടക്കം'],
+  ['education', 'Degree or education milestone', 'பட்டம் / கல்வி நிலை', 'ബിരുദം / വിദ്യാഭ്യാസ നേട്ടം'],
+  ['relocation', 'Moving house or abroad', 'இடமாற்றம் / வெளிநாடு', 'താമസംമാറ്റം / വിദേശം'],
+  ['property', 'Buying property or a vehicle', 'சொத்து / வாகனம் வாங்குதல்', 'സ്വത്ത് / വാഹനം വാങ്ങൽ'],
+  ['illness', 'Illness, surgery or accident', 'நோய் / அறுவை சிகிச்சை / விபத்து', 'രോഗം / ശസ്ത്രക്രിയ / അപകടം'],
+  ['father', 'Loss of father', 'தந்தை இழப்பு', 'അച്ഛന്റെ വിയോഗം'], ['mother', 'Loss of mother', 'தாய் இழப்பு', 'അമ്മയുടെ വിയോഗം']
 ];
 let rectEvents = [{ date: '', type: 'marriage' }];
 let lastRectification = null;
@@ -501,8 +507,8 @@ function renderRectEvents() {
   box.innerHTML = rectEvents.map((ev, i) => `
     <div class="rect-event-row">
       <input type="date" value="${esc(ev.date)}" data-rect-date="${i}" aria-label="Event date">
-      <select data-rect-type="${i}" aria-label="Event">${RECT_EVENTS.map(([k, en, ta]) =>
-        `<option value="${k}"${k === ev.type ? ' selected' : ''}>${esc(txt(en, ta))}</option>`).join('')}</select>
+      <select data-rect-type="${i}" aria-label="Event">${RECT_EVENTS.map(([k, en, ta, ml]) =>
+        `<option value="${k}"${k === ev.type ? ' selected' : ''}>${esc(txt(en, ta, ml))}</option>`).join('')}</select>
       <button class="link-btn" type="button" data-rect-remove="${i}" aria-label="Remove">✕</button>
     </div>`).join('');
   box.querySelectorAll('[data-rect-date]').forEach(el => el.addEventListener('change', () => { rectEvents[el.dataset.rectDate].date = el.value; }));
@@ -528,6 +534,7 @@ async function runRectification() {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Rectification failed.');
     lastRectification = data;
+    learnMalayalam(data);
     renderChapterInto($('#rect-result'), data);
   } catch (err) {
     notify(errorText(err.message));

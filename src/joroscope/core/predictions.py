@@ -22,6 +22,7 @@ from .readings.timing import calculate_double_transit, calculate_kakshya_transit
 from .readings.career_health import calculate_career_vocation_d10, calculate_ayur_jyotish
 from .readings.strength_kp import get_kp_sublord, calculate_shadbala, calculate_kp_system
 from .readings.numerology import calculate_numerology
+from .readings.natal_ml import NAKSHATRA_ML, LAGNA_ML
 from .readings.remedies import calculate_remedies
 from .readings.life_reports import calculate_marriage_report, calculate_career_report
 from .readings.classical import (
@@ -93,10 +94,12 @@ def generate_comprehensive_predictions(chart):
             'tamil_nakshatra': moon['tamil_nakshatra'],
             'nakshatra_pred_en': star_pred['en'],
             'nakshatra_pred_ta': star_pred['ta'],
+            'nakshatra_pred_ml': NAKSHATRA_ML.get(moon['nakshatra'], ''),
             'lagna': asc['sign'],
             'tamil_lagna': asc['tamil'],
             'lagna_pred_en': lagna_pred['en'],
             'lagna_pred_ta': lagna_pred['ta'],
+            'lagna_pred_ml': LAGNA_ML.get(asc['sign'], ''),
             'moon_sign': moon['sign'],
             'tamil_moon_sign': moon['tamil'],
             'tithi_name': panch['tithi_name'],
