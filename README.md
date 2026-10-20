@@ -2,7 +2,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)](https://www.python.org/downloads/)
-[![Tests: 147 Passed](https://img.shields.io/badge/tests-147%20passed-success)](tests/)
+[![Tests: 186 Passed](https://img.shields.io/badge/tests-186%20passed-success)](tests/)
 [![Offline & Private](https://img.shields.io/badge/privacy-100%25%20offline%20capable-emerald)](#privacy--security)
 [![Languages](https://img.shields.io/badge/language-English%20%7C%20%E0%AE%A4%E0%AE%AE%E0%AE%BF%E0%AE%B4%E0%AF%8D%20%7C%20%E0%B4%AE%E0%B4%B2%E0%B4%AF%E0%B4%BE%E0%B4%B3%E0%B4%82-gold)](#bilingual-support)
 
@@ -55,6 +55,14 @@ JoRoScope is an authoritative, high-precision Vedic astrology application built 
 - **Chevvai & Rahu-Ketu Doshams**: Mars in 2, 4, 7, 8, 12 from Lagna, Moon and Venus with the classical sign exemptions and cancellations; nodes in 1, 2, 7, 8 from Lagna or Moon.
 - **Dosha Samyam in Matching**: Chevvai balance and Papa Samyam (malefic points from Lagna, Moon, Venus) when both saved profiles have full birth details.
 - **Tamil Daily Panchangam**: Live local-time Rahu Kalam, Yamagandam, Kuligai and Abhijit from Swiss Ephemeris sunrise, anga end times, Tamil date, Soolam & Parigaram, Chandrashtamam, and personal Tara / Chandra Balam.
+
+### 🔍 Points You Can Check
+- **Calculation sheet**: every input the engine applied (the UTC offset in force on the birth date, UT and local mean time, sunrise and sunset used, sidereal time, Lagna and Moon to the arc second, ayanamsa value, node and house conventions, dasa year, Julian day and ΔT), exportable as a text sheet with every graha's longitude for checking in other software.
+- **Birth-time sensitivity**: how many minutes the birth time can move before the Lagna, Navamsa Lagna, Moon sign, star or pada changes; how many days every Dasa date moves per minute; an optional ± minutes uncertainty that marks what is stable.
+- **Compare with a printed horoscope**: type the signs and Dasa balance from a family's printed jathagam; the comparison names the likely cause of each difference (birth time, true node, ayanamsa, date) and turns a printed Dasa balance into a birth-time correction.
+- **Check these yourself**: sunrise, Moon phase, the next new and full moon, sankranti and eclipses on the panchangam page, to check against a phone or a printed calendar.
+- **Validation list and public accuracy figures** on the Tools page: what the tests check against which published source, and how shared Chart Verification marks came out, each hit rate beside its chance baseline. See [docs/VALIDATION.md](docs/VALIDATION.md).
+- **Past years to check**: the year-by-year forecast run over the person's past to rate year by year, and a **Why these scores** list under every yearly card; classical sources named under Chart Verification and the forecast.
 
 ### 👥 Multi-Person Profile Manager & Vault
 - **Form Quick Selector**: Instant 1-click loading and auto-calculation directly on the Birth Details form.
@@ -156,7 +164,8 @@ py -3.12 -m unittest discover -s tests -v
 When running locally, JoRoScope provides secure JSON API endpoints:
 
 - `GET /api/health`: Health status and application version.
-- `POST /api/chart`: Computes full birth chart, divisional vargas, dasas, yogas, and all 17 prediction chapters.
+- `GET /api/accuracy`: The public accuracy figures from shared Chart Verification marks (aggregates of 20 or more only, with chance baselines).
+- `POST /api/chart`: Computes full birth chart, divisional vargas, dasas, yogas, all 17 prediction chapters, the calculation sheet and the birth-time sensitivity.
 - `POST /api/match`: Computes 10 Poruthams, 36 Guna Milan, and Rajju agreement.
 - `POST /api/panchangam`: Tamil daily panchangam for a date and place: the five angas with end times, Tamil yogam, horas, Gowri Panchangam, Soolam and Chandrashtamam.
 - `POST /api/timeline`: The detailed readings of all 81 Dasa-Bhukti periods (the chart response carries only the running one).

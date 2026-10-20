@@ -115,26 +115,36 @@ def _span(a, b, lang):
     return _month(a, lang) if (a.month, a.year) == (b.month, b.year) else f"{_month(a, lang)}–{_month(b, lang)}"
 
 
-def calculate_yearly_forecast(chart, years=12, now=None):
-    from ..engine import AYAN, swe, utc_to_jd
+SOURCES = [  # the classical basis of the forecast's rules
+    ('Vimshottari Dasa and Bhukti results from the lords\' houses and dignity: Brihat Parashara Hora Shastra (Dasa Phala chapters); Phaladeepika (Dasa results)',
+     'தசா புக்தி அதிபதிகளின் பாவங்கள், பலத்தால் பலன்: பிருஹத் பராசர ஹோரா சாஸ்திரம் (தசாபல அத்தியாயங்கள்); பலதீபிகை',
+     'ദശാ-ഭുക്തി അധിപന്മാരുടെ ഭാവങ്ങളും ബലവും അനുസരിച്ച ഫലം: ബൃഹത് പരാശര ഹോരാ ശാസ്ത്രം (ദശാഫല അധ്യായങ്ങൾ); ഫലദീപിക'),
+    ('Gochara of Jupiter and Saturn from the Moon sign: Phaladeepika ch. 26; Brihat Samhita (Graha Chara)',
+     'சந்திர ராசியிலிருந்து குரு, சனி கோச்சாரம்: பலதீபிகை அத். 26; பிருஹத் சம்ஹிதை',
+     'ചന്ദ്രരാശിയിൽ നിന്ന് വ്യാഴ-ശനി ഗോചരം: ഫലദീപിക അധ്യായം 26; ബൃഹത് സംഹിത'),
+    ('Sade Sati, Ashtama and Kandaka Sani: the Tamil almanac tradition of Saturn\'s cycles from the natal Moon',
+     'ஏழரைச் சனி, அஷ்டம, கண்டக சனி: ஜனன சந்திரனிலிருந்து சனி சுழற்சிகளின் தமிழ்ப் பஞ்சாங்க மரபு',
+     'ഏഴരശ്ശനി, അഷ്ടമ, കണ്ടകശ്ശനി: ജന്മചന്ദ്രനിൽ നിന്നുള്ള ശനിചക്രങ്ങളുടെ പഞ്ചാംഗ പാരമ്പര്യം'),
+]
+
+
+def _year_data(chart, years, tz):
+    """The scored data of each year: Dasa-Bhukti periods, transits, Saturn cycles, area scores and the
+    factor behind every point, before the years are ranked against each other."""
+    from ..engine import swe, utc_to_jd
     from ..monthly import _segments
-    swe.set_sid_mode(AYAN[chart.get('ayanamsa') or 'Lahiri'])
-    tz = ZoneInfo(chart.get('timezone') or 'UTC')
     planets = chart['planets']
     asc = planets['Ascendant']['sign_index']
     moon = planets['Moon']['sign_index']
-    now = (now or datetime.now(timezone.utc)).astimezone(tz)
     parse = lambda iso: datetime.fromisoformat(iso).astimezone(tz)
     dasha = chart.get('dasha') or []
     cycles = (chart.get('gochara') or {}).get('saturn_cycles') or []
-    names = {'en': lambda g: g, 'ta': lambda g: PLANET_TAMIL[g], 'ml': lambda g: PLANET_ML[g]}
-    sign_names = {'en': SIGNS, 'ta': TAMIL_SIGNS, 'ml': MALAYALAM_SIGNS}
-
-    results, cards, rows, pending = [], [], [], []
-    for year in range(now.year, now.year + years):
+    n = {'en': lambda g: g, 'ta': lambda g: PLANET_TAMIL[g], 'ml': lambda g: PLANET_ML[g]}
+    hl = lambda houses: ', '.join(str(h) for h in sorted(houses))
+    pending = []
+    for year in years:
         y0, y1 = datetime(year, 1, 1, tzinfo=tz), datetime(year + 1, 1, 1, tzinfo=tz)
         span_days = (y1 - y0).days
-        # Dasa-Bhukti periods and Pratyantaras in the year
         bhuktis, pratyantars = [], []
         for md in dasha:
             if parse(md['end']) <= y0 or parse(md['start']) >= y1:
@@ -149,7 +159,6 @@ def calculate_yearly_forecast(chart, years=12, now=None):
                     ps, pe = parse(p['start']), parse(p['end'])
                     if pe > y0 and ps < y1:
                         pratyantars.append(dict(lord=p['lord'], start=max(ps, y0), end=min(pe, y1)))
-        # Slow transits through the year
         jd0, jd1 = utc_to_jd(y0.astimezone(timezone.utc)), utc_to_jd(y1.astimezone(timezone.utc))
         transit = {}
         for name, body in (('Jupiter', swe.JUPITER), ('Saturn', swe.SATURN), ('Rahu', swe.MEAN_NODE)):
@@ -159,61 +168,113 @@ def calculate_yearly_forecast(chart, years=12, now=None):
                              for i, (s, e, sign) in enumerate(segs)]
         running_cycles = [c for c in cycles if parse(c['start']) < y1 and parse(c['end']) > y0]
 
-        # Scores
         score = {key: 0.0 for key, _, _ in AREAS}
         activated = {key: [] for key, _, _ in AREAS}
+        factors = {key: [] for key, _, _ in AREAS}
+
+        def add(key, points, en, ta, ml):
+            if abs(points) < 0.005:
+                return
+            score[key] += points
+            factors[key].append(dict(en=en, ta=ta, ml=ml, points=round(points, 2)))
+
         for b in bhuktis:
-            for lord, share in ((b['dasa'], 0.4), (b['bhukti'], 0.6)):
+            pct = round(100 * b['weight'])
+            for lord, share, kind in ((b['dasa'], 0.4, ('Dasa', 'தசை', 'ദശ')), (b['bhukti'], 0.6, ('Bhukti', 'புக்தி', 'ഭുക്തി'))):
                 houses = _houses_of(planets, lord, asc)
                 q = _quality(planets, lord, asc)
+                quality = {'en': 'well placed' if q > 0.25 else ('difficult' if q < -0.25 else 'mixed'),
+                           'ta': 'நல்ல நிலை' if q > 0.25 else ('கடினம்' if q < -0.25 else 'கலப்பு'),
+                           'ml': 'നല്ല നില' if q > 0.25 else ('പ്രയാസം' if q < -0.25 else 'മിശ്രം')}
                 for key, area_houses, _ in AREAS:
                     if key == 'health':
                         if houses & {6, 8, 12}:
-                            score[key] -= b['weight'] * share * (0.6 if q < 0 else 0.3)
+                            add(key, -b['weight'] * share * (0.6 if q < 0 else 0.3),
+                                f"{n['en'](lord)} {kind[0]} ({pct}% of the year) rules or occupies house {hl(houses & {6, 8, 12})}",
+                                f"{n['ta'](lord)} {kind[1]} (ஆண்டின் {pct}%) {hl(houses & {6, 8, 12})}-ஆம் பாவத்தை ஆள்கிறது அல்லது அங்கு உள்ளது",
+                                f"{n['ml'](lord)} {kind[2]} (വർഷത്തിന്റെ {pct}%) {hl(houses & {6, 8, 12})}-ാം ഭാവം ഭരിക്കുന്നു അല്ലെങ്കിൽ അവിടെ നിൽക്കുന്നു")
                         elif houses & {1}:
-                            score[key] += b['weight'] * share * max(q, 0)
+                            add(key, b['weight'] * share * max(q, 0),
+                                f"{n['en'](lord)} {kind[0]} ({pct}%) rules or occupies the Lagna, {quality['en']}",
+                                f"{n['ta'](lord)} {kind[1]} ({pct}%) லக்னத்தை ஆள்கிறது அல்லது அங்கு உள்ளது, {quality['ta']}",
+                                f"{n['ml'](lord)} {kind[2]} ({pct}%) ലഗ്നം ഭരിക്കുന്നു അല്ലെങ്കിൽ അവിടെ നിൽക്കുന്നു, {quality['ml']}")
                         continue
-                    if houses & set(area_houses):
-                        score[key] += b['weight'] * share * (0.4 + q)
+                    hit = houses & set(area_houses)
+                    if hit:
+                        add(key, b['weight'] * share * (0.4 + q),
+                            f"{n['en'](lord)} {kind[0]} ({pct}% of the year) rules or occupies house {hl(hit)}, {quality['en']}",
+                            f"{n['ta'](lord)} {kind[1]} (ஆண்டின் {pct}%) {hl(hit)}-ஆம் பாவத்தை ஆள்கிறது அல்லது அங்கு உள்ளது, {quality['ta']}",
+                            f"{n['ml'](lord)} {kind[2]} (വർഷത്തിന്റെ {pct}%) {hl(hit)}-ാം ഭാവം ഭരിക്കുന്നു അല്ലെങ്കിൽ അവിടെ നിൽക്കുന്നു, {quality['ml']}")
                         if share == 0.6 and lord not in activated[key]:
                             activated[key].append(lord)
         for seg in transit['Jupiter']:
             from_moon = (seg['sign'] - moon) % 12 + 1
             from_lagna = (seg['sign'] - asc) % 12 + 1
             aspected = {(from_lagna + a - 2) % 12 + 1 for a in JUPITER_ASPECTS}
+            pct = round(100 * seg['weight'])
             for key, area_houses, _ in AREAS:
                 if from_moon in JUPITER_GOOD:
-                    score[key] += 0.25 * seg['weight']
-                if aspected & set(area_houses):
-                    score[key] += 0.35 * seg['weight']
+                    add(key, 0.25 * seg['weight'], f"Jupiter transits {from_moon} from the Moon ({pct}% of the year)",
+                        f"குரு சந்திரனிலிருந்து {from_moon}-இல் கோச்சாரம் (ஆண்டின் {pct}%)", f"വ്യാഴം ചന്ദ്രനിൽ നിന്ന് {from_moon}-ൽ ഗോചരം (വർഷത്തിന്റെ {pct}%)")
+                hit = aspected & set(area_houses)
+                if hit:
+                    add(key, 0.35 * seg['weight'], f"Jupiter in or aspecting house {hl(hit)} from the Lagna ({pct}%)",
+                        f"லக்னத்திலிருந்து {hl(hit)}-ஆம் பாவத்தில் அல்லது பார்வையில் குரு ({pct}%)", f"ലഗ്നത്തിൽ നിന്ന് {hl(hit)}-ാം ഭാവത്തിൽ അല്ലെങ്കിൽ ദൃഷ്ടിയിൽ വ്യാഴം ({pct}%)")
         for seg in transit['Saturn']:
             from_moon = (seg['sign'] - moon) % 12 + 1
             if from_moon in SATURN_GOOD:
-                score['career'] += 0.3 * seg['weight']
-                score['money'] += 0.3 * seg['weight']
+                pct = round(100 * seg['weight'])
+                for key in ('career', 'money'):
+                    add(key, 0.3 * seg['weight'], f"Saturn transits {from_moon} from the Moon ({pct}%)",
+                        f"சனி சந்திரனிலிருந்து {from_moon}-இல் கோச்சாரம் ({pct}%)", f"ശനി ചന്ദ്രനിൽ നിന്ന് {from_moon}-ൽ ഗോചരം ({pct}%)")
         for c in running_cycles:
             overlap = (min(parse(c['end']), y1) - max(parse(c['start']), y0)).days / span_days
             hit = {'sade_sati': dict(health=0.4, money=0.3, family=0.3, career=0.2),
                    'ashtama': dict(health=0.6, career=0.4, travel=0.2),
                    'kandaka': dict(career=0.3, family=0.3, health=0.2),
                    'ardhashtama': dict(health=0.3, family=0.2)}.get(c['kind'], {})
+            w = CYCLE_WORDS.get(c['kind'], (c['kind'],) * 3)
             for key, value in hit.items():
-                score[key] -= value * overlap
-        pending.append(dict(year=year, score=score, activated=activated, bhuktis=bhuktis, transit=transit,
+                add(key, -value * overlap, f"{w[0]} ({round(100 * overlap)}% of the year)", f"{w[1]} (ஆண்டின் {round(100 * overlap)}%)",
+                    f"{w[2]} (വർഷത്തിന്റെ {round(100 * overlap)}%)")
+        pending.append(dict(year=year, score=score, activated=activated, factors=factors, bhuktis=bhuktis, transit=transit,
                             running_cycles=running_cycles, pratyantars=pratyantars, y0=y0, y1=y1))
+    return pending
+
+
+def _reading_chart(chart):
+    """The readings take the engine's chart summary; a full /api/chart result (ayanamsa and timezone in
+    its profile) is accepted too."""
+    if 'timezone' not in chart and chart.get('profile'):
+        chart = dict(chart, timezone=chart['profile'].get('timezone'), ayanamsa=chart['profile'].get('ayanamsa') or 'Lahiri')
+    return chart
+
+
+def _forecast(chart, years, now, key, titles, intros):
+    from ..engine import AYAN, swe
+    chart = _reading_chart(chart)
+    swe.set_sid_mode(AYAN[chart.get('ayanamsa') or 'Lahiri'])
+    tz = ZoneInfo(chart.get('timezone') or 'UTC')
+    planets = chart['planets']
+    asc = planets['Ascendant']['sign_index']
+    moon = planets['Moon']['sign_index']
+    names = {'en': lambda g: g, 'ta': lambda g: PLANET_TAMIL[g], 'ml': lambda g: PLANET_ML[g]}
+    sign_names = {'en': SIGNS, 'ta': TAMIL_SIGNS, 'ml': MALAYALAM_SIGNS}
+    pending = _year_data(chart, years, tz)
+    results, cards, rows = [], [], []
 
     # Rank each area's years against each other: the best third favourable, the hardest third careful,
     # so the forecast separates the better years from the harder ones instead of calling most alike
     def classify(values):
         ordered = sorted(values)
-        hi, lo = ordered[2 * len(ordered) // 3], ordered[len(ordered) // 3 - 1]
+        hi, lo = ordered[2 * len(ordered) // 3], ordered[max(len(ordered) // 3 - 1, 0)]
         return lambda v: 'good' if v >= hi and v > 0.05 else ('care' if v <= lo and v < 0 else 'steady')
-    by_area = {key: classify([d['score'][key] for d in pending]) for key, _, _ in AREAS}
+    by_area = {key_: classify([d['score'][key_] for d in pending]) for key_, _, _ in AREAS}
     overall_rank = classify([sum(d['score'].values()) for d in pending])
     for d in pending:
         year, score, activated, bhuktis, transit = d['year'], d['score'], d['activated'], d['bhuktis'], d['transit']
         running_cycles, pratyantars, y0, y1 = d['running_cycles'], d['pratyantars'], d['y0'], d['y1']
-        verdicts = {key: by_area[key](score[key]) for key in score}
+        verdicts = {k: by_area[k](score[k]) for k in score}
 
         # Good and careful months from the Pratyantaras
         good_months, care_months = [], []
@@ -247,12 +308,12 @@ def calculate_yearly_forecast(chart, years=12, now=None):
             moves = []
             for g in ('Jupiter', 'Saturn', 'Rahu'):
                 for seg in transit[g][1:]:
-                    d = datetime.fromtimestamp((seg['start'] - 2440587.5) * 86400, tz)
+                    dt = datetime.fromtimestamp((seg['start'] - 2440587.5) * 86400, tz)
                     from_moon = (seg['sign'] - moon) % 12 + 1
                     back = {'en': ', retrograde', 'ta': ', வக்ரமாக', 'ml': ', വക്രമായി'}[lang] if seg['back'] else ''
-                    moves.append({'en': f"{g} enters {sn[seg['sign']]} ({from_moon} from the Moon{back}) in {_month(d, 'en')}",
-                                  'ta': f"{_month(d, 'ta')}-இல் {n(g)} {sn[seg['sign']]} ராசிக்கு (சந்திரனிலிருந்து {from_moon}{back})",
-                                  'ml': f"{_month(d, 'ml')}-ൽ {n(g)} {sn[seg['sign']]} രാശിയിലേക്ക് (ചന്ദ്രനിൽ നിന്ന് {from_moon}{back})"}[lang])
+                    moves.append({'en': f"{g} enters {sn[seg['sign']]} ({from_moon} from the Moon{back}) in {_month(dt, 'en')}",
+                                  'ta': f"{_month(dt, 'ta')}-இல் {n(g)} {sn[seg['sign']]} ராசிக்கு (சந்திரனிலிருந்து {from_moon}{back})",
+                                  'ml': f"{_month(dt, 'ml')}-ൽ {n(g)} {sn[seg['sign']]} രാശിയിലേക്ക് (ചന്ദ്രനിൽ നിന്ന് {from_moon}{back})"}[lang])
             if moves:
                 parts.append('; '.join(moves) + '.')
             for c in running_cycles:
@@ -260,12 +321,12 @@ def calculate_yearly_forecast(chart, years=12, now=None):
                 if w:
                     parts.append({'en': f"{w[0]} runs until {c['end'][:7]}.", 'ta': f"{w[1]} {c['end'][:7]} வரை.",
                                   'ml': f"{w[2]} {c['end'][:7]} വരെ."}[lang])
-            for key, _, label in AREAS:
+            for k, _, label in AREAS:
                 i = {'en': 0, 'ta': 1, 'ml': 2}[lang]
-                via = activated[key][:2]
+                via = activated[k][:2]
                 basis = ({'en': f" ({', '.join(n(g) for g in via)} Bhukti)", 'ta': f" ({', '.join(n(g) for g in via)} புக்தி)",
-                          'ml': f" ({', '.join(n(g) for g in via)} ഭുക്തി)"}[lang] if via and key != 'health' else '')
-                parts.append(f"{label[i]}{basis}: {AREA_TEXT[key][verdicts[key]][i]}")
+                          'ml': f" ({', '.join(n(g) for g in via)} ഭുക്തി)"}[lang] if via and k != 'health' else '')
+                parts.append(f"{label[i]}{basis}: {AREA_TEXT[k][verdicts[k]][i]}")
             if good_months:
                 parts.append({'en': 'Good months: ', 'ta': 'நல்ல மாதங்கள்: ', 'ml': 'നല്ല മാസങ്ങൾ: '}[lang]
                              + ', '.join(f"{_span(p['start'], p['end'], lang)} ({n(p['lord'])})" for p in good_months) + '.')
@@ -278,9 +339,16 @@ def calculate_yearly_forecast(chart, years=12, now=None):
         head = {lang: (f"{year}: {names[lang](main['dasa'])}–{names[lang](main['bhukti'])}" if main else str(year))
                 for lang in ('en', 'ta', 'ml')}
         verdict_card = {'good': 'good', 'steady': 'mixed', 'care': 'bad'}[level]
-        cards.append(card('📅', head['en'], head['ta'], text('en'), text('ta'),
-                          f"Overall: {LEVELS[level][1]}", f"மொத்தம்: {LEVELS[level][2]}", verdict=verdict_card,
-                          title_ml=head['ml'], body_ml=text('ml'), sub_ml=f"മൊത്തം: {LEVELS[level][3]}"))
+        # The factors behind each area's score, for the card's "why" list
+        why = [dict(area=k, label=dict(en=label[0], ta=label[1], ml=label[2]), verdict=verdicts[k], score=round(score[k], 2),
+                    items=sorted(d['factors'][k], key=lambda f: -abs(f['points'])))
+               for k, _, label in AREAS]
+        c = card('📅', head['en'], head['ta'], text('en'), text('ta'),
+                 f"Overall: {LEVELS[level][1]}", f"மொத்தம்: {LEVELS[level][2]}", verdict=verdict_card,
+                 title_ml=head['ml'], body_ml=text('ml'), sub_ml=f"മൊത്തം: {LEVELS[level][3]}")
+        c['why'] = why
+        c['year'] = year
+        cards.append(c)
         rows.append([str(year),
                      ('–'.join(dict.fromkeys(b['bhukti'] for b in bhuktis)),
                       '–'.join(dict.fromkeys(PLANET_TAMIL[b['bhukti']] for b in bhuktis)),
@@ -293,17 +361,64 @@ def calculate_yearly_forecast(chart, years=12, now=None):
                             good_months=[dict(lord=p['lord'], start=p['start'].date().isoformat(), end=p['end'].date().isoformat())
                                          for p in good_months],
                             care_months=[dict(lord=p['lord'], start=p['start'].date().isoformat(), end=p['end'].date().isoformat())
-                                         for p in care_months]))
+                                         for p in care_months],
+                            factors=d['factors']))
     head = [('Year', 'ஆண்டு', 'വർഷം'), ('Bhuktis', 'புக்திகள்', 'ഭുക്തികൾ')] + [label for _, _, label in AREAS]
     return chapter(
-        'yearly', f'Year-by-Year Forecast ({now.year}–{now.year + years - 1})', f'ஆண்டுவாரி பலன் ({now.year}–{now.year + years - 1})',
-        'Each year from the Dasa-Bhukti periods running in it, the moves of Saturn, Jupiter and Rahu and the Saturn cycles, '
-        'for career, money, family, health and travel, with the good and careful months from the Pratyantara periods.',
-        'ஒவ்வொரு ஆண்டும்: அதில் நடக்கும் தசா புக்திகள், சனி, குரு, ராகு பெயர்ச்சிகள், சனி சுழற்சிகள் வழியாகத் தொழில், பணம், குடும்பம், '
-        'உடல்நலம், பயணம்; பிரத்யந்தர காலங்களிலிருந்து நல்ல, கவனமான மாதங்கள்.',
+        key, titles[0], titles[1], intros[0], intros[1],
         cards=cards, tables=[table('Year at a glance', 'ஆண்டுச் சுருக்கம்', head, rows, title_ml='വർഷ സംഗ്രഹം')],
-        cards_first=False,
-        title_ml=f'വർഷംതോറുമുള്ള ഫലം ({now.year}–{now.year + years - 1})',
-        intro_ml=('ഓരോ വർഷവും: അതിൽ നടക്കുന്ന ദശാ-ഭുക്തികൾ, ശനി, വ്യാഴം, രാഹു എന്നിവയുടെ രാശിമാറ്റങ്ങൾ, ശനിചക്രങ്ങൾ എന്നിവയിലൂടെ തൊഴിൽ, '
-                  'ധനം, കുടുംബം, ആരോഗ്യം, യാത്ര; പ്രത്യന്തര കാലങ്ങളിൽ നിന്ന് നല്ലതും ശ്രദ്ധിക്കേണ്ടതുമായ മാസങ്ങൾ.'),
+        cards_first=False, title_ml=titles[2], intro_ml=intros[2],
+        sources=[dict(en=a, ta=b, ml=c) for a, b, c in SOURCES],
         years=results)
+
+
+def calculate_yearly_forecast(chart, years=12, now=None):
+    chart = _reading_chart(chart)
+    tz = ZoneInfo(chart.get('timezone') or 'UTC')
+    now = (now or datetime.now(timezone.utc)).astimezone(tz)
+    span = f'({now.year}–{now.year + years - 1})'
+    return _forecast(
+        chart, range(now.year, now.year + years), now, 'yearly',
+        (f'Year-by-Year Forecast {span}', f'ஆண்டுவாரி பலன் {span}', f'വർഷംതോറുമുള്ള ഫലം {span}'),
+        ('Each year from the Dasa-Bhukti periods running in it, the moves of Saturn, Jupiter and Rahu and the Saturn cycles, '
+         'for career, money, family, health and travel, with the good and careful months from the Pratyantara periods.',
+         'ஒவ்வொரு ஆண்டும்: அதில் நடக்கும் தசா புக்திகள், சனி, குரு, ராகு பெயர்ச்சிகள், சனி சுழற்சிகள் வழியாகத் தொழில், பணம், குடும்பம், '
+         'உடல்நலம், பயணம்; பிரத்யந்தர காலங்களிலிருந்து நல்ல, கவனமான மாதங்கள்.',
+         'ഓരോ വർഷവും: അതിൽ നടക്കുന്ന ദശാ-ഭുക്തികൾ, ശനി, വ്യാഴം, രാഹു എന്നിവയുടെ രാശിമാറ്റങ്ങൾ, ശനിചക്രങ്ങൾ എന്നിവയിലൂടെ തൊഴിൽ, '
+         'ധനം, കുടുംബം, ആരോഗ്യം, യാത്ര; പ്രത്യന്തര കാലങ്ങളിൽ നിന്ന് നല്ലതും ശ്രദ്ധിക്കേണ്ടതുമായ മാസങ്ങൾ.'))
+
+
+PAST_FROM_AGE = 15  # years before this are hard to judge from memory
+
+
+def past_years_range(chart, now=None):
+    """The past calendar years a person can judge: from age 15 (or from the year after birth when
+    younger) up to last year; None when there is no complete past year."""
+    chart = _reading_chart(chart)
+    tz = ZoneInfo(chart.get('timezone') or 'UTC')
+    now = (now or datetime.now(timezone.utc)).astimezone(tz)
+    birth = chart['utc'] if isinstance(chart['utc'], datetime) else datetime.fromisoformat(chart['utc'])
+    birth_year = birth.astimezone(tz).year
+    first = birth_year + PAST_FROM_AGE if now.year - 1 - (birth_year + PAST_FROM_AGE) >= 2 else birth_year + 1
+    if first > now.year - 2:  # at least two years, or there is nothing to rank against
+        return None
+    return range(first, now.year)
+
+
+def calculate_past_years(chart, now=None):
+    """The same yearly reading run over the person's past, so they can judge it against years they
+    remember. The chart may be the full /api/chart result (ayanamsa and timezone in its profile)."""
+    chart = _reading_chart(chart)
+    years = past_years_range(chart, now)
+    if not years:
+        return None
+    span = f'({years.start}–{years.stop - 1})'
+    return _forecast(
+        chart, years, now, 'yearly_past',
+        (f'Past Years to Check {span}', f'சரிபார்க்கக் கடந்த ஆண்டுகள் {span}', f'പരിശോധിക്കാൻ കഴിഞ്ഞ വർഷങ്ങൾ {span}'),
+        ('The same year-by-year reading run over your past. Mark each year matched, partly or not: it is the best test of the '
+         'forecast, and the ranking (best third favourable, hardest third careful) is among these years only.',
+         'உங்கள் கடந்த காலத்தின் மீது அதே ஆண்டுவாரிப் பலன். ஒவ்வொரு ஆண்டையும் பொருந்தியது, பகுதி, இல்லை எனக் குறிக்கவும்: இது பலனுக்கான '
+         'சிறந்த சோதனை; தரவரிசை (சிறந்த மூன்றில் ஒன்று சாதகம், கடினமான மூன்றில் ஒன்று கவனம்) இந்த ஆண்டுகளுக்குள் மட்டுமே.',
+         'നിങ്ങളുടെ കഴിഞ്ഞകാലത്തിന്മേൽ അതേ വർഷംതോറുമുള്ള ഫലം. ഓരോ വർഷവും യോജിച്ചു, ഭാഗികം, ഇല്ല എന്ന് അടയാളപ്പെടുത്തുക: ഇതാണ് ഫലത്തിന്റെ '
+         'ഏറ്റവും നല്ല പരീക്ഷ; റാങ്കിംഗ് (മികച്ച മൂന്നിലൊന്ന് അനുകൂലം, കഠിനമായ മൂന്നിലൊന്ന് ശ്രദ്ധ) ഈ വർഷങ്ങൾക്കുള്ളിൽ മാത്രം.'))

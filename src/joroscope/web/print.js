@@ -12,6 +12,8 @@ const chapterSection = key => c => printChapters(c, PRINT_CHAPTER_GROUPS[key]);
 const PRINT_SECTIONS = [
   { key: 'summary', en: 'Summary', ta: 'சுருக்கம்', ml: 'സംഗ്രഹം', build: printSummary },
   { key: 'birth', en: 'Birth details & Tamil panchangam', ta: 'பிறப்பு விவரங்கள் & பஞ்சாங்கம்', build: printBirth },
+  { key: 'calculation', en: 'Calculation sheet & birth-time sensitivity', ta: 'கணிப்புத் தாள் & பிறந்த நேர உணர்திறன்',
+    ml: 'കണക്കുകൂട്ടൽ ഷീറ്റും ജനനസമയ സംവേദനക്ഷമതയും', build: printCalculation },
   { key: 'charts', en: 'Rasi & Navamsa charts', ta: 'இராசி & நவாம்சச் சக்கரங்கள்', build: printCharts },
   { key: 'planets', en: 'Planetary positions', ta: 'கிரக நிலைகள்', build: printPlanets },
   { key: 'navamsa', en: 'Navamsa table', ta: 'நவாம்ச அட்டவணை', build: printNavamsa },
@@ -39,14 +41,14 @@ const PRINT_PRESETS = {
     hint_en: 'About 3 pages: birth notes, Rasi and Navamsa, planets, doshas and Dasa-Bhukti; the sheet families share for matching.',
     hint_ta: 'சுமார் 3 பக்கங்கள்: பிறப்புக் குறிப்பு, இராசி & நவாம்சம், கிரக நிலைகள், தோஷங்கள், தசா புக்தி; பொருத்தம் பார்க்கப் பகிரும் ஜாதகம்.',
     title_en: 'Horoscope', title_ta: 'ஜாதகம்',
-    sections: ['birth', 'charts', 'planets', 'doshas', 'dasa']
+    sections: ['birth', 'charts', 'planets', 'doshas', 'dasa', 'calculation']
   },
   detailed: {
     en: 'Detailed Horoscope', ta: 'விரிவான ஜாதகம்',
     hint_en: 'Adds the Navamsa and Shodasavarga, Bhava, strength, Ashtakavarga and KP tables an astrologer works from.',
     hint_ta: 'நவாம்சம், ஷோடசவர்க்கம், பாவம், பலம், அஷ்டகவர்க்கம், கே.பி. அட்டவணைகளுடன் ஜோதிடருக்கான விரிவான ஜாதகம்.',
     title_en: 'Detailed Horoscope', title_ta: 'விரிவான ஜாதகம்',
-    sections: ['birth', 'charts', 'planets', 'navamsa', 'doshas', 'dasa', 'otherdasas', 'vargas', 'bhavas', 'strength', 'ashtakavarga', 'kp']
+    sections: ['birth', 'calculation', 'charts', 'planets', 'navamsa', 'doshas', 'dasa', 'otherdasas', 'vargas', 'bhavas', 'strength', 'ashtakavarga', 'kp']
   },
   complete: {
     en: 'Complete Report', ta: 'முழுமையான ஜாதக அறிக்கை',
@@ -113,7 +115,65 @@ const pjLatLon = (v, pos, neg) => `${Math.abs(Number(v)).toFixed(4)}° ${Number(
 const pjSign = idx => esc(signName(idx));
 const pjDeg = (lon) => `${pjSign(Math.floor(lon / 30) % 12)} ${formatDegrees(lon % 30)}`;
 
+// ---------- calculation sheet (shared with the chart page's trust.js) ----------
+const SENS_LABELS = {
+  lagna_sign: ['Lagna sign', 'லக்ன ராசி', 'ലഗ്ന രാശി'], navamsa_lagna: ['Navamsa Lagna', 'நவாம்ச லக்னம்', 'നവാംശ ലഗ്നം'],
+  moon_sign: ['Moon sign (Rasi)', 'சந்திர ராசி', 'ചന്ദ്ര രാശി'], moon_star: ['Birth star', 'ஜனன நட்சத்திரம்', 'ജന്മനക്ഷത്രം'],
+  moon_pada: ['Star pada', 'நட்சத்திர பாதம்', 'നക്ഷത്ര പാദം']
+};
+// The name of a sensitivity row's value, before or after state
+function sensLabel(row, which) {
+  const v = row[which];
+  if (!v) return '—';
+  if (row.key === 'moon_star') return starName(v.en);
+  if (row.key === 'moon_pada') return `${starName(v.star)} ${v.index}`;
+  return signName(v.index);
+}
+function minutesText(m, limit) {
+  if (m == null) return `> ${Math.round((limit || 1440) / 60)} h`;
+  return m >= 120 ? `${(m / 60).toFixed(1)} h` : `${m} min`;
+}
+// [label, value] rows of the calculation sheet: every input and convention the chart used
+function calcSheetRows(c) {
+  const k = c.calculation;
+  if (!k) return [];
+  const ahead = k.clock_ahead_of_lmt_minutes;
+  return [
+    [txt('Time zone', 'நேர வலயம்', 'സമയമേഖല'), `${k.timezone} · ${k.timezone_abbreviation} (UTC${k.utc_offset})`],
+    [txt('Local time · UT', 'உள்ளூர் நேரம் · UT', 'പ്രാദേശിക സമയം · UT'), `${k.local_time} · ${k.ut} UT`],
+    [txt('Local mean time', 'உள்ளூர் சராசரி நேரம்', 'പ്രാദേശിക മധ്യമ സമയം'), `${k.local_mean_time} (LMT ${k.lmt_offset}; ${txt('clock', 'கடிகாரம்', 'ക്ലോക്ക്')} ${ahead >= 0 ? '+' : ''}${ahead} min)`],
+    [txt('Local sidereal time', 'உள்ளூர் நட்சத்திர நேரம்', 'പ്രാദേശിക നക്ഷത്രസമയം'), k.local_sidereal_time],
+    [txt('Sunrise · Sunset used', 'பயன்பட்ட உதயம் · அஸ்தமனம்', 'ഉപയോഗിച്ച ഉദയം · അസ്തമയം'), `${k.sunrise} · ${k.sunset}`],
+    [txt('Latitude · Longitude', 'அட்சரேகை · தீர்க்கரேகை', 'അക്ഷാംശം · രേഖാംശം'), `${k.latitude} · ${k.longitude}`],
+    [txt('Lagna', 'லக்னம்', 'ലഗ്നം'), `${signName(k.lagna_sign)} ${k.lagna}`],
+    [txt('Moon', 'சந்திரன்', 'ചന്ദ്രൻ'), `${signName(k.moon_sign)} ${k.moon}`],
+    [txt('Ayanamsa', 'அயனாம்சம்', 'അയനാംശം'), `${ayanamsaLabel(k.ayanamsa)} ${k.ayanamsa_value}`],
+    [txt('Rahu · Ketu', 'ராகு · கேது', 'രാഹു · കേതു'), k.nodes],
+    [txt('Houses', 'பாவங்கள்', 'ഭാവങ്ങൾ'), k.houses],
+    [txt('Dasa year', 'தசா ஆண்டு', 'ദശാ വർഷം'), k.dasa_year],
+    [txt('Julian day · ΔT', 'ஜூலியன் நாள் · ΔT', 'ജൂലിയൻ ദിനം · ΔT'), `${Number(k.julian_day).toFixed(6)} · ${k.delta_t_seconds} s`],
+    [txt('Engine', 'கணிப்பு இயந்திரம்', 'എഞ്ചിൻ'), `${k.engine} · JoRoScope ${k.app_version} · ${k.ephemeris}`]
+  ];
+}
+
 // ---------- sections ----------
+function printCalculation(c) {
+  const rows = calcSheetRows(c).map(([k, v]) => [k, esc(v)]);
+  const s = c.sensitivity;
+  const sens = s ? pjTable(
+    [txt('Quantity', 'அளவு', 'അളവ്'), txt('Now', 'இப்போது', 'ഇപ്പോൾ'), txt('Earlier', 'முன்', 'മുമ്പ്'), txt('Later', 'பின்', 'ശേഷം')],
+    s.quantities.map(r => [esc(txt(...SENS_LABELS[r.key])), esc(sensLabel(r, 'value')),
+      esc(r.earlier == null ? minutesText(null, r.limit) : `−${minutesText(r.earlier, r.limit)} → ${sensLabel(r, 'before')}`),
+      esc(r.later == null ? minutesText(null, r.limit) : `+${minutesText(r.later, r.limit)} → ${sensLabel(r, 'after')}`)])) : '';
+  const note = s ? `<p class="pj-note">${esc(txt(`The Lagna moves ${s.lagna_arcmin_per_minute}′ and every Dasa date about ${s.dasa_days_per_minute} days per minute of birth time.`,
+    `பிறந்த நேரத்தின் ஒரு நிமிடத்துக்கு லக்னம் ${s.lagna_arcmin_per_minute}′ நகர்கிறது; ஒவ்வொரு தசா தேதியும் சுமார் ${s.dasa_days_per_minute} நாட்கள்.`,
+    `ജനനസമയത്തിന്റെ ഒരു മിനിറ്റിന് ലഗ്നം ${s.lagna_arcmin_per_minute}′ നീങ്ങുന്നു; ഓരോ ദശാ തീയതിയും ഏകദേശം ${s.dasa_days_per_minute} ദിവസം.`))}</p>` : '';
+  return `
+    <h3>${txt('Calculation sheet', 'கணிப்புத் தாள்', 'കണക്കുകൂട്ടൽ ഷീറ്റ്')}</h3>
+    <div class="pj-grid">${pjKV(rows)}</div>
+    ${s ? `<h3>${txt('Birth-time sensitivity', 'பிறந்த நேர உணர்திறன்', 'ജനനസമയ സംവേദനക്ഷമത')}</h3>${sens}${note}` : ''}`;
+}
+
 function printBirth(c) {
   const prof = c.profile;
   const si = c.south_indian || {};
@@ -309,7 +369,8 @@ function printChapters(c, keys) {
     const tables = (statements ? statements() : '') + ch.tables.map(t => `<h4>${cell(t.title)}</h4>` + pjTable(t.head.map(cell), t.rows.map(row => row.map(cell)), 'compact')).join('');
     const grid = ch.grid ? `<div class="pj-chakra">${ch.grid.flat().map(g => `<div class="${esc(g.cls || '')}">${cell(g)}</div>`).join('')}</div>` : '';
     const cards = ch.cards.map(k => `<div class="pj-reading"><h4>${cell(k.title)}</h4><p>${cell(k.body)}</p></div>`).join('');
-    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${grid}${tables}${cards}`;
+    const sources = ch.sources?.length ? `<p class="pj-note">${esc(txt('Sources', 'மூலங்கள்', 'ആധാരങ്ങൾ'))}: ${ch.sources.map(cell).join(' · ')}</p>` : '';
+    return `<h3>${cell(ch.title)}</h3><p class="pj-note">${cell(ch.intro)}</p>${sources}${grid}${tables}${cards}`;
   }).join('');
 }
 

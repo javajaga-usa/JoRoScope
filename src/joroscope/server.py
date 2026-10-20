@@ -19,6 +19,7 @@ from urllib.parse import urlsplit, unquote
 
 from . import __version__
 from .core import ai, feedback
+from .core.readings.yearly import calculate_past_years
 from .core.engine import calculate, calculate_match
 from .core.south_indian import daily_panchangam, month_calendar
 from .core.muhurtham import find_muhurthams
@@ -82,6 +83,9 @@ class Handler(BaseHTTPRequestHandler):
             return
         if name == '/api/health':
             self.send(json.dumps({'application': 'joroscope', 'version': __version__, 'status': 'healthy'}).encode())
+            return
+        if name == '/api/accuracy':  # the public accuracy figures: aggregates only, no passcode
+            self.send(json.dumps(feedback.public_report()).encode())
             return
         if name == '/':
             name = '/index.html'
@@ -184,8 +188,12 @@ class Handler(BaseHTTPRequestHandler):
                     feedback.save(entry)
                     self.send(json.dumps({'saved': True, 'items': len(entry['items']), 'siblings': len(entry['siblings'])}).encode())
                 elif req_path == '/api/chapters':
-                    pred = calculate(data).get('predictions') or {}
-                    chapters = {k: pred[k] for k in data.get('keys') or DEFERRED_CHAPTERS if k in DEFERRED_CHAPTERS and k in pred}
+                    result = calculate(data)
+                    pred = result.get('predictions') or {}
+                    keys = data.get('keys') or DEFERRED_CHAPTERS
+                    chapters = {k: pred[k] for k in keys if k in DEFERRED_CHAPTERS and k in pred}
+                    if 'yearly_past' in keys:  # the forecast run over the past, computed only when asked for
+                        chapters['yearly_past'] = calculate_past_years(result)
                     if data.get('lang') != 'ml':
                         chapters = strip_malayalam(chapters)
                     self.send(json.dumps({'chapters': chapters}, ensure_ascii=False, allow_nan=False).encode())

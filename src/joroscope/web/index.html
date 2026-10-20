@@ -240,6 +240,10 @@
                     <option value="savana" data-i18n="dasa_year_savana">360 days (Savana, classical)</option>
                   </select>
                 </div>
+                <div class="form-group">
+                  <label for="input-uncertainty" data-i18n="uncertainty">Birth time uncertainty (± min)</label>
+                  <input type="number" id="input-uncertainty" name="uncertainty" min="0" max="180" step="1" placeholder="0">
+                </div>
               </div>
 
               <button class="primary-btn glow-btn" id="calculate-btn" type="submit">
@@ -488,7 +492,11 @@
                     <p id="calc-ayanamsa-val" class="muted">—</p>
                   </div>
                 </div>
+                <h3 class="calc-sheet-title" data-i18n="calc_sheet_title">Calculation sheet</h3>
+                <p class="card-subtitle" data-i18n="calc_sheet_sub">Every input and convention this chart was computed with, to compare with other software or a printed horoscope.</p>
+                <div id="calc-sheet"></div>
               </div>
+              <div class="cosmic-card" id="sensitivity-card" hidden></div>
             </div>
           </div>
         </div>
@@ -1879,6 +1887,7 @@
         </div>
 
         <!-- Hora (Orai) table -->
+        <div class="cosmic-card lower-space" id="check-points-card" hidden></div>
         <div class="cosmic-card lower-space">
           <div class="card-header">
             <div>
@@ -2006,6 +2015,9 @@
           </div>
         </div>
         <div class="report-panel" id="rect-result"></div>
+        <div class="cosmic-card lower-space" id="compare-card"></div>
+        <div class="cosmic-card lower-space" id="validation-card"></div>
+        <div class="cosmic-card lower-space" id="public-accuracy-card"></div>
         <div class="cosmic-card lower-space" id="accuracy-card"></div>
       </section>
 
@@ -2109,5 +2121,6 @@
   <script src="matching.js"></script>
   <script src="profiles-ui.js"></script>
   <script src="print.js"></script>
+  <script src="trust.js"></script>
 </body>
 </html>

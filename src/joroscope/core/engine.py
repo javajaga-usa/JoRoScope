@@ -1447,6 +1447,11 @@ def calculate(data):
     # Synthesized readings
     readings = synthesize_readings(planets, active_dasha, yogas)
 
+    # The calculation sheet (every input applied) and the birth-time sensitivity, for checking
+    from .calcsheet import calculation_sheet, birth_time_sensitivity
+    calculation = calculation_sheet(data, utc, jd, lat, lon, planets, ayan, ayanamsa_degrees, day_events, birth_tz, dasa_year_kind, dasa_year)
+    sensitivity = birth_time_sensitivity(jd, lat, lon, dasa_year, data.get('uncertainty'))
+
     # House Details Summary
     house_details = []
     for h in range(1, 13):
@@ -1506,10 +1511,12 @@ def calculate(data):
     predictions = generate_comprehensive_predictions(chart_summary)
 
     return dict(
-        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold', 'dasa_year']},
+        profile={k: str(data.get(k, ''))[:200] for k in ['name', 'date', 'time', 'timezone', 'city', 'latitude', 'longitude', 'ayanamsa', 'fold', 'dasa_year', 'uncertainty']},
         utc=utc.isoformat(),
         julian_day=jd,
         ayanamsa_degrees=ayanamsa_degrees,
+        calculation=calculation,
+        sensitivity=sensitivity,
         planets=planets,
         dasha=dasha_rows,
         active_dasha=active_dasha,

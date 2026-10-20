@@ -806,7 +806,26 @@ function reportCardHtml(c) {
         ${pill ? `<span class="status-pill ${pill[0]}">${txt(pill[1], pill[2])}</span>` : ''}
       </div>
       <p class="reading-body">${esc(txt(c.body.en, c.body.ta, c.body.ml))}</p>
+      ${c.why ? whyHtml(c.why) : ''}
     </div>`;
+}
+
+// The factors behind a card's scores (the year-by-year forecast): every point, and what gave it
+const WHY_VERDICTS = { good: ['favourable', 'சாதகம்', 'അനുകൂലം'], steady: ['steady', 'நிதானம்', 'സ്ഥിരം'], care: ['needs care', 'கவனம் தேவை', 'ശ്രദ്ധ വേണം'] };
+function whyHtml(why) {
+  const sign = n => (n > 0 ? `+${n}` : `${n}`);
+  return `<details class="why"><summary>${esc(txt('Why these scores', 'இந்த மதிப்பெண்கள் ஏன்', 'ഈ സ്കോറുകൾ എന്തുകൊണ്ട്'))}</summary>
+    ${why.map(a => `<div class="why-area"><strong>${esc(txt(a.label.en, a.label.ta, a.label.ml))}</strong> · ${esc(txt(...(WHY_VERDICTS[a.verdict] || [a.verdict, a.verdict, a.verdict])))} (${esc(sign(a.score))})
+      ${a.items.length ? `<ul>${a.items.map(f => `<li>${esc(txt(f.en, f.ta, f.ml))} <span class="why-points">${esc(sign(f.points))}</span></li>`).join('')}</ul>`
+        : `<p class="muted">${esc(txt('No Dasa lord or transit touches this area in the year.', 'இந்த ஆண்டில் எந்த தசா அதிபதியும் கோச்சாரமும் இத்துறையைத் தொடவில்லை.', 'ഈ വർഷം ഒരു ദശാധിപനും ഗോചരവും ഈ മേഖലയെ സ്പർശിക്കുന്നില്ല.'))}</p>`}</div>`).join('')}
+    <p class="muted">${esc(txt('Years are ranked against each other: the best third of the years is favourable, the hardest third needs care.', 'ஆண்டுகள் ஒன்றோடொன்று தரவரிசைப்படுத்தப்படுகின்றன: சிறந்த மூன்றில் ஒன்று சாதகம், கடினமான மூன்றில் ஒன்று கவனம்.', 'വർഷങ്ങൾ പരസ്പരം റാങ്ക് ചെയ്യുന്നു: മികച്ച മൂന്നിലൊന്ന് അനുകൂലം, കഠിനമായ മൂന്നിലൊന്ന് ശ്രദ്ധ.'))}</p>
+  </details>`;
+}
+
+// The classical texts a chapter's rules rest on
+function sourcesHtml(sources) {
+  if (!sources?.length) return '';
+  return `<p class="muted sources"><strong>${esc(txt('Sources', 'மூலங்கள்', 'ആധാരങ്ങൾ'))}:</strong> ${sources.map(x => esc(txt(x.en, x.ta, x.ml))).join(' · ')}</p>`;
 }
 
 function reportTableHtml(t) {
@@ -837,6 +856,7 @@ function renderReportChapter(key, ch) {
       'Add dasa changes and good/careful periods to my calendar', 'தசா மாற்றங்கள், நல்ல/கவனமான காலங்களை நாட்காட்டியில் சேர்',
       'ദശാമാറ്റങ്ങളും നല്ല/ശ്രദ്ധിക്കേണ്ട കാലങ്ങളും കലണ്ടറിൽ ചേർക്കുക'))}</button>`);
     $('#yearly-ics-btn')?.addEventListener('click', exportYearlyIcs);
+    if (typeof renderPastYearsButton === 'function') renderPastYearsButton(panel);
   }
 }
 
@@ -896,6 +916,7 @@ function renderChapterInto(panel, ch) {
     <div class="cosmic-card report-intro">
       <h2>${esc(txt(ch.title.en, ch.title.ta, ch.title.ml))}</h2>
       <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta, ch.intro.ml))}</p>
+      ${sourcesHtml(ch.sources)}
     </div>
     ${ch.grid ? reportGridHtml(ch.grid) : ''}
     ${ch.cards_first ? '' : ch.tables.map(reportTableHtml).join('')}
@@ -930,9 +951,11 @@ function loadVerify() {
   }
 }
 
+// Saves merge into what is stored, so the statement marks and the past-year ratings, kept by
+// different panels, never overwrite each other
 function saveVerify(marks) {
   try {
-    localStorage.setItem(verifyKey(), JSON.stringify(marks));
+    localStorage.setItem(verifyKey(), JSON.stringify({ ...loadVerify(), ...marks }));
   } catch (e) {}
 }
 
@@ -979,6 +1002,7 @@ function renderParisodhanai(ch) {
           <p><strong>${esc(txt(s.en, s.ta, s.ml))}</strong>
             <span class="status-pill ${CONFIDENCE_PILLS[s.confidence]}">${esc(txt(s.confidence_en, s.confidence_ta, s.confidence_ml))}</span></p>
           <small class="muted">${esc(txt(s.basis_en, s.basis_ta, s.basis_ml))}</small>
+          ${s.source_en ? `<small class="muted source">${esc(txt('Source', 'மூலம்', 'ആധാരം'))}: ${esc(txt(s.source_en, s.source_ta, s.source_ml))}</small>` : ''}
           ${dateField}
         </div>
         <div class="verify-buttons">
@@ -993,6 +1017,7 @@ function renderParisodhanai(ch) {
     <div class="cosmic-card report-intro">
       <h2>${esc(txt(ch.title.en, ch.title.ta, ch.title.ml))}</h2>
       <p class="muted">${esc(txt(ch.intro.en, ch.intro.ta, ch.intro.ml))}</p>
+      ${sourcesHtml(ch.sources)}
       <p class="verify-score" id="verify-score">${esc(verifyScoreText(ch.statements, marks))}</p>
     </div>
     ${VERIFY_GROUPS.map(([topic, en, ta, ml]) => {
@@ -1347,18 +1372,8 @@ async function loadAccuracyReport() {
     });
     const r = await resp.json();
     if (!resp.ok) throw new Error(r.error || 'The report could not be loaded.');
-    const pct = v => v == null ? '—' : `${v}%`;
-    const tableHtml = (head, rows) => `<div class="table-responsive"><table class="luxury-table"><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>
-      <tbody>${rows.map(row => `<tr>${row.map(c => `<td>${esc(String(c))}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
     out.innerHTML = `<p class="muted">${esc(txt(`${r.entries} people have shared their marks.`, `${r.entries} பேர் குறிப்புகளைப் பகிர்ந்துள்ளனர்.`, `${r.entries} പേർ അടയാളങ്ങൾ പങ്കിട്ടു.`))}</p>`
-      + (r.statements.length ? tableHtml([txt('Statement', 'கூற்று', 'പ്രസ്താവന'), txt('Right', 'சரி', 'ശരി'), txt('Wrong', 'தவறு', 'തെറ്റ്'), '%',
-          txt('Dates given', 'தேதிகள்', 'തീയതികൾ'), txt('In window', 'காலத்துக்குள்', 'കാലത്തിനുള്ളിൽ'), txt('In months', 'மாதங்களுக்குள்', 'മാസങ്ങൾക്കുള്ളിൽ')],
-        r.statements.map(s => [s.key, s.right, s.wrong, pct(s.right_pct), s.dated, pct(s.in_window_pct), pct(s.in_months_pct)])) : '')
-      + (r.confidence.length ? tableHtml([txt('Confidence', 'நம்பகத்தன்மை', 'ഉറപ്പ്'), txt('Right', 'சரி', 'ശരി'), txt('Wrong', 'தவறு', 'തെറ്റ്'), '%'],
-        r.confidence.map(c => [c.level, c.right, c.wrong, pct(c.right_pct)])) : '')
-      + (r.siblings.length ? tableHtml([txt('Siblings', 'உடன்பிறப்புகள்', 'സഹോദരങ്ങൾ'), txt('People', 'நபர்கள்', 'ആളുകൾ'),
-          txt('Exact', 'சரியாக', 'കൃത്യം'), txt('Total right', 'மொத்தம் சரி', 'ആകെ ശരി')],
-        r.siblings.map(s => [s.group, s.count, pct(s.exact_pct), pct(s.total_pct)])) : '');
+      + accuracyTablesHtml(r);
   } catch (err) {
     out.innerHTML = `<p class="muted">${esc(errorText(err.message))}</p>`;
   }
