@@ -277,6 +277,7 @@ function navigatePage(pageName) {
   if (pageName === 'matching') populateMatchDropdowns();
   if (pageName === 'tools') {
     fillPrasnaQuestions();
+    if (typeof renderTrustTools === 'function') renderTrustTools();
     renderAccuracyCard();
   }
   if (pageName === 'panchangam') {
@@ -795,6 +796,10 @@ function renderQuickStats() {
     `${m.engine} (மோஷியர் பகுப்பாய்வு எபிமெரிஸ்). பாவங்கள்: முழு ராசி முறை. ராகு-கேது: சராசரி கணு.`);
   $('#calc-jd').textContent = currentChart.julian_day.toFixed(6);
   $('#calc-ayanamsa-val').textContent = formatDegrees(currentChart.ayanamsa_degrees);
+  if (typeof renderCalculationSheet === 'function') {
+    renderCalculationSheet();
+    renderSensitivity();
+  }
 }
 
 // Calendar date (YYYY-MM-DD) of a UTC timestamp at the chart's birthplace

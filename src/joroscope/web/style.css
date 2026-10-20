@@ -3951,3 +3951,31 @@ html[lang="ml"] .ml-only { display: block; }
 
 /* Header buttons stay on one line */
 .header-actions .tool-btn { white-space: nowrap; }
+
+/* Calculation sheet and birth-time sensitivity (trust features) */
+.calc-sheet-title { margin: 18px 0 2px; font-size: 14px; }
+.calc-sheet-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); margin-top: 10px; }
+.calc-sheet-grid p { word-break: break-word; }
+.calc-sheet-note { font-size: 11.5px; margin: 12px 0; }
+.sens-table tr.warn td { color: var(--ruby); }
+.sens-table tr.ok td:last-child { color: var(--emerald); }
+.sens-caution { color: var(--ruby); font-size: 12.5px; font-weight: 600; }
+
+/* Trust features: comparison, past years, why lists, sources */
+.compare-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; margin: 12px 0; }
+.compare-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 11.5px; color: var(--text-secondary); }
+.compare-grid select, .compare-grid input { font-size: 12.5px; }
+.compare-note { font-size: 12.5px; margin: 8px 0; }
+.sens-table tr.ok td:last-child { color: var(--emerald); }
+.past-year { display: flex; flex-direction: column; gap: 8px; }
+.past-year .verify-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.past-year.rated-matched .reading-card { border-color: var(--emerald); }
+.past-year.rated-no .reading-card { border-color: var(--ruby); }
+.verify-btn.partly.active { border-color: var(--gold, #c9a227); color: var(--gold, #c9a227); }
+details.why { margin-top: 10px; font-size: 12px; }
+details.why summary { cursor: pointer; color: var(--text-secondary); }
+details.why .why-area { margin: 8px 0; }
+details.why ul { margin: 4px 0 0 16px; padding: 0; }
+details.why li { margin: 2px 0; color: var(--text-secondary); }
+.why-points { color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.sources, .verify-text .source { font-size: 11px; display: block; margin-top: 4px; }

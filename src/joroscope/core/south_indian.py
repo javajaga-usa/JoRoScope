@@ -813,6 +813,36 @@ def month_calendar(year, month, tz_name, lat, lon, ayanamsa='Lahiri'):
     return dict(year=year, month=month, timezone=tz_name, days=days)
 
 
+def check_points(jd, tz):
+    """Astronomical facts anyone can check against a phone, timeanddate.com or a printed calendar: the
+    Moon's illumination now, the next new and full moon, the next sankranti (the Sun's sign change,
+    which begins a Tamil month) and the next lunar and solar eclipses anywhere on Earth."""
+    elongation, _ = _elongation(jd)
+    illumination = round(50 * (1 - math.cos(math.radians(elongation))), 1)
+    phases = []
+    t = jd
+    for _ in range(2):
+        t = _next_boundary(t, _elongation, 180)
+        kind = 'new_moon' if abs(((_elongation(t)[0] + 90) % 360) - 90) < 90 else 'full_moon'
+        phases.append(dict(kind=kind, when_local=_local_iso(t, tz), when_utc=jd_to_utc(t).isoformat(timespec='minutes')))
+        t += 1
+    sankranti = _next_boundary(jd, _sun, 30)
+    sign = int(_sun(sankranti + 1e-6)[0] // 30)
+    out = dict(moon_illumination_pct=illumination, waxing=elongation < 180, phases=phases,
+               sankranti=dict(when_local=_local_iso(sankranti, tz), sign_index=sign, sign=SIGNS[sign], sign_ta=TAMIL[sign],
+                              month=TAMIL_MONTHS[sign], month_ta=TAMIL_MONTHS_TA[sign]))
+    try:
+        res, tret = swe.lun_eclipse_when(jd, swe.FLG_MOSEPH, 0)
+        out['lunar_eclipse'] = dict(when_utc=jd_to_utc(tret[0]).isoformat(timespec='minutes'), when_local=_local_iso(tret[0], tz),
+                                    total=bool(res & swe.ECL_TOTAL), partial=bool(res & swe.ECL_PARTIAL), penumbral=bool(res & swe.ECL_PENUMBRAL))
+        res, tret = swe.sol_eclipse_when_glob(jd, swe.FLG_MOSEPH, 0)
+        out['solar_eclipse'] = dict(when_utc=jd_to_utc(tret[0]).isoformat(timespec='minutes'), when_local=_local_iso(tret[0], tz),
+                                    total=bool(res & swe.ECL_TOTAL), annular=bool(res & swe.ECL_ANNULAR), partial=bool(res & swe.ECL_PARTIAL))
+    except Exception:  # an ephemeris without eclipse support: the rest of the panchangam still stands
+        pass
+    return out
+
+
 def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, natal_sign=None, ayanamsa='Lahiri'):
     """Tamil daily panchangam for a local date and time, with anga end times,
     Tamil date, Soolam, Chandrashtamam and optional personal Tara / Chandra Balam.
@@ -862,6 +892,8 @@ def daily_panchangam(date_str, time_str, tz_name, lat, lon, natal_star=None, nat
     affected = (moon_sign - 7) % 12
     panch['chandrashtamam'] = dict(sign_index=affected, sign=SIGNS[affected], sign_ta=TAMIL[affected],
                                    stars=_stars_in_sign(affected))
+
+    panch['check_points'] = check_points(jd, tz)
 
     personal = {}
     if natal_star is not None:

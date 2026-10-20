@@ -251,6 +251,7 @@ function populatePanchangamView(panch) {
   renderHoraTable(panch.horas);
   renderGowriTable(panch.gowri);
   renderPersonalBalam(panch.personal);
+  if (typeof renderCheckPoints === 'function') renderCheckPoints(panch);
 }
 
 // Date and clock time of an ISO timestamp in the chart location's timezone, e.g. "3 Jun 2027, 05:28"

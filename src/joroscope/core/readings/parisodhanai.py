@@ -77,10 +77,24 @@ def _names(gs, lang):
     return ', '.join(table_[g] for g in gs)
 
 
+SOURCES = {  # topic -> the classical texts the statements rest on (en, ta, ml)
+    'siblings': ('Brihat Parashara Hora Shastra, judgement of the bhavas (3rd: younger, 11th: elder co-borns); Jataka Parijata; Mars as karaka of siblings',
+                 'பிருஹத் பராசர ஹோரா சாஸ்திரம், பாவ விசாரம் (3: இளைய, 11: மூத்த உடன்பிறப்பு); ஜாதக பாரிஜாதம்; உடன்பிறப்புக் காரகன் செவ்வாய்',
+                 'ബൃഹത് പരാശര ഹോരാ ശാസ്ത്രം, ഭാവവിചാരം (3: ഇളയ, 11: മൂത്ത സഹോദരങ്ങൾ); ജാതക പാരിജാതം; സഹോദരകാരകൻ ചൊവ്വ'),
+    'parents': ('Brihat Parashara Hora Shastra, judgement of the bhavas (9th: father, 4th: mother); Phaladeepika (Sun as karaka of the father, Moon of the mother)',
+                'பிருஹத் பராசர ஹோரா சாஸ்திரம், பாவ விசாரம் (9: தந்தை, 4: தாய்); பலதீபிகை (தந்தைக் காரகன் சூரியன், தாய்க் காரகன் சந்திரன்)',
+                'ബൃഹത് പരാശര ഹോരാ ശാസ്ത്രം, ഭാവവിചാരം (9: അച്ഛൻ, 4: അമ്മ); ഫലദീപിക (പിതൃകാരകൻ സൂര്യൻ, മാതൃകാരകൻ ചന്ദ്രൻ)'),
+    'events': ('Vimshottari Dasa: Brihat Parashara Hora Shastra, Dasa Phala chapters; Dasa-Bhukti results from the lords\' houses: Phaladeepika; Saturn-Jupiter double transit: K.N. Rao',
+               'விம்சோத்தரி தசை: பிருஹத் பராசர ஹோரா சாஸ்திரம், தசாபல அத்தியாயங்கள்; அதிபதிகளின் பாவங்களால் தசா புக்தி பலன்: பலதீபிகை; சனி-குரு இரட்டைக் கோச்சாரம்: கே.என். ராவ்',
+               'വിംശോത്തരി ദശ: ബൃഹത് പരാശര ഹോരാ ശാസ്ത്രം, ദശാഫല അധ്യായങ്ങൾ; അധിപന്മാരുടെ ഭാവങ്ങളാൽ ദശാ-ഭുക്തി ഫലം: ഫലദീപിക; ശനി-വ്യാഴ ഇരട്ട ഗോചരം: കെ.എൻ. റാവു'),
+}
+
+
 def _statement(key, topic, en, ta, ml, basis_en, basis_ta, basis_ml, confidence, **extra):
+    source = SOURCES.get(topic, ('', '', ''))
     return dict(key=key, topic=topic, en=en, ta=ta, ml=ml, basis_en=basis_en, basis_ta=basis_ta, basis_ml=basis_ml,
                 confidence=confidence, confidence_en=CONFIDENCE[confidence][0], confidence_ta=CONFIDENCE[confidence][1],
-                confidence_ml=CONFIDENCE[confidence][2], **extra)
+                confidence_ml=CONFIDENCE[confidence][2], source_en=source[0], source_ta=source[1], source_ml=source[2], **extra)
 
 
 def sibling_reading(planets, house):
@@ -330,4 +344,5 @@ def calculate_parisodhanai(chart, now=None):
         title_ml='ജാതക പരിശോധന',
         intro_ml=('ജാതകം സൂചിപ്പിക്കുന്ന നിങ്ങളുടെ കഴിഞ്ഞകാല വിവരങ്ങൾ: സഹോദരങ്ങൾ, മാതാപിതാക്കൾ, കഴിഞ്ഞ സംഭവങ്ങളുടെ കാലങ്ങൾ. ഇവ പരമ്പരാഗത '
                   'സൂചനകളാണ്, ഓരോന്നിനും ജാതകത്തിന്റെ പിന്തുണയുടെ അളവോടെ; നിങ്ങൾക്ക് സ്വയം പരിശോധിക്കാം.'),
+        sources=[dict(en=a, ta=b, ml=c) for a, b, c in SOURCES.values()],
         statements=statements)

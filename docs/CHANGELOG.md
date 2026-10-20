@@ -1,5 +1,44 @@
 # JoRoScope Changelog
 
+## [Unreleased]
+
+Concrete points a person can check, so the calculations and the predictions earn trust instead of asking for it.
+
+### Calculation sheet
+- The chart page's metadata box now states every input the engine applied: the time zone and the UTC offset in force on the birth date (historical offsets included, such as India's 1942-45 war time), the UT and local mean time, the sunrise and sunset used, the local sidereal time, latitude and longitude to the arc second, the Lagna and Moon to the arc second, the ayanamsa value, the node and house conventions, the dasa year, the Julian day with ΔT, and the engine and app versions.
+- **Export calculation sheet** downloads a plain-text sheet with these inputs, every graha's sidereal longitude to the arc second with its speed, the KP cusps, the Sripati bhava madhyas and the sensitivity table, for checking in any other software.
+- The Traditional Jathagam and Detailed Horoscope prints carry the sheet as a new section.
+
+### Birth-time sensitivity
+- A new panel shows how many minutes earlier or later the birth time can move before the Lagna, the Navamsa Lagna, the Moon's sign, star or pada changes, and what each becomes. It states how far the Lagna moves per minute and how many days every Dasa date moves per minute of birth time.
+- An optional **Birth time uncertainty (± min)** field in the birth form marks each quantity stable or liable to change within that margin, states the Dasa dates' and the Lagna's uncertainty, and warns to read Lagna-dependent readings with care.
+
+### Compare with a printed horoscope
+- On the Tools page, type the signs of the grahas and the Dasa balance at birth from a family's printed jathagam. The comparison shows what agrees and names the likely cause of each difference: a birth time near a Lagna boundary (with the minutes needed), a true-node Rahu, a smaller or larger ayanamsa, or a different date. A printed Dasa balance translates into a birth-time correction in minutes, with a button to try it.
+
+### Check these yourself
+- The Daily Panchangam page lists facts anyone can check against a phone, timeanddate.com or a printed calendar: today's sunrise and sunset, the Moon's illumination, the next new and full moon, the next sankranti (Tamil month start) and the next lunar and solar eclipses.
+
+### Validation list
+- The Tools page lists what the automated tests check and against which published source (B.V. Raman, V.P. Jain, P.V.R. Narasimha Rao, PyJHora, Drik Panchang), with the test file for each. See [VALIDATION.md](VALIDATION.md).
+
+### Past years to check
+- The Year-by-Year Forecast tab can run the same reading over the person's past, from age 15 to last year, ranked among themselves. Each year is rated **Matched**, **Partly** or **Did not match**; the ratings stay in the browser, give a running score and go into **Share my marks** as the year's rank band and the rating only.
+
+### Why these scores
+- Every yearly card has a **Why these scores** list: each point of each area's score with the Dasa or Bhukti lord, the houses it rules or occupies and its condition, the Jupiter and Saturn transits and the Saturn cycles that gave it.
+
+### Honest accuracy figures
+- Each shared past-event date now records the share of the eligible years the predicted windows covered: the chance of a hit by luck. The owner's Accuracy report shows that baseline and the lift (hit rate divided by baseline) beside every hit rate, and how the rated past years came out by rank band.
+- A public **How accurate has it been?** card on the Tools page shows the same figures to everyone, from `GET /api/accuracy`, for groups of 20 or more marks only.
+
+### Sources
+- Chart Verification statements and the yearly forecast name the classical texts their rules rest on (Brihat Parashara Hora Shastra, Phaladeepika, Jataka Parijata, K.N. Rao's double transit), on screen and in print.
+
+### Also
+- `/api/chapters` accepts the key `yearly_past`.
+- Saves of verification marks merge into what is stored, so the statement marks and the year ratings never overwrite each other.
+
 ## [2.6.0] - 2026-09-29
 
 ### Faster on phones
