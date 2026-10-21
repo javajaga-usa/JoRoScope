@@ -1,6 +1,6 @@
 # JoRoScope Changelog
 
-## [Unreleased]
+## [2.7.0] - 2026-10-21
 
 Concrete points a person can check, so the calculations and the predictions earn trust instead of asking for it.
 
